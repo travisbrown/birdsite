@@ -1,0 +1,17 @@
+[package]
+name = "birdsite-follows"
+authors = { workspace = true }
+repository = { workspace = true }
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+
+[dependencies]
+chrono = { workspace = true }
+futures = "0.3"
+log = "0.4"
+reqwest = { version = "0.12", features = ["json"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
