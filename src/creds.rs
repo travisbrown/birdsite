@@ -2,6 +2,7 @@ use regex::Regex;
 use std::sync::LazyLock;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Creds {
     pub bearer_token: String,
     pub csrf_token: String,
