@@ -161,59 +161,69 @@ mod tests {
     use super::Tweet;
 
     const TWEET_EXAMPLE_01: &str =
-        include_str!("../../../examples/wbm-v1-1326237393893158914.json");
-    const TWEET_EXAMPLE_02: &str = include_str!("../../../examples/wbm-v1-986837527037337601.json");
+        include_str!("../../../../examples/wbm-v1-1326237393893158914.json");
+    const TWEET_EXAMPLE_02: &str =
+        include_str!("../../../../examples/wbm-v1-986837527037337601.json");
     const TWEET_EXAMPLE_03: &str =
-        include_str!("../../../examples/wbm-v1-1125834307958788097.json");
+        include_str!("../../../../examples/wbm-v1-1125834307958788097.json");
     const TWEET_EXAMPLE_04: &str =
-        include_str!("../../../examples/wbm-v1-1142795641313271808.json");
-    const TWEET_EXAMPLE_05: &str = include_str!("../../../examples/wbm-v1-927401529837015041.json");
+        include_str!("../../../../examples/wbm-v1-1142795641313271808.json");
+    const TWEET_EXAMPLE_05: &str =
+        include_str!("../../../../examples/wbm-v1-927401529837015041.json");
     const TWEET_EXAMPLE_06: &str =
-        include_str!("../../../examples/wbm-v1-1426766010791641094.json");
+        include_str!("../../../../examples/wbm-v1-1426766010791641094.json");
     const TWEET_EXAMPLE_07: &str =
-        include_str!("../../../examples/wbm-v1-1103673505617494018.json");
+        include_str!("../../../../examples/wbm-v1-1103673505617494018.json");
     const TWEET_EXAMPLE_08: &str =
-        include_str!("../../../examples/wbm-v1-1186383762835361792.json");
+        include_str!("../../../../examples/wbm-v1-1186383762835361792.json");
     const TWEET_EXAMPLE_09: &str =
-        include_str!("../../../examples/wbm-v1-1573518747654098945.json");
+        include_str!("../../../../examples/wbm-v1-1573518747654098945.json");
     const TWEET_EXAMPLE_10: &str =
-        include_str!("../../../examples/wbm-v1-1006425694312771584.json");
-    const TWEET_EXAMPLE_11: &str = include_str!("../../../examples/wbm-v1-881014163392401408.json");
-    const TWEET_EXAMPLE_12: &str = include_str!("../../../examples/wbm-v1-869020559493013505.json");
+        include_str!("../../../../examples/wbm-v1-1006425694312771584.json");
+    const TWEET_EXAMPLE_11: &str =
+        include_str!("../../../../examples/wbm-v1-881014163392401408.json");
+    const TWEET_EXAMPLE_12: &str =
+        include_str!("../../../../examples/wbm-v1-869020559493013505.json");
     const TWEET_EXAMPLE_13: &str =
-        include_str!("../../../examples/wbm-v1-1287425330517626882.json");
+        include_str!("../../../../examples/wbm-v1-1287425330517626882.json");
     const TWEET_EXAMPLE_14: &str =
-        include_str!("../../../examples/wbm-v1-1455280705504698387.json");
+        include_str!("../../../../examples/wbm-v1-1455280705504698387.json");
     const TWEET_EXAMPLE_15: &str =
-        include_str!("../../../examples/wbm-v1-1113327568692736006.json");
-    const TWEET_EXAMPLE_16: &str = include_str!("../../../examples/wbm-v1-907294938248949760.json");
+        include_str!("../../../../examples/wbm-v1-1113327568692736006.json");
+    const TWEET_EXAMPLE_16: &str =
+        include_str!("../../../../examples/wbm-v1-907294938248949760.json");
     const TWEET_EXAMPLE_17: &str =
-        include_str!("../../../examples/wbm-v1-1591427284862377986.json");
+        include_str!("../../../../examples/wbm-v1-1591427284862377986.json");
     const TWEET_EXAMPLE_18: &str =
-        include_str!("../../../examples/wbm-v1-1141444685342355456.json");
+        include_str!("../../../../examples/wbm-v1-1141444685342355456.json");
     const TWEET_EXAMPLE_19: &str =
-        include_str!("../../../examples/wbm-v1-1452944423688409088.json");
-    const TWEET_EXAMPLE_20: &str = include_str!("../../../examples/wbm-v1-911468346234859521.json");
+        include_str!("../../../../examples/wbm-v1-1452944423688409088.json");
+    const TWEET_EXAMPLE_20: &str =
+        include_str!("../../../../examples/wbm-v1-911468346234859521.json");
     const TWEET_EXAMPLE_21: &str =
-        include_str!("../../../examples/wbm-v1-1521459914643755008.json");
-    const TWEET_EXAMPLE_22: &str = include_str!("../../../examples/wbm-v1-998645860140441602.json");
+        include_str!("../../../../examples/wbm-v1-1521459914643755008.json");
+    const TWEET_EXAMPLE_22: &str =
+        include_str!("../../../../examples/wbm-v1-998645860140441602.json");
     const TWEET_EXAMPLE_23: &str =
-        include_str!("../../../examples/wbm-v1-1329632859162697728.json");
+        include_str!("../../../../examples/wbm-v1-1329632859162697728.json");
     const TWEET_EXAMPLE_24: &str =
-        include_str!("../../../examples/wbm-v1-1283938882443186176.json");
+        include_str!("../../../../examples/wbm-v1-1283938882443186176.json");
     const TWEET_EXAMPLE_25: &str =
-        include_str!("../../../examples/wbm-v1-1239286867297816577.json");
+        include_str!("../../../../examples/wbm-v1-1239286867297816577.json");
     const TWEET_EXAMPLE_26: &str =
-        include_str!("../../../examples/wbm-v1-1175405918722449408.json");
+        include_str!("../../../../examples/wbm-v1-1175405918722449408.json");
     const TWEET_EXAMPLE_27: &str =
-        include_str!("../../../examples/wbm-v1-1206307973523476480.json");
+        include_str!("../../../../examples/wbm-v1-1206307973523476480.json");
     const TWEET_EXAMPLE_28: &str =
-        include_str!("../../../examples/wbm-v1-1179259452261851136.json");
-    const TWEET_EXAMPLE_29: &str = include_str!("../../../examples/wbm-v1-860177515423436801.json");
-    const TWEET_EXAMPLE_30: &str = include_str!("../../../examples/wbm-v1-861630070003290112.json");
+        include_str!("../../../../examples/wbm-v1-1179259452261851136.json");
+    const TWEET_EXAMPLE_29: &str =
+        include_str!("../../../../examples/wbm-v1-860177515423436801.json");
+    const TWEET_EXAMPLE_30: &str =
+        include_str!("../../../../examples/wbm-v1-861630070003290112.json");
     const TWEET_EXAMPLE_31: &str =
-        include_str!("../../../examples/wbm-v1-1338604362164264968.json");
-    const TWEET_EXAMPLE_32: &str = include_str!("../../../examples/wbm-v1-865619549365956608.json");
+        include_str!("../../../../examples/wbm-v1-1338604362164264968.json");
+    const TWEET_EXAMPLE_32: &str =
+        include_str!("../../../../examples/wbm-v1-865619549365956608.json");
 
     #[test]
     fn parse_tweet_v1_example_01() {
