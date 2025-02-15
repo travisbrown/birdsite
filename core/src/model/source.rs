@@ -37,6 +37,7 @@ pub enum Source {
     Sprinklr,
     Illuminatibot,
     Ifttt,
+    Empty,
     // Note that these fields cannot be borrowed because of escaping in the source JSON.
     Other { url: String, name: String },
 }
@@ -153,6 +154,7 @@ impl Source {
             Source::Sprinklr => URLS_AND_NAMES[21].0,
             Source::Illuminatibot => URLS_AND_NAMES[22].0,
             Source::Ifttt => URLS_AND_NAMES[23].0,
+            Source::Empty => "",
             Source::Other { url, .. } => url,
         }
     }
@@ -183,34 +185,43 @@ impl Source {
             Source::Sprinklr => URLS_AND_NAMES[21].1,
             Source::Illuminatibot => URLS_AND_NAMES[22].1,
             Source::Ifttt => URLS_AND_NAMES[23].1,
+            Source::Empty => "",
             Source::Other { name, .. } => name,
         }
     }
 
     pub fn anchor(&self) -> String {
-        format!(
-            "<a href=\"{}\" rel=\"nofollow\">{}</a>",
-            self.url(),
-            self.name()
-        )
+        if *self == Self::Empty {
+            String::new()
+        } else {
+            format!(
+                "<a href=\"{}\" rel=\"nofollow\">{}</a>",
+                self.url(),
+                self.name()
+            )
+        }
     }
 
     fn parse_anchor(s: &str) -> Option<Self> {
-        let (url, name) = SOURCE_ANCHOR_PATTERN
-            .captures(s)
-            .and_then(|captures| captures.get(1).zip(captures.get(2)))?;
+        if s.is_empty() {
+            Some(Self::Empty)
+        } else {
+            let (url, name) = SOURCE_ANCHOR_PATTERN
+                .captures(s)
+                .and_then(|captures| captures.get(1).zip(captures.get(2)))?;
 
-        Some(
-            match URLS_AND_NAMES.iter().position(|(known_url, known_name)| {
-                url.as_str() == *known_url && name.as_str() == *known_name
-            }) {
-                Some(index) => SOURCES[index].clone(),
-                None => Self::Other {
-                    url: url.as_str().to_string(),
-                    name: name.as_str().to_string(),
+            Some(
+                match URLS_AND_NAMES.iter().position(|(known_url, known_name)| {
+                    url.as_str() == *known_url && name.as_str() == *known_name
+                }) {
+                    Some(index) => SOURCES[index].clone(),
+                    None => Self::Other {
+                        url: url.as_str().to_string(),
+                        name: name.as_str().to_string(),
+                    },
                 },
-            },
-        )
+            )
+        }
     }
 }
 

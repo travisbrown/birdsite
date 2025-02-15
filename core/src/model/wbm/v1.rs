@@ -1,12 +1,14 @@
 //! This data format appears for tweets in the Wayback Machine until at least 2020 (TODO: find more precise dates).
 use crate::model::{
     color::Color,
+    country::Country,
     entities::{ExtendedTweetEntities, ExtendedTweetExtendedEntities},
     id_str, id_str_optional,
     lang::Lang,
     source::Source,
+    time_zone::TimeZone,
     timestamp::text_timestamp,
-    Country, Place, PossibleCount, TimeZone, Url,
+    Place, PossibleCount, Url,
 };
 use chrono::{DateTime, Utc};
 use std::borrow::Cow;
@@ -33,7 +35,7 @@ pub struct Tweet<'a> {
     geo: Option<Geo>,
     coordinates: Option<Geo>,
     pub place: Option<Place<'a>>,
-    contributors: Option<()>,
+    contributors: Option<Vec<u64>>,
     pub quoted_status_id: Option<u64>,
     #[serde(with = "id_str_optional")]
     #[serde(default)]
@@ -154,6 +156,8 @@ pub enum TranslatorType {
     Regular,
     #[serde(rename = "badged")]
     Badged,
+    #[serde(rename = "moderator")]
+    Moderator,
 }
 
 #[cfg(test)]
@@ -224,6 +228,12 @@ mod tests {
         include_str!("../../../../examples/wbm-v1-1338604362164264968.json");
     const TWEET_EXAMPLE_32: &str =
         include_str!("../../../../examples/wbm-v1-865619549365956608.json");
+    const TWEET_EXAMPLE_33: &str =
+        include_str!("../../../../examples/wbm-v1-1351526379427401732.json");
+    const TWEET_EXAMPLE_34: &str =
+        include_str!("../../../../examples/wbm-v1-901037368022519808.json");
+    const TWEET_EXAMPLE_35: &str =
+        include_str!("../../../../examples/wbm-v1-910881101723217920.json");
 
     #[test]
     fn parse_tweet_v1_example_01() {
@@ -447,5 +457,26 @@ mod tests {
         let tweet: Tweet = serde_json::from_str(TWEET_EXAMPLE_32).unwrap();
 
         assert_eq!(tweet.id, 865619549365956608);
+    }
+
+    #[test]
+    fn parse_tweet_v1_example_33() {
+        let tweet: Tweet = serde_json::from_str(TWEET_EXAMPLE_33).unwrap();
+
+        assert_eq!(tweet.id, 1351526379427401732);
+    }
+
+    #[test]
+    fn parse_tweet_v1_example_34() {
+        let tweet: Tweet = serde_json::from_str(TWEET_EXAMPLE_34).unwrap();
+
+        assert_eq!(tweet.id, 901037368022519808);
+    }
+
+    #[test]
+    fn parse_tweet_v1_example_35() {
+        let tweet: Tweet = serde_json::from_str(TWEET_EXAMPLE_35).unwrap();
+
+        assert_eq!(tweet.id, 910881101723217920);
     }
 }

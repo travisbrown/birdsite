@@ -1,9 +1,15 @@
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum Lang {
+    #[serde(rename = "am")]
+    Amharic,
     #[serde(rename = "ar")]
     Arabic,
     #[serde(rename = "bg")]
     Bulgarian,
+    #[serde(rename = "bn")]
+    Bengali,
+    #[serde(rename = "bo")]
+    Tibetan,
     #[serde(rename = "ca")]
     Catalan,
     #[serde(rename = "ckb")]
@@ -36,6 +42,8 @@ pub enum Lang {
     Persian,
     #[serde(rename = "fi")]
     Finnish,
+    #[serde(rename = "fil")]
+    Filipino,
     #[serde(rename = "gl")]
     Galician,
     #[serde(rename = "hi")]
@@ -46,6 +54,8 @@ pub enum Lang {
     Haitian,
     #[serde(rename = "hu")]
     Hungarian,
+    #[serde(rename = "hy")]
+    Armenian,
     // Twitter generally seems to use the older 639:1988 abbreviation.
     #[serde(rename = "in", alias = "id")]
     Indonesian,
@@ -58,6 +68,8 @@ pub enum Lang {
     Hebrew,
     #[serde(rename = "ja")]
     Japanese,
+    #[serde(rename = "ka")]
+    Georgian,
     #[serde(rename = "km")]
     CentralKhmer,
     #[serde(rename = "kn")]
@@ -68,6 +80,8 @@ pub enum Lang {
     Lithuanian,
     #[serde(rename = "lv")]
     Latvian,
+    #[serde(rename = "ml")]
+    Malayam,
     #[serde(rename = "mr")]
     Marathi,
     #[serde(rename = "my")]
@@ -78,6 +92,10 @@ pub enum Lang {
     Dutch,
     #[serde(rename = "no")]
     Norwegian,
+    #[serde(rename = "or")]
+    Oriya,
+    #[serde(rename = "pa")]
+    Panjabi,
     #[serde(rename = "ps")]
     Pashto,
     #[serde(rename = "pl")]
@@ -88,6 +106,8 @@ pub enum Lang {
     Romanian,
     #[serde(rename = "ru")]
     Russian,
+    #[serde(rename = "sd")]
+    Sindhi,
     #[serde(rename = "sl")]
     Slovenian,
     #[serde(rename = "sr")]
@@ -104,6 +124,8 @@ pub enum Lang {
     Tagalog,
     #[serde(rename = "tr")]
     Turkish,
+    #[serde(rename = "ug")]
+    Uighur,
     #[serde(rename = "uk")]
     Ukrainian,
     #[serde(rename = "ur")]
@@ -116,7 +138,7 @@ pub enum Lang {
     ChineseHan,
     #[serde(rename = "zh-TW", alias = "zh-tw")]
     TaiwaneseMandarin,
-    #[serde(rename = "zh-cn")]
+    #[serde(rename = "zh-cn", alias = "zh-CN")]
     SimplifiedChinese,
     #[serde(rename = "und")]
     Und,
