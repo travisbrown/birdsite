@@ -1,11 +1,12 @@
 //! This data format appears for tweets in the Wayback Machine from at least 2023 into 2025 (TODO: find previous start date).
 
 use crate::model::{
+    country::Country,
     entities::{TweetEntities, UserEntities},
     id_str, id_str_array_optional, id_str_optional,
     lang::Lang,
     media::{MediaType, MediaVariant},
-    Country, EditControls, PlaceMetadata, TweetPublicMetrics, UserPublicMetrics,
+    EditControls, PlaceMetadata, TweetPublicMetrics, UserPublicMetrics,
 };
 use chrono::{DateTime, Utc};
 use std::borrow::Cow;
@@ -83,6 +84,16 @@ pub enum TweetSource {
     TwittbotNet,
     #[serde(rename = "drudge_rssfeed")]
     DrudgeRssFeed,
+    #[serde(rename = "Hypefury")]
+    Hypefury,
+    #[serde(rename = "Hootsuite Inc.")]
+    HootsuiteInc,
+    #[serde(rename = "IFTTT")]
+    Ifttt,
+    #[serde(rename = "Jetpack.com")]
+    JetpackDotCom,
+    #[serde(rename = "Twitter Media Studio")]
+    TwitterMediaStudio,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

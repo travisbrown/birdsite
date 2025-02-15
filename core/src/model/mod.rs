@@ -4,11 +4,13 @@ use std::borrow::Cow;
 
 pub mod cashtag;
 pub mod color;
+pub mod country;
 pub mod entities;
 pub mod lang;
 pub mod media;
 pub mod probability;
 pub mod source;
+pub mod time_zone;
 pub mod timestamp;
 pub mod wbm;
 
@@ -22,297 +24,13 @@ pub struct Url<'a> {
     pub display: Cow<'a, str>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
-pub enum Country {
-    #[serde(rename = "AE")]
-    UnitedArabEmirates,
-    #[serde(rename = "AF")]
-    Afghanistan,
-    #[serde(rename = "AR")]
-    Argentina,
-    #[serde(rename = "AT")]
-    Austria,
-    #[serde(rename = "AU")]
-    Australia,
-    #[serde(rename = "BE")]
-    Belgium,
-    #[serde(rename = "BG")]
-    Bulgaria,
-    #[serde(rename = "BR")]
-    Brazil,
-    #[serde(rename = "CA")]
-    Canada,
-    #[serde(rename = "CM")]
-    Cameroon,
-    #[serde(rename = "CH")]
-    Switzerland,
-    #[serde(rename = "CL")]
-    Chile,
-    #[serde(rename = "CY")]
-    Cyprus,
-    #[serde(rename = "CZ")]
-    Czechia,
-    #[serde(rename = "DE")]
-    Germany,
-    #[serde(rename = "DK")]
-    Denmark,
-    #[serde(rename = "EE")]
-    Estonia,
-    #[serde(rename = "ES")]
-    Spain,
-    #[serde(rename = "FI")]
-    Finland,
-    #[serde(rename = "FR")]
-    France,
-    #[serde(rename = "GB")]
-    UnitedKingdom,
-    #[serde(rename = "GR")]
-    Greece,
-    #[serde(rename = "HR")]
-    Croatia,
-    #[serde(rename = "HU")]
-    Hungary,
-    #[serde(rename = "ID")]
-    Indonesia,
-    #[serde(rename = "IE")]
-    Ireland,
-    #[serde(rename = "IL")]
-    Israel,
-    #[serde(rename = "IN")]
-    India,
-    #[serde(rename = "IS")]
-    Iceland,
-    #[serde(rename = "IT")]
-    Italy,
-    #[serde(rename = "JM")]
-    Jamaica,
-    #[serde(rename = "JP")]
-    Japan,
-    #[serde(rename = "KE")]
-    Kenya,
-    #[serde(rename = "KH")]
-    Cambodia,
-    #[serde(rename = "KR")]
-    Korea,
-    #[serde(rename = "LB")]
-    Lebanon,
-    #[serde(rename = "LT")]
-    Lithuania,
-    #[serde(rename = "LU")]
-    Luxembourg,
-    #[serde(rename = "LV")]
-    Latvia,
-    #[serde(rename = "MT")]
-    Malta,
-    #[serde(rename = "MX")]
-    Mexico,
-    #[serde(rename = "NL")]
-    Netherlands,
-    #[serde(rename = "NO")]
-    Norway,
-    #[serde(rename = "NZ")]
-    NewZealand,
-    #[serde(rename = "PK")]
-    Pakistan,
-    #[serde(rename = "PL")]
-    Poland,
-    #[serde(rename = "PT")]
-    Portugal,
-    #[serde(rename = "RU")]
-    Russia,
-    #[serde(rename = "RO")]
-    Romania,
-    #[serde(rename = "SA")]
-    SaudiArabia,
-    #[serde(rename = "SE")]
-    Sweden,
-    #[serde(rename = "SG")]
-    Singapore,
-    #[serde(rename = "SI")]
-    Slovenia,
-    #[serde(rename = "SK")]
-    Slovakia,
-    #[serde(rename = "TH")]
-    Thailand,
-    #[serde(rename = "TR")]
-    Turkey,
-    #[serde(rename = "UA")]
-    Ukraine,
-    #[serde(rename = "US")]
-    UnitedStates,
-    #[serde(rename = "ZA")]
-    SouthAfrica,
-    #[serde(rename = "XX")]
-    Xx,
-}
-
-#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-pub enum TimeZone {
-    #[serde(rename = "CDT")]
-    Cdt,
-    #[serde(rename = "Central Time (US & Canada)")]
-    Central,
-    #[serde(rename = "Mountain Time (US & Canada)")]
-    Mountain,
-    #[serde(rename = "Pacific Time (US & Canada)")]
-    Pacific,
-    #[serde(rename = "Eastern Time (US & Canada)")]
-    Eastern,
-    #[serde(rename = "Indiana (East)")]
-    IndianaEast,
-    #[serde(rename = "Atlantic Time (Canada)")]
-    AtlanticCanada,
-    #[serde(rename = "Africa/Cairo")]
-    AfricaCairo,
-    #[serde(rename = "Africa/Dakar")]
-    AfricaDakar,
-    #[serde(rename = "America/Chicago")]
-    AmericaChicago,
-    #[serde(rename = "America/Dawson")]
-    AmericaDawson,
-    #[serde(rename = "America/Edmonton")]
-    AmericaEdmonton,
-    #[serde(rename = "America/Los_Angeles")]
-    AmericaLosAngeles,
-    #[serde(rename = "America/Mexico_City")]
-    AmericaMexicoCity,
-    #[serde(rename = "America/New_York")]
-    AmericaNewYork,
-    #[serde(rename = "America/Phoenix")]
-    AmericaPhoenix,
-    #[serde(rename = "America/Vancouver")]
-    AmericaVancouver,
-    #[serde(rename = "Asia/Calcutta")]
-    AsiaCalcutta,
-    #[serde(rename = "Asia/Dubai")]
-    AsiaDubai,
-    #[serde(rename = "Asia/Tokyo")]
-    AsiaTokyo,
-    #[serde(rename = "Australia/Hobart")]
-    AustraliaHobart,
-    #[serde(rename = "Europe/Belfast")]
-    EuropeBelfast,
-    #[serde(rename = "Europe/Dublin")]
-    EuropeDublin,
-    #[serde(rename = "Europe/London")]
-    EuropeLondon,
-    #[serde(rename = "Buenos Aires")]
-    BuenosAires,
-    #[serde(rename = "Cape Verde Is.")]
-    CapeVerdeIs,
-    #[serde(rename = "Central America")]
-    CentralAmerica,
-    #[serde(rename = "International Date Line West")]
-    InternationalDateLineWest,
-    #[serde(rename = "Hong Kong")]
-    HongKong,
-    #[serde(rename = "Kuala Lumpur")]
-    KualaLumpur,
-    #[serde(rename = "Mexico City")]
-    MexicoCity,
-    #[serde(rename = "Mid-Atlantic")]
-    MidAtlantic,
-    #[serde(rename = "Midway Island")]
-    MidwayIsland,
-    #[serde(rename = "New Caledonia")]
-    NewCaledonia,
-    #[serde(rename = "New Delhi")]
-    NewDelhi,
-    #[serde(rename = "Solomon Is.")]
-    SolomonIs,
-    #[serde(rename = "West Central Africa")]
-    WestCentralAfrica,
-    #[serde(rename = "BST")]
-    Bst,
-    #[serde(rename = "EDT")]
-    Edt,
-    #[serde(rename = "UTC")]
-    Utc,
-    Adelaide,
-    Alaska,
-    Amsterdam,
-    Arizona,
-    Athens,
-    Auckland,
-    Baghdad,
-    Bangkok,
-    Beijing,
-    Belgrade,
-    Berlin,
-    Bern,
-    Bogota,
-    Brasilia,
-    Brisbane,
-    Brussels,
-    Bucharest,
-    Cairo,
-    Caracas,
-    Casablanca,
-    Chennai,
-    Chongqing,
-    Copenhagen,
-    Dublin,
-    Edinburgh,
-    Georgetown,
-    Greenland,
-    Guam,
-    Hanoi,
-    Harare,
-    Hawaii,
-    Helsinki,
-    Irkutsk,
-    Islamabad,
-    Istanbul,
-    Jakarta,
-    Jerusalem,
-    Karachi,
-    Kuwait,
-    Kyiv,
-    Lima,
-    Lisbon,
-    Ljubljana,
-    London,
-    Madrid,
-    Mazatlan,
-    Melbourne,
-    Moscow,
-    Mumbai,
-    Nairobi,
-    Novosibirsk,
-    Osaka,
-    Paris,
-    Perth,
-    Pretoria,
-    Quito,
-    Riyadh,
-    Rome,
-    Santiago,
-    Saskatchewan,
-    Seoul,
-    Singapore,
-    Sofia,
-    Stockholm,
-    Sydney,
-    Taipei,
-    Tehran,
-    Tijuana,
-    Tokyo,
-    Urumqi,
-    Vienna,
-    Volgograd,
-    Warsaw,
-    Wellington,
-    Yerevan,
-    Zagreb,
-}
-
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Place<'a> {
     #[serde(flatten, borrow)]
     pub metadata: PlaceMetadata<'a>,
     pub url: Cow<'a, str>,
-    pub bounding_box: BoundingBox,
+    pub bounding_box: Option<BoundingBox>,
     pub attributes: PlaceAttributes,
 }
 
@@ -322,7 +40,7 @@ pub struct PlaceMetadata<'a> {
     pub id: &'a str,
     pub place_type: PlaceType,
     pub name: Cow<'a, str>,
-    pub country_code: PossibleCountry,
+    pub country_code: country::PossibleCountry,
     pub country: Cow<'a, str>,
     pub full_name: Cow<'a, str>,
 }
@@ -445,41 +163,6 @@ impl serde::ser::Serialize for PossibleCount {
         match self.0 {
             Some(value) => value.serialize(serializer),
             None => serializer.serialize_i64(-1),
-        }
-    }
-}
-
-/// A possible country code that may be an empty string to represent an absent value.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct PossibleCountry(pub Option<Country>);
-
-#[derive(serde::Deserialize)]
-#[serde(untagged)]
-enum PossibleCountryInternal {
-    Empty(PossibleCountryEmptyInternal),
-    Country(Country),
-}
-
-#[derive(serde::Deserialize)]
-enum PossibleCountryEmptyInternal {
-    #[serde(rename = "")]
-    Empty,
-}
-
-impl<'de> serde::Deserialize<'de> for PossibleCountry {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        PossibleCountryInternal::deserialize(deserializer).map(|country| match country {
-            PossibleCountryInternal::Empty(_) => Self(None),
-            PossibleCountryInternal::Country(country) => Self(Some(country)),
-        })
-    }
-}
-
-impl serde::ser::Serialize for PossibleCountry {
-    fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        match self.0 {
-            Some(country) => country.serialize(serializer),
-            None => serializer.serialize_str(""),
         }
     }
 }
