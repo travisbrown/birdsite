@@ -158,6 +158,8 @@ pub enum Country {
     Uganda,
     #[serde(rename = "US")]
     UnitedStates,
+    #[serde(rename = "UY")]
+    Uruguay,
     #[serde(rename = "VN")]
     Vietnam,
     #[serde(rename = "ZA")]

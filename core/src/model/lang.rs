@@ -48,6 +48,8 @@ pub enum Lang {
     Filipino,
     #[serde(rename = "gl")]
     Galician,
+    #[serde(rename = "gu")]
+    Gujarati,
     #[serde(rename = "hi")]
     Hindi,
     #[serde(rename = "hr")]
