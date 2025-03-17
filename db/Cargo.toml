@@ -1,0 +1,13 @@
+[package]
+name = "birdsite-db"
+authors = { workspace = true }
+repository = { workspace = true }
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+
+[dependencies]
+birdsite = { path = "../core/" }
+chrono = { workspace = true }
+rocksdb = { workspace = true }
+thiserror = { workspace = true }

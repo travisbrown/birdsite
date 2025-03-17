@@ -1,5 +1,14 @@
 use chrono::{DateTime, SubsecRound, TimeZone, Utc};
 
+/// Convert a Snowflake ID to a time.
+pub fn snowflake_to_date_time(id: u64) -> Option<DateTime<Utc>> {
+    if is_snowflake(id) {
+        known_snowflake_to_date_time(id)
+    } else {
+        None
+    }
+}
+
 pub enum IdDateTime {
     Exact(DateTime<Utc>),
     Estimated(DateTime<Utc>),
