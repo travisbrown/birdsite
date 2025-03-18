@@ -162,7 +162,7 @@ pub struct Url<'a> {
     pub media_key: Option<&'a str>,
     // TODO: Use a proper status code representation here.
     pub status: Option<usize>,
-    pub unwound_url: Option<&'a str>,
+    pub unwound_url: Option<Cow<'a, str>>,
     pub images: Option<Vec<UrlImage<'a>>>,
 }
 

@@ -28,6 +28,12 @@ pub enum Error {
     InvalidKey(Vec<u8>),
     #[error("Invalid value")]
     InvalidValue(Vec<u8>),
+    #[error("Duplicate values")]
+    DuplicateValues {
+        key: u64,
+        old: Vec<u8>,
+        new: Vec<u8>,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -95,23 +101,108 @@ impl Database {
         quote_target_metadata: Option<TweetMetadata>,
         mentions_metadata: Vec<UserMetadata>,
     ) -> Result<(), Error> {
-        let transaction = self.db.transaction();
-        let tweet0 = self.cf_handle(TWEET0_CF_NAME);
-        let tweet1 = self.cf_handle(TWEET1_CF_NAME);
+        let tweet_id_bytes = tweet_metadata.id.to_be_bytes();
+        let user_id_bytes = tweet_metadata.user.id.to_be_bytes();
 
-        Self::insert_single_tweet(&transaction, tweet0, tweet_metadata)?;
+        let transaction = self.db.transaction();
+        let cfs = ColumnFamilies::get(&self.db);
+
+        Self::insert_single_tweet(&transaction, &cfs, tweet_metadata)?;
+
+        let mut key = [0u8; 16];
+
+        if let Some(target_metadata) = retweet_target_metadata {
+            Self::insert_single_tweet(&transaction, &cfs, target_metadata)?;
+
+            let target_id_bytes = target_metadata.id.to_be_bytes();
+
+            Self::checked_update(&transaction, cfs.retweet0, tweet_id_bytes, &target_id_bytes)?;
+
+            key[0..8].copy_from_slice(&target_id_bytes);
+            key[8..16].copy_from_slice(&tweet_id_bytes);
+
+            transaction.put_cf(cfs.retweet1, key, [])?;
+        }
+
+        if let Some(target_metadata) = reply_target_metadata {
+            Self::insert_single_tweet(&transaction, &cfs, target_metadata)?;
+
+            let target_id_bytes = target_metadata.id.to_be_bytes();
+
+            Self::checked_update(&transaction, cfs.reply0, tweet_id_bytes, &target_id_bytes)?;
+
+            key[0..8].copy_from_slice(&target_id_bytes);
+            key[8..16].copy_from_slice(&tweet_id_bytes);
+
+            transaction.put_cf(cfs.reply1, key, [])?;
+        }
+
+        if let Some(target_metadata) = quote_target_metadata {
+            Self::insert_single_tweet(&transaction, &cfs, target_metadata)?;
+
+            let target_id_bytes = target_metadata.id.to_be_bytes();
+
+            Self::checked_update(&transaction, cfs.quote0, tweet_id_bytes, &target_id_bytes)?;
+
+            key[0..8].copy_from_slice(&target_id_bytes);
+            key[8..16].copy_from_slice(&tweet_id_bytes);
+
+            transaction.put_cf(cfs.quote1, key, [])?;
+        }
+
+        for user_metadata in mentions_metadata {
+            let target_id_bytes = user_metadata.id.to_be_bytes();
+
+            key[0..8].copy_from_slice(&user_id_bytes);
+            key[8..16].copy_from_slice(&target_id_bytes);
+
+            transaction.put_cf(cfs.mention0, key, [])?;
+
+            key[0..8].copy_from_slice(&target_id_bytes);
+            key[8..16].copy_from_slice(&user_id_bytes);
+
+            transaction.put_cf(cfs.mention1, key, [])?;
+        }
 
         Ok(transaction.commit()?)
     }
 
     fn insert_single_tweet<'a>(
         transaction: &Transaction<'a, TransactionDB>,
-        cf: &ColumnFamily,
+        cfs: &ColumnFamilies<'a>,
         tweet_metadata: TweetMetadata,
     ) -> Result<(), Error> {
-        let value = vec![];
+        let tweet_id_bytes = tweet_metadata.id.to_be_bytes();
+        let user_id_bytes = tweet_metadata.user.id.to_be_bytes();
 
-        Ok(transaction.put_cf(cf, tweet_metadata.id.to_be_bytes(), value)?)
+        let mut value = Vec::with_capacity(12);
+
+        value.extend_from_slice(&tweet_id_bytes);
+
+        if snowflake_to_date_time(tweet_metadata.id) != Some(tweet_metadata.created_at) {
+            value.extend_from_slice(&(tweet_metadata.created_at.timestamp() as u32).to_be_bytes());
+        }
+
+        Self::checked_update(transaction, &cfs.tweet0, tweet_id_bytes, &value)?;
+
+        let mut tweet1_key = [0u8; 12];
+
+        tweet1_key[0..4].copy_from_slice(&user_id_bytes);
+        tweet1_key[4..12].copy_from_slice(&tweet_id_bytes);
+
+        transaction.put_cf(cfs.tweet1, tweet1_key, []);
+
+        value.clear();
+
+        if snowflake_to_date_time(tweet_metadata.user.id) != Some(tweet_metadata.user.created_at) {
+            value.extend_from_slice(
+                &(tweet_metadata.user.created_at.timestamp() as u32).to_be_bytes(),
+            );
+        }
+
+        transaction.put_cf(cfs.user0, tweet_metadata.user.id.to_be_bytes(), &value)?;
+
+        Ok(())
     }
 
     pub fn lookup_tweet(&self, id: u64) -> Result<Option<(u64, DateTime<Utc>)>, Error> {
@@ -220,6 +311,31 @@ impl Database {
     fn cf_handle(&self, name: &str) -> &ColumnFamily {
         self.db.cf_handle(name).unwrap()
     }
+
+    fn checked_update<'a>(
+        transaction: &'a Transaction<'a, TransactionDB>,
+        cf: &'a ColumnFamily,
+        key: [u8; 8],
+        value: &'a [u8],
+    ) -> Result<bool, Error> {
+        let exists = if let Some(old) = transaction.get_pinned_for_update_cf(cf, key, false)? {
+            if old.as_ref() == value {
+                return Err(Error::DuplicateValues {
+                    key: u64::from_be_bytes(key),
+                    old: old.to_vec(),
+                    new: value.to_vec(),
+                });
+            }
+
+            true
+        } else {
+            false
+        };
+
+        transaction.put_cf(cf, key, value)?;
+
+        Ok(exists)
+    }
 }
 
 pub struct IdIterator<'a> {
@@ -248,5 +364,37 @@ impl Iterator for IdIterator<'_> {
                 },
             )
         })
+    }
+}
+
+struct ColumnFamilies<'a> {
+    tweet0: &'a ColumnFamily,
+    tweet1: &'a ColumnFamily,
+    user0: &'a ColumnFamily,
+    retweet0: &'a ColumnFamily,
+    retweet1: &'a ColumnFamily,
+    reply0: &'a ColumnFamily,
+    reply1: &'a ColumnFamily,
+    quote0: &'a ColumnFamily,
+    quote1: &'a ColumnFamily,
+    mention0: &'a ColumnFamily,
+    mention1: &'a ColumnFamily,
+}
+
+impl<'a> ColumnFamilies<'a> {
+    fn get(db: &'a TransactionDB) -> Self {
+        Self {
+            tweet0: db.cf_handle(TWEET0_CF_NAME).unwrap(),
+            tweet1: db.cf_handle(TWEET1_CF_NAME).unwrap(),
+            user0: db.cf_handle(USER0_CF_NAME).unwrap(),
+            retweet0: db.cf_handle(RETWEET0_CF_NAME).unwrap(),
+            retweet1: db.cf_handle(RETWEET1_CF_NAME).unwrap(),
+            reply0: db.cf_handle(REPLY0_CF_NAME).unwrap(),
+            reply1: db.cf_handle(REPLY1_CF_NAME).unwrap(),
+            quote0: db.cf_handle(QUOTE0_CF_NAME).unwrap(),
+            quote1: db.cf_handle(QUOTE1_CF_NAME).unwrap(),
+            mention0: db.cf_handle(MENTION0_CF_NAME).unwrap(),
+            mention1: db.cf_handle(MENTION1_CF_NAME).unwrap(),
+        }
     }
 }
