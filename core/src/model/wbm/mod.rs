@@ -84,7 +84,7 @@ impl TweetInfo {
         }
     }
 
-    fn from_data<'a>(value: &data::TweetData<'a>) -> Self {
+    fn from_data(value: &data::TweetData) -> Self {
         Self::new(value.id, value.author_id, value.in_reply_to_user_id)
     }
 }

@@ -1,9 +1,9 @@
 use birdsite::age::snowflake_to_date_time;
-use chrono::{DateTime, Utc};
+use birdsite::model::wbm::v1::User;
+use chrono::{DateTime, TimeZone, Utc};
 use rocksdb::{
-    BlockBasedOptions, ColumnFamily, ColumnFamilyDescriptor, DBCompressionType,
-    DBIteratorWithThreadMode, IteratorMode, Options, Transaction, TransactionDB,
-    TransactionDBOptions,
+    ColumnFamily, ColumnFamilyDescriptor, DBIteratorWithThreadMode, Options, Transaction,
+    TransactionDB, TransactionDBOptions,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -36,6 +36,33 @@ pub enum Error {
     },
 }
 
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct Snapshot {
+    pub tweet: TweetMetadata,
+    pub retweeted: Option<TweetMetadata>,
+    pub replied_to: Option<TweetMetadata>,
+    pub quoted: Option<TweetMetadata>,
+    pub mentions: Vec<UserMetadata>,
+}
+
+impl Snapshot {
+    pub fn new(
+        tweet: TweetMetadata,
+        retweeted: Option<TweetMetadata>,
+        replied_to: Option<TweetMetadata>,
+        quoted: Option<TweetMetadata>,
+        mentions: Vec<UserMetadata>,
+    ) -> Self {
+        Self {
+            tweet,
+            retweeted,
+            replied_to,
+            quoted,
+            mentions,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct TweetMetadata {
     pub id: u64,
@@ -43,10 +70,26 @@ pub struct TweetMetadata {
     pub created_at: DateTime<Utc>,
 }
 
+impl TweetMetadata {
+    pub fn new(id: u64, user: UserMetadata, created_at: DateTime<Utc>) -> Self {
+        Self {
+            id,
+            user,
+            created_at,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct UserMetadata {
     pub id: u64,
     pub created_at: DateTime<Utc>,
+}
+
+impl UserMetadata {
+    pub fn new(id: u64, created_at: DateTime<Utc>) -> Self {
+        Self { id, created_at }
+    }
 }
 
 #[derive(Clone)]
@@ -74,7 +117,7 @@ impl Database {
         let mention0_cf = ColumnFamilyDescriptor::new(MENTION0_CF_NAME, Self::default_cf_options());
         let mention1_cf = ColumnFamilyDescriptor::new(MENTION1_CF_NAME, Self::default_cf_options());
 
-        let mut cfs = vec![
+        let cfs = vec![
             tweet0_cf,
             tweet1_cf,
             user0_cf,
@@ -93,25 +136,18 @@ impl Database {
         Ok(Self { db: Arc::new(db) })
     }
 
-    pub fn insert_tweet(
-        &self,
-        tweet_metadata: TweetMetadata,
-        retweet_target_metadata: Option<TweetMetadata>,
-        reply_target_metadata: Option<TweetMetadata>,
-        quote_target_metadata: Option<TweetMetadata>,
-        mentions_metadata: Vec<UserMetadata>,
-    ) -> Result<(), Error> {
-        let tweet_id_bytes = tweet_metadata.id.to_be_bytes();
-        let user_id_bytes = tweet_metadata.user.id.to_be_bytes();
+    pub fn insert_snapshot(&self, snapshot: Snapshot) -> Result<(), Error> {
+        let tweet_id_bytes = snapshot.tweet.id.to_be_bytes();
+        let user_id_bytes = snapshot.tweet.user.id.to_be_bytes();
 
         let transaction = self.db.transaction();
         let cfs = ColumnFamilies::get(&self.db);
 
-        Self::insert_single_tweet(&transaction, &cfs, tweet_metadata)?;
+        Self::insert_single_tweet(&transaction, &cfs, snapshot.tweet)?;
 
         let mut key = [0u8; 16];
 
-        if let Some(target_metadata) = retweet_target_metadata {
+        if let Some(target_metadata) = snapshot.retweeted {
             Self::insert_single_tweet(&transaction, &cfs, target_metadata)?;
 
             let target_id_bytes = target_metadata.id.to_be_bytes();
@@ -124,7 +160,7 @@ impl Database {
             transaction.put_cf(cfs.retweet1, key, [])?;
         }
 
-        if let Some(target_metadata) = reply_target_metadata {
+        if let Some(target_metadata) = snapshot.replied_to {
             Self::insert_single_tweet(&transaction, &cfs, target_metadata)?;
 
             let target_id_bytes = target_metadata.id.to_be_bytes();
@@ -137,7 +173,7 @@ impl Database {
             transaction.put_cf(cfs.reply1, key, [])?;
         }
 
-        if let Some(target_metadata) = quote_target_metadata {
+        if let Some(target_metadata) = snapshot.quoted {
             Self::insert_single_tweet(&transaction, &cfs, target_metadata)?;
 
             let target_id_bytes = target_metadata.id.to_be_bytes();
@@ -150,7 +186,7 @@ impl Database {
             transaction.put_cf(cfs.quote1, key, [])?;
         }
 
-        for user_metadata in mentions_metadata {
+        for user_metadata in snapshot.mentions {
             let target_id_bytes = user_metadata.id.to_be_bytes();
 
             key[0..8].copy_from_slice(&user_id_bytes);
@@ -183,14 +219,14 @@ impl Database {
             value.extend_from_slice(&(tweet_metadata.created_at.timestamp() as u32).to_be_bytes());
         }
 
-        Self::checked_update(transaction, &cfs.tweet0, tweet_id_bytes, &value)?;
+        Self::checked_update(transaction, cfs.tweet0, tweet_id_bytes, &value)?;
 
         let mut tweet1_key = [0u8; 12];
 
         tweet1_key[0..4].copy_from_slice(&user_id_bytes);
         tweet1_key[4..12].copy_from_slice(&tweet_id_bytes);
 
-        transaction.put_cf(cfs.tweet1, tweet1_key, []);
+        transaction.put_cf(cfs.tweet1, tweet1_key, [])?;
 
         value.clear();
 
@@ -206,7 +242,33 @@ impl Database {
     }
 
     pub fn lookup_tweet(&self, id: u64) -> Result<Option<(u64, DateTime<Utc>)>, Error> {
-        todo![]
+        match self
+            .db
+            .get_pinned_cf(self.cf_handle(TWEET0_CF_NAME), id.to_be_bytes())?
+        {
+            Some(value) => match value.len() {
+                8 => {
+                    let id = u64::from_be_bytes(value[0..8].try_into().unwrap());
+
+                    match snowflake_to_date_time(id) {
+                        Some(timestamp) => Ok(Some((id, timestamp))),
+                        None => Err(Error::InvalidValue(value.to_vec())),
+                    }
+                }
+                12 => {
+                    let id = u64::from_be_bytes(value[0..8].try_into().unwrap());
+                    let timestamp_s: i64 =
+                        u32::from_be_bytes(value[8..12].try_into().unwrap()).into();
+
+                    match Utc.timestamp_opt(timestamp_s, 0).single() {
+                        Some(timestamp) => Ok(Some((id, timestamp))),
+                        None => Err(Error::InvalidValue(value.to_vec())),
+                    }
+                }
+                _ => Err(Error::InvalidValue(value.to_vec())),
+            },
+            None => Ok(None),
+        }
     }
 
     pub fn lookup_tweets_by_user(&self, id: u64) -> IdIterator {
@@ -221,7 +283,28 @@ impl Database {
     }
 
     pub fn lookup_user(&self, id: u64) -> Result<Option<DateTime<Utc>>, Error> {
-        todo![]
+        match self
+            .db
+            .get_pinned_cf(self.cf_handle(USER0_CF_NAME), id.to_be_bytes())?
+        {
+            Some(value) => match value.len() {
+                0 => match snowflake_to_date_time(id) {
+                    Some(timestamp) => Ok(Some(timestamp)),
+                    None => Err(Error::InvalidValue(value.to_vec())),
+                },
+                8 => {
+                    let timestamp_s: i64 =
+                        u32::from_be_bytes(value[8..12].try_into().unwrap()).into();
+
+                    match Utc.timestamp_opt(timestamp_s, 0).single() {
+                        Some(timestamp) => Ok(Some(timestamp)),
+                        None => Err(Error::InvalidValue(value.to_vec())),
+                    }
+                }
+                _ => Err(Error::InvalidValue(value.to_vec())),
+            },
+            None => Ok(None),
+        }
     }
 
     pub fn lookup_retweet_target(&self, id: u64) -> Result<Option<u64>, Error> {
@@ -355,7 +438,7 @@ impl Iterator for IdIterator<'_> {
                         Some(
                             key_bytes[8..]
                                 .try_into()
-                                .map(|slice| u64::from_be_bytes(slice))
+                                .map(u64::from_be_bytes)
                                 .map_err(|_| Error::InvalidKey(key_bytes.to_vec())),
                         )
                     } else {
