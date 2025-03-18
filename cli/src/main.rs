@@ -1,6 +1,8 @@
 use birdsite::model::wbm::data::FormatError;
-use birdsite_db::{Snapshot, TweetMetadata, UserMetadata};
+use birdsite_db::{TweetMetadata, UserMetadata};
+use chrono::{DateTime, Utc};
 use cli_helpers::prelude::*;
+use itertools::Itertools;
 use std::path::PathBuf;
 
 #[tokio::main]
@@ -59,7 +61,14 @@ async fn main() -> Result<(), Error> {
                                 &contents,
                             ) {
                                 Ok(birdsite::model::wbm::TweetSnapshot::Data(tweet)) => {
-                                    db.insert_snapshot(parse_snapshot(&tweet)?)?;
+                                    match parse_snapshot(&tweet) {
+                                        Ok(snapshot) => {
+                                            db.insert_snapshot(&snapshot)?;
+                                        }
+                                        Err(error) => {
+                                            log::error!("{}: {:?}", file_name, error);
+                                        }
+                                    }
                                 }
                                 Ok(_) => {}
                                 Err(error) => {
@@ -73,6 +82,93 @@ async fn main() -> Result<(), Error> {
                     }
                 }
             }
+        }
+        Command::LookupUser { db, id } => {
+            let db = birdsite_db::Database::open(db)?;
+            log::info!("Loaded");
+
+            let created_at = db.lookup_user(id)?;
+
+            log::info!("Found user");
+
+            let tweet_ids = db
+                .lookup_tweets_by_user(id)
+                .collect::<Result<Vec<_>, _>>()?;
+
+            log::info!("Found {} tweets", tweet_ids.len());
+
+            let mut retweet_observations = vec![];
+
+            for tweet_id in &tweet_ids {
+                if let Some(retweeted_id) = db.lookup_retweet_target(*tweet_id)? {
+                    if let Some((user_id, _)) = db.lookup_tweet(retweeted_id)? {
+                        retweet_observations.push(user_id);
+                    }
+                }
+            }
+
+            retweet_observations.sort();
+
+            let mut retweets = retweet_observations
+                .into_iter()
+                .chunk_by(|id| *id)
+                .into_iter()
+                .map(|(id, seen)| (id, seen.count()))
+                .collect::<Vec<_>>();
+            retweets.sort_by_key(|(_, len)| std::cmp::Reverse(*len));
+
+            let mut mention_observations = vec![];
+
+            for tweet_id in &tweet_ids {
+                for result in db.lookup_mention_targets(*tweet_id) {
+                    let user_id = result?;
+
+                    mention_observations.push(user_id);
+                }
+            }
+
+            mention_observations.sort();
+
+            let mut mentions = mention_observations
+                .into_iter()
+                .chunk_by(|id| *id)
+                .into_iter()
+                .map(|(id, seen)| (id, seen.count()))
+                .collect::<Vec<_>>();
+            mentions.sort_by_key(|(_, len)| std::cmp::Reverse(*len));
+
+            let mut mentioned_observations = vec![];
+
+            for tweet_id in db.lookup_mention_sources(id) {
+                if let Some((id, _)) = db.lookup_tweet(tweet_id?)? {
+                    mentioned_observations.push(id);
+                }
+            }
+
+            mentioned_observations.sort();
+
+            let mut mentioned = mentioned_observations
+                .into_iter()
+                .chunk_by(|id| *id)
+                .into_iter()
+                .map(|(id, seen)| (id, seen.count()))
+                .collect::<Vec<_>>();
+            mentioned.sort_by_key(|(_, len)| std::cmp::Reverse(*len));
+
+            //let mention_tweet_ids = db.lookup_mention_sources(id).collect::<Result<Vec<_>, _>>()?;
+            //let mention_ids =
+
+            let result = UserInfo {
+                created_at,
+                retweets,
+                mentions,
+                mentioned,
+                tweets: tweet_ids,
+            };
+
+            log::info!("Done");
+
+            println!("{}", serde_json::json!(result));
         }
     }
 
@@ -114,67 +210,87 @@ enum Command {
         #[clap(long)]
         db: PathBuf,
     },
+    LookupUser {
+        #[clap(long)]
+        db: PathBuf,
+        #[clap(long)]
+        id: u64,
+    },
 }
 
-fn parse_snapshot(snapshot: &birdsite::model::wbm::data::Tweet) -> Result<Snapshot, FormatError> {
-    let user = snapshot.user()?;
-    let tweet = TweetMetadata::new(
-        snapshot.data.id,
-        UserMetadata::new(user.id, user.created_at),
-        snapshot.data.created_at,
+#[derive(serde::Serialize)]
+struct UserInfo {
+    #[serde(with = "chrono::serde::ts_seconds_option")]
+    created_at: Option<DateTime<Utc>>,
+    retweets: Vec<(u64, usize)>,
+    mentions: Vec<(u64, usize)>,
+    mentioned: Vec<(u64, usize)>,
+    tweets: Vec<u64>,
+}
+
+fn parse_tweet_data(
+    snapshot: &birdsite::model::wbm::data::Tweet,
+    data: &birdsite::model::wbm::data::TweetData,
+) -> Result<TweetMetadata, FormatError> {
+    let user = UserMetadata::new(
+        data.author_id,
+        snapshot
+            .lookup_user(data.author_id)
+            .map(|user| user.created_at),
     );
 
-    let retweeted = snapshot
-        .retweeted()?
-        .map(|tweet| {
-            snapshot
-                .lookup_user(tweet.author_id)
-                .ok_or(FormatError::MissingUser(tweet.author_id))
-                .map(|user| {
-                    TweetMetadata::new(
-                        tweet.id,
-                        UserMetadata::new(user.id, user.created_at),
-                        tweet.created_at,
-                    )
-                })
+    let mentions = data
+        .mention_ids()
+        .into_iter()
+        .map(|user_id| {
+            UserMetadata::new(
+                user_id,
+                snapshot.lookup_user(user_id).map(|user| user.created_at),
+            )
         })
-        .map_or(Ok(None), |v| v.map(Some))?;
+        .collect::<Vec<_>>();
 
-    let replied_to = snapshot
-        .replied_to()?
-        .map(|tweet| {
-            snapshot
-                .lookup_user(tweet.author_id)
-                .ok_or(FormatError::MissingUser(tweet.author_id))
-                .map(|user| {
-                    TweetMetadata::new(
-                        tweet.id,
-                        UserMetadata::new(user.id, user.created_at),
-                        tweet.created_at,
-                    )
-                })
-        })
-        .map_or(Ok(None), |v| v.map(Some))?;
+    //log::info!("{} users mentioned", mentions.len());
 
-    let quoted = snapshot
-        .quoted()?
-        .map(|tweet| {
-            snapshot
-                .lookup_user(tweet.author_id)
-                .ok_or(FormatError::MissingUser(tweet.author_id))
-                .map(|user| {
-                    TweetMetadata::new(
-                        tweet.id,
-                        UserMetadata::new(user.id, user.created_at),
-                        tweet.created_at,
-                    )
-                })
-        })
-        .map_or(Ok(None), |v| v.map(Some))?;
-
-    let mentions = todo![];
-
-    Ok(Snapshot::new(
-        tweet, retweeted, replied_to, quoted, mentions,
+    Ok(TweetMetadata::new(
+        data.id,
+        user,
+        data.created_at,
+        data.retweeted_id()?,
+        data.replied_to_id()?,
+        data.quoted_id()?,
+        mentions,
     ))
+}
+
+fn parse_snapshot(
+    snapshot: &birdsite::model::wbm::data::Tweet,
+) -> Result<Vec<TweetMetadata>, FormatError> {
+    let mut tweets = vec![parse_tweet_data(snapshot, &snapshot.data)?];
+
+    if let Some(tweet) = snapshot
+        .data
+        .retweeted_id()?
+        .and_then(|id| snapshot.lookup_tweet(id))
+    {
+        tweets.extend(parse_tweet_data(snapshot, &tweet));
+    }
+
+    if let Some(tweet) = snapshot
+        .data
+        .replied_to_id()?
+        .and_then(|id| snapshot.lookup_tweet(id))
+    {
+        tweets.extend(parse_tweet_data(snapshot, &tweet));
+    }
+
+    if let Some(tweet) = snapshot
+        .data
+        .quoted_id()?
+        .and_then(|id| snapshot.lookup_tweet(id))
+    {
+        tweets.extend(parse_tweet_data(snapshot, &tweet));
+    }
+
+    Ok(tweets)
 }

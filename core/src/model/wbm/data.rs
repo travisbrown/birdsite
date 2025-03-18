@@ -44,6 +44,14 @@ impl<'a> Tweet<'a> {
             .cloned()
     }
 
+    pub fn lookup_tweet(&self, id: u64) -> Option<TweetData<'a>> {
+        self.includes
+            .tweets
+            .as_ref()
+            .and_then(|tweets| tweets.iter().find(|tweet| tweet.id == id))
+            .cloned()
+    }
+
     pub fn retweeted(&self) -> Result<Option<TweetData<'a>>, FormatError> {
         self.referenced_tweet(ReferenceType::Retweeted)
     }
@@ -64,15 +72,8 @@ impl<'a> Tweet<'a> {
         self.data
             .referenced_tweet_id(reference_type)?
             .map(|id| {
-                match self
-                    .includes
-                    .tweets
-                    .as_ref()
-                    .and_then(|tweets| tweets.iter().find(|tweet| tweet.id == id))
-                {
-                    Some(tweet) => Ok(tweet.clone()),
-                    None => Err(FormatError::MissingReferencedTweet(id)),
-                }
+                self.lookup_tweet(id)
+                    .ok_or(FormatError::MissingReferencedTweet(id))
             })
             .map_or(Ok(None), |v| v.map(Some))
     }
@@ -112,12 +113,7 @@ pub struct TweetData<'a> {
     pub withheld: Option<Withheld>,
 }
 
-impl<'a> TweetData<'a> {
-    pub fn user(&self, top: &Tweet<'a>) -> Result<User<'a>, FormatError> {
-        top.lookup_user(self.author_id)
-            .ok_or(FormatError::MissingUser(self.author_id))
-    }
-
+impl TweetData<'_> {
     pub fn retweeted_id(&self) -> Result<Option<u64>, FormatError> {
         self.referenced_tweet_id(ReferenceType::Retweeted)
     }
@@ -157,6 +153,19 @@ impl<'a> TweetData<'a> {
                 })
             })
             .map_or(Ok(None), |v| v.map(Some))
+    }
+
+    pub fn mention_ids(&self) -> Vec<u64> {
+        self.entities
+            .as_ref()
+            .and_then(|entities| entities.mentions.as_ref())
+            .map(|mentions| {
+                mentions
+                    .iter()
+                    .filter_map(|mention| mention.id.and_then(|id| id.0))
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 }
 

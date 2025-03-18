@@ -11,6 +11,8 @@ birdsite = { path = "../core/" }
 birdsite-db = { path = "../db/" }
 chrono = { workspace = true }
 cli-helpers = { workspace = true }
+itertools = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

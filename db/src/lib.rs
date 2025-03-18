@@ -1,5 +1,4 @@
 use birdsite::age::snowflake_to_date_time;
-use birdsite::model::wbm::v1::User;
 use chrono::{DateTime, TimeZone, Utc};
 use rocksdb::{
     ColumnFamily, ColumnFamilyDescriptor, DBIteratorWithThreadMode, Options, Transaction,
@@ -37,45 +36,34 @@ pub enum Error {
 }
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Snapshot {
-    pub tweet: TweetMetadata,
-    pub retweeted: Option<TweetMetadata>,
-    pub replied_to: Option<TweetMetadata>,
-    pub quoted: Option<TweetMetadata>,
-    pub mentions: Vec<UserMetadata>,
-}
-
-impl Snapshot {
-    pub fn new(
-        tweet: TweetMetadata,
-        retweeted: Option<TweetMetadata>,
-        replied_to: Option<TweetMetadata>,
-        quoted: Option<TweetMetadata>,
-        mentions: Vec<UserMetadata>,
-    ) -> Self {
-        Self {
-            tweet,
-            retweeted,
-            replied_to,
-            quoted,
-            mentions,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct TweetMetadata {
     pub id: u64,
     pub user: UserMetadata,
     pub created_at: DateTime<Utc>,
+    pub retweeted_id: Option<u64>,
+    pub replied_to_id: Option<u64>,
+    pub quoted_id: Option<u64>,
+    pub mentions: Vec<UserMetadata>,
 }
 
 impl TweetMetadata {
-    pub fn new(id: u64, user: UserMetadata, created_at: DateTime<Utc>) -> Self {
+    pub fn new(
+        id: u64,
+        user: UserMetadata,
+        created_at: DateTime<Utc>,
+        retweeted_id: Option<u64>,
+        replied_to_id: Option<u64>,
+        quoted_id: Option<u64>,
+        mentions: Vec<UserMetadata>,
+    ) -> Self {
         Self {
             id,
             user,
             created_at,
+            retweeted_id,
+            replied_to_id,
+            quoted_id,
+            mentions,
         }
     }
 }
@@ -83,11 +71,11 @@ impl TweetMetadata {
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct UserMetadata {
     pub id: u64,
-    pub created_at: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 impl UserMetadata {
-    pub fn new(id: u64, created_at: DateTime<Utc>) -> Self {
+    pub fn new(id: u64, created_at: Option<DateTime<Utc>>) -> Self {
         Self { id, created_at }
     }
 }
@@ -136,68 +124,12 @@ impl Database {
         Ok(Self { db: Arc::new(db) })
     }
 
-    pub fn insert_snapshot(&self, snapshot: Snapshot) -> Result<(), Error> {
-        let tweet_id_bytes = snapshot.tweet.id.to_be_bytes();
-        let user_id_bytes = snapshot.tweet.user.id.to_be_bytes();
-
+    pub fn insert_snapshot(&self, tweets: &[TweetMetadata]) -> Result<(), Error> {
         let transaction = self.db.transaction();
         let cfs = ColumnFamilies::get(&self.db);
 
-        Self::insert_single_tweet(&transaction, &cfs, snapshot.tweet)?;
-
-        let mut key = [0u8; 16];
-
-        if let Some(target_metadata) = snapshot.retweeted {
-            Self::insert_single_tweet(&transaction, &cfs, target_metadata)?;
-
-            let target_id_bytes = target_metadata.id.to_be_bytes();
-
-            Self::checked_update(&transaction, cfs.retweet0, tweet_id_bytes, &target_id_bytes)?;
-
-            key[0..8].copy_from_slice(&target_id_bytes);
-            key[8..16].copy_from_slice(&tweet_id_bytes);
-
-            transaction.put_cf(cfs.retweet1, key, [])?;
-        }
-
-        if let Some(target_metadata) = snapshot.replied_to {
-            Self::insert_single_tweet(&transaction, &cfs, target_metadata)?;
-
-            let target_id_bytes = target_metadata.id.to_be_bytes();
-
-            Self::checked_update(&transaction, cfs.reply0, tweet_id_bytes, &target_id_bytes)?;
-
-            key[0..8].copy_from_slice(&target_id_bytes);
-            key[8..16].copy_from_slice(&tweet_id_bytes);
-
-            transaction.put_cf(cfs.reply1, key, [])?;
-        }
-
-        if let Some(target_metadata) = snapshot.quoted {
-            Self::insert_single_tweet(&transaction, &cfs, target_metadata)?;
-
-            let target_id_bytes = target_metadata.id.to_be_bytes();
-
-            Self::checked_update(&transaction, cfs.quote0, tweet_id_bytes, &target_id_bytes)?;
-
-            key[0..8].copy_from_slice(&target_id_bytes);
-            key[8..16].copy_from_slice(&tweet_id_bytes);
-
-            transaction.put_cf(cfs.quote1, key, [])?;
-        }
-
-        for user_metadata in snapshot.mentions {
-            let target_id_bytes = user_metadata.id.to_be_bytes();
-
-            key[0..8].copy_from_slice(&user_id_bytes);
-            key[8..16].copy_from_slice(&target_id_bytes);
-
-            transaction.put_cf(cfs.mention0, key, [])?;
-
-            key[0..8].copy_from_slice(&target_id_bytes);
-            key[8..16].copy_from_slice(&user_id_bytes);
-
-            transaction.put_cf(cfs.mention1, key, [])?;
+        for tweet in tweets {
+            Self::insert_single_tweet(&transaction, &cfs, tweet)?;
         }
 
         Ok(transaction.commit()?)
@@ -206,14 +138,14 @@ impl Database {
     fn insert_single_tweet<'a>(
         transaction: &Transaction<'a, TransactionDB>,
         cfs: &ColumnFamilies<'a>,
-        tweet_metadata: TweetMetadata,
+        tweet_metadata: &TweetMetadata,
     ) -> Result<(), Error> {
         let tweet_id_bytes = tweet_metadata.id.to_be_bytes();
         let user_id_bytes = tweet_metadata.user.id.to_be_bytes();
 
         let mut value = Vec::with_capacity(12);
 
-        value.extend_from_slice(&tweet_id_bytes);
+        value.extend_from_slice(&user_id_bytes);
 
         if snowflake_to_date_time(tweet_metadata.id) != Some(tweet_metadata.created_at) {
             value.extend_from_slice(&(tweet_metadata.created_at.timestamp() as u32).to_be_bytes());
@@ -221,24 +153,85 @@ impl Database {
 
         Self::checked_update(transaction, cfs.tweet0, tweet_id_bytes, &value)?;
 
-        let mut tweet1_key = [0u8; 12];
+        let mut tweet1_key = [0u8; 16];
 
-        tweet1_key[0..4].copy_from_slice(&user_id_bytes);
-        tweet1_key[4..12].copy_from_slice(&tweet_id_bytes);
+        tweet1_key[0..8].copy_from_slice(&user_id_bytes);
+        tweet1_key[8..16].copy_from_slice(&tweet_id_bytes);
 
         transaction.put_cf(cfs.tweet1, tweet1_key, [])?;
 
-        value.clear();
+        Self::insert_user(transaction, cfs.user0, &tweet_metadata.user)?;
 
-        if snowflake_to_date_time(tweet_metadata.user.id) != Some(tweet_metadata.user.created_at) {
-            value.extend_from_slice(
-                &(tweet_metadata.user.created_at.timestamp() as u32).to_be_bytes(),
-            );
+        let mut key = [0u8; 16];
+
+        if let Some(target_id) = tweet_metadata.retweeted_id {
+            let target_id_bytes = target_id.to_be_bytes();
+
+            Self::checked_update(transaction, cfs.retweet0, tweet_id_bytes, &target_id_bytes)?;
+
+            key[0..8].copy_from_slice(&target_id_bytes);
+            key[8..16].copy_from_slice(&tweet_id_bytes);
+
+            transaction.put_cf(cfs.retweet1, key, [])?;
         }
 
-        transaction.put_cf(cfs.user0, tweet_metadata.user.id.to_be_bytes(), &value)?;
+        if let Some(target_id) = tweet_metadata.replied_to_id {
+            let target_id_bytes = target_id.to_be_bytes();
+
+            Self::checked_update(transaction, cfs.reply0, tweet_id_bytes, &target_id_bytes)?;
+
+            key[0..8].copy_from_slice(&target_id_bytes);
+            key[8..16].copy_from_slice(&tweet_id_bytes);
+
+            transaction.put_cf(cfs.reply1, key, [])?;
+        }
+
+        if let Some(target_id) = tweet_metadata.quoted_id {
+            let target_id_bytes = target_id.to_be_bytes();
+
+            Self::checked_update(transaction, cfs.quote0, tweet_id_bytes, &target_id_bytes)?;
+
+            key[0..8].copy_from_slice(&target_id_bytes);
+            key[8..16].copy_from_slice(&tweet_id_bytes);
+
+            transaction.put_cf(cfs.quote1, key, [])?;
+        }
+
+        for user_metadata in &tweet_metadata.mentions {
+            Self::insert_user(transaction, cfs.user0, user_metadata)?;
+
+            let target_id_bytes = user_metadata.id.to_be_bytes();
+
+            key[0..8].copy_from_slice(&tweet_id_bytes);
+            key[8..16].copy_from_slice(&target_id_bytes);
+
+            transaction.put_cf(cfs.mention0, key, [])?;
+
+            key[0..8].copy_from_slice(&target_id_bytes);
+            key[8..16].copy_from_slice(&tweet_id_bytes);
+
+            transaction.put_cf(cfs.mention1, key, [])?;
+        }
 
         Ok(())
+    }
+
+    fn insert_user(
+        transaction: &Transaction<'_, TransactionDB>,
+        cf: &ColumnFamily,
+        user_metadata: &UserMetadata,
+    ) -> Result<(), Error> {
+        if let Some(created_at) = user_metadata.created_at {
+            let value = if snowflake_to_date_time(user_metadata.id) != Some(created_at) {
+                (created_at.timestamp() as u32).to_be_bytes().to_vec()
+            } else {
+                vec![]
+            };
+
+            Ok(transaction.put_cf(cf, user_metadata.id.to_be_bytes(), &value)?)
+        } else {
+            Ok(())
+        }
     }
 
     pub fn lookup_tweet(&self, id: u64) -> Result<Option<(u64, DateTime<Utc>)>, Error> {
@@ -248,20 +241,20 @@ impl Database {
         {
             Some(value) => match value.len() {
                 8 => {
-                    let id = u64::from_be_bytes(value[0..8].try_into().unwrap());
+                    let user_id = u64::from_be_bytes(value[0..8].try_into().unwrap());
 
                     match snowflake_to_date_time(id) {
-                        Some(timestamp) => Ok(Some((id, timestamp))),
+                        Some(timestamp) => Ok(Some((user_id, timestamp))),
                         None => Err(Error::InvalidValue(value.to_vec())),
                     }
                 }
                 12 => {
-                    let id = u64::from_be_bytes(value[0..8].try_into().unwrap());
+                    let user_id = u64::from_be_bytes(value[0..8].try_into().unwrap());
                     let timestamp_s: i64 =
                         u32::from_be_bytes(value[8..12].try_into().unwrap()).into();
 
                     match Utc.timestamp_opt(timestamp_s, 0).single() {
-                        Some(timestamp) => Ok(Some((id, timestamp))),
+                        Some(timestamp) => Ok(Some((user_id, timestamp))),
                         None => Err(Error::InvalidValue(value.to_vec())),
                     }
                 }
@@ -292,9 +285,9 @@ impl Database {
                     Some(timestamp) => Ok(Some(timestamp)),
                     None => Err(Error::InvalidValue(value.to_vec())),
                 },
-                8 => {
+                4 => {
                     let timestamp_s: i64 =
-                        u32::from_be_bytes(value[8..12].try_into().unwrap()).into();
+                        u32::from_be_bytes(value[0..4].try_into().unwrap()).into();
 
                     match Utc.timestamp_opt(timestamp_s, 0).single() {
                         Some(timestamp) => Ok(Some(timestamp)),
@@ -401,19 +394,20 @@ impl Database {
         key: [u8; 8],
         value: &'a [u8],
     ) -> Result<bool, Error> {
-        let exists = if let Some(old) = transaction.get_pinned_for_update_cf(cf, key, false)? {
-            if old.as_ref() == value {
-                return Err(Error::DuplicateValues {
-                    key: u64::from_be_bytes(key),
-                    old: old.to_vec(),
-                    new: value.to_vec(),
-                });
+        let exists = match transaction.get_pinned_for_update_cf(cf, key, false)? {
+            Some(old) => {
+                if old.as_ref() != value {
+                    Err(Error::DuplicateValues {
+                        key: u64::from_be_bytes(key),
+                        old: old.to_vec(),
+                        new: value.to_vec(),
+                    })
+                } else {
+                    Ok(true)
+                }
             }
-
-            true
-        } else {
-            false
-        };
+            None => Ok(false),
+        }?;
 
         transaction.put_cf(cf, key, value)?;
 
