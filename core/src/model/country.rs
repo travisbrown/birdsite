@@ -160,6 +160,8 @@ pub enum Country {
     UnitedStates,
     #[serde(rename = "UY")]
     Uruguay,
+    #[serde(rename = "VA")]
+    VaticanCity,
     #[serde(rename = "VN")]
     Vietnam,
     #[serde(rename = "ZA")]
