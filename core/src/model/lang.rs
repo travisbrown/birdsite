@@ -1,5 +1,7 @@
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum Lang {
+    #[serde(rename = "af")]
+    Afrikaans,
     #[serde(rename = "am")]
     Amharic,
     #[serde(rename = "ar")]
@@ -46,6 +48,8 @@ pub enum Lang {
     Finnish,
     #[serde(rename = "fil")]
     Filipino,
+    #[serde(rename = "ga")]
+    Irish,
     #[serde(rename = "gl")]
     Galician,
     #[serde(rename = "gu")]
@@ -112,6 +116,8 @@ pub enum Lang {
     Russian,
     #[serde(rename = "sd")]
     Sindhi,
+    #[serde(rename = "si")]
+    Sinhalese,
     #[serde(rename = "sl")]
     Slovenian,
     #[serde(rename = "sr")]

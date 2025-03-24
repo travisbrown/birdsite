@@ -171,6 +171,8 @@ impl TweetData<'_> {
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum TweetSource {
+    #[serde(rename = "Twitter")]
+    Twitter,
     #[serde(rename = "Twitter for iPhone")]
     TwitterForIphone,
     #[serde(rename = "Twitter Web App")]
@@ -181,6 +183,8 @@ pub enum TweetSource {
     TwitterForIpad,
     #[serde(rename = "Twitter for Android")]
     TwitterForAndroid,
+    #[serde(rename = "Twitter for Mac")]
+    TwitterForMac,
     #[serde(rename = "Twitter for Advertisers")]
     TwitterForAdvertisers,
     #[serde(rename = "TweetDeck")]
@@ -209,6 +213,86 @@ pub enum TweetSource {
     JetpackDotCom,
     #[serde(rename = "Twitter Media Studio")]
     TwitterMediaStudio,
+    #[serde(rename = "True Anthem")]
+    TrueAnthem,
+    #[serde(rename = "OneUp App")]
+    OneUpApp,
+    #[serde(rename = "Echobox")]
+    Echobox,
+    #[serde(rename = "SocialNewsDesk")]
+    SocialNewsDesk,
+    #[serde(rename = "The White House")]
+    TheWhiteHouse,
+    #[serde(rename = "BlackMagic.so")]
+    BlackMagicSo,
+    #[serde(rename = "Typefully")]
+    Typefully,
+    #[serde(rename = "Unfollowspy")]
+    Unfollowspy,
+    #[serde(rename = "TweetDeck Web App")]
+    TweetDeckWebApp,
+    #[serde(rename = "Tweetbot for iΟS")]
+    TweetbotForIos,
+    #[serde(rename = "Sprinklr")]
+    Sprinklr,
+    #[serde(rename = "Sprinklr Publishing")]
+    SprinklrPublishing,
+    #[serde(rename = "Oldhammer Bot")]
+    OldhammerBot,
+    //#[serde(rename = "BotFrens.co")]
+    //BotFrensCo,
+    #[serde(rename = "Twitter Media Studio - LiveCut")]
+    TwitterMediaStudioLiveCut,
+    #[serde(rename = "Echofon")]
+    Echofon,
+    #[serde(rename = "Twitter Ads")]
+    TwitterAds,
+    #[serde(rename = "FS Poster 3")]
+    FSPoster3,
+    #[serde(rename = "OnlyPultCom")]
+    OnlyPultCom,
+    #[serde(rename = "healthb0t")]
+    Healthb0t,
+    #[serde(rename = "rtlnieuws.nl prod web")]
+    RtlnieuwsNlProdWeb,
+    #[serde(rename = "Agorapulse app")]
+    AgorapulseApp,
+    #[serde(rename = "M3 Media")]
+    M3Media,
+    #[serde(rename = "Echo Chamber Buster")]
+    EchoChamberBuster,
+    #[serde(rename = "TweetCaster for Android")]
+    TweetCasterForAndroid,
+    #[serde(rename = "SmarterQueue")]
+    SmarterQueue,
+    #[serde(rename = "tokdrama")]
+    Tokdrama,
+    #[serde(rename = "Zapier.com")]
+    ZapierCom,
+    #[serde(rename = "Chatrecruit auto-tweets")]
+    ChatrecruitAutoTweets,
+    #[serde(rename = "Emplifi")]
+    Emplifi,
+    #[serde(rename = "Zero Hedge Publisher II")]
+    ZeroHedgePublisherIi,
+    #[serde(rename = "Rabois Likes")]
+    RaboisLikes,
+    #[serde(rename = "fllwrs")]
+    Fllwrs,
+    #[serde(rename = "Adobe Express")]
+    AdobeExpress,
+    #[serde(rename = "YBRP")]
+    Ybrp,
+    #[serde(rename = "Cheap Bots, Done Quick!")]
+    CheapBotsDoneQuick,
+    #[serde(rename = "Circleboom Publish")]
+    CircleboomPublish,
+    #[serde(rename = "BotFrens.com")]
+    BotFrensCom,
+    #[serde(rename = "Twitter for  iPhone")]
+    TwitterFor_iPhone,
+    #[serde(rename = "Tweetbot for Mac")]
+    TweetbotForMac,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

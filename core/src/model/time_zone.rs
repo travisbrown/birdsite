@@ -14,6 +14,10 @@ pub enum TimeZone {
     Est,
     #[serde(rename = "GMT")]
     Gmt,
+    #[serde(rename = "GMT+8")]
+    Gmt8,
+    #[serde(rename = "PST")]
+    Pst,
     #[serde(rename = "UTC")]
     Utc,
     #[serde(rename = "Central Time (US & Canada)")]
@@ -40,16 +44,24 @@ pub enum TimeZone {
     AfricaJohannesburg,
     #[serde(rename = "Africa/Lagos")]
     AfricaLagos,
+    #[serde(rename = "Africa/Nairobi")]
+    AfricaNairobi,
+    #[serde(rename = "Africa/Nouakchott")]
+    AfricaNouakchott,
     #[serde(rename = "America/Anchorage")]
     AmericaAnchorage,
     #[serde(rename = "America/Argentina/Buenos_Aires")]
     AmericaArgentinaBuenosAires,
+    #[serde(rename = "America/Bogota")]
+    AmericaBogota,
     #[serde(rename = "America/Boise")]
     AmericaBoise,
     #[serde(rename = "America/Caracas")]
     AmericaCaracas,
     #[serde(rename = "America/Chicago")]
     AmericaChicago,
+    #[serde(rename = "America/Costa_Rica")]
+    AmericaCostaRica,
     #[serde(rename = "America/Dawson")]
     AmericaDawson,
     #[serde(rename = "America/Denver")]
@@ -64,6 +76,8 @@ pub enum TimeZone {
     AmericaLima,
     #[serde(rename = "America/Los_Angeles")]
     AmericaLosAngeles,
+    #[serde(rename = "America/Manaus")]
+    AmericaManaus,
     #[serde(rename = "America/Mexico_City")]
     AmericaMexicoCity,
     #[serde(rename = "America/Montevideo")]
@@ -72,6 +86,8 @@ pub enum TimeZone {
     AmericaNewYork,
     #[serde(rename = "America/Phoenix")]
     AmericaPhoenix,
+    #[serde(rename = "America/Regina")]
+    AmericaRegina,
     #[serde(rename = "America/Toronto")]
     AmericaToronto,
     #[serde(rename = "America/Vancouver")]
@@ -112,6 +128,8 @@ pub enum TimeZone {
     EuropeIstanbul,
     #[serde(rename = "Europe/London")]
     EuropeLondon,
+    #[serde(rename = "Europe/Luxembourg")]
+    EuropeLuxembourg,
     #[serde(rename = "Europe/Madrid")]
     EuropeMadrid,
     #[serde(rename = "Europe/Moscow")]
@@ -156,6 +174,8 @@ pub enum TimeZone {
     NukuAlofa,
     #[serde(rename = "Solomon Is.")]
     SolomonIs,
+    #[serde(rename = "Sri Jayawardenepura")]
+    SriJayawardenepura,
     #[serde(rename = "St. Petersburg")]
     StPetersburg,
     #[serde(rename = "Ulaan Bataar")]
@@ -184,9 +204,11 @@ pub enum TimeZone {
     Bucharest,
     Budapest,
     Cairo,
+    Canberra,
     Caracas,
     Casablanca,
     Chennai,
+    Chihuahua,
     Chongqing,
     Copenhagen,
     Dhaka,
@@ -196,6 +218,7 @@ pub enum TimeZone {
     Fiji,
     Georgetown,
     Greenland,
+    Guadalajara,
     Guam,
     Hanoi,
     Harare,
@@ -253,6 +276,7 @@ pub enum TimeZone {
     Sydney,
     Taipei,
     Tallinn,
+    Tbilisi,
     Tehran,
     Tijuana,
     Tokyo,

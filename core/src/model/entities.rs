@@ -157,7 +157,7 @@ pub struct Url<'a> {
     pub title: Option<Cow<'a, str>>,
     pub description: Option<Cow<'a, str>>,
     pub url: &'a str,
-    pub expanded_url: &'a str,
+    pub expanded_url: Option<&'a str>,
     pub display_url: Cow<'a, str>,
     pub media_key: Option<&'a str>,
     // TODO: Use a proper status code representation here.

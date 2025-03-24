@@ -6,6 +6,8 @@ pub enum Country {
     Afghanistan,
     #[serde(rename = "AR")]
     Argentina,
+    #[serde(rename = "AL")]
+    Albania,
     #[serde(rename = "AQ")]
     Antarctica,
     #[serde(rename = "AT")]
@@ -16,8 +18,14 @@ pub enum Country {
     Belgium,
     #[serde(rename = "BG")]
     Bulgaria,
+    #[serde(rename = "BL")]
+    SaintBarthelemy,
     #[serde(rename = "BR")]
     Brazil,
+    #[serde(rename = "BS")]
+    Bahamas,
+    #[serde(rename = "BY")]
+    Belarus,
     #[serde(rename = "CA")]
     Canada,
     #[serde(rename = "CD")]
@@ -50,6 +58,8 @@ pub enum Country {
     Ecuador,
     #[serde(rename = "EE")]
     Estonia,
+    #[serde(rename = "EG")]
+    Egypt,
     #[serde(rename = "ES")]
     Spain,
     #[serde(rename = "FI")]
@@ -58,6 +68,10 @@ pub enum Country {
     France,
     #[serde(rename = "GB")]
     UnitedKingdom,
+    #[serde(rename = "GE")]
+    Georgia,
+    #[serde(rename = "GH")]
+    Ghana,
     #[serde(rename = "GR")]
     Greece,
     #[serde(rename = "HK")]
@@ -74,12 +88,16 @@ pub enum Country {
     Israel,
     #[serde(rename = "IN")]
     India,
+    #[serde(rename = "IQ")]
+    Iraq,
     #[serde(rename = "IS")]
     Iceland,
     #[serde(rename = "IT")]
     Italy,
     #[serde(rename = "JM")]
     Jamaica,
+    #[serde(rename = "JO")]
+    Jordan,
     #[serde(rename = "JP")]
     Japan,
     #[serde(rename = "KE")]
@@ -92,6 +110,8 @@ pub enum Country {
     Korea,
     #[serde(rename = "KW")]
     Kuwait,
+    #[serde(rename = "KY")]
+    CaymanIslands,
     #[serde(rename = "LB")]
     Lebanon,
     #[serde(rename = "LT")]
@@ -102,6 +122,8 @@ pub enum Country {
     Latvia,
     #[serde(rename = "MA")]
     Morocco,
+    #[serde(rename = "MK")]
+    Macedonia,
     #[serde(rename = "MM")]
     Myanmar,
     #[serde(rename = "MT")]
@@ -110,6 +132,8 @@ pub enum Country {
     Mexico,
     #[serde(rename = "MY")]
     Malaysia,
+    #[serde(rename = "NA")]
+    Namibia,
     #[serde(rename = "NG")]
     Nigeria,
     #[serde(rename = "NL")]
@@ -118,6 +142,8 @@ pub enum Country {
     Norway,
     #[serde(rename = "NZ")]
     NewZealand,
+    #[serde(rename = "PA")]
+    Panama,
     #[serde(rename = "PK")]
     Pakistan,
     #[serde(rename = "PH")]
@@ -128,6 +154,8 @@ pub enum Country {
     Portugal,
     #[serde(rename = "PY")]
     Paraguay,
+    #[serde(rename = "QA")]
+    Qatar,
     #[serde(rename = "RU")]
     Russia,
     #[serde(rename = "RO")]
@@ -136,6 +164,8 @@ pub enum Country {
     Serbia,
     #[serde(rename = "SA")]
     SaudiArabia,
+    #[serde(rename = "SD")]
+    Sudan,
     #[serde(rename = "SE")]
     Sweden,
     #[serde(rename = "SG")]
@@ -144,12 +174,18 @@ pub enum Country {
     Slovenia,
     #[serde(rename = "SK")]
     Slovakia,
+    #[serde(rename = "SN")]
+    Senegal,
+    #[serde(rename = "SV")]
+    ElSalvador,
     #[serde(rename = "SY")]
     Syria,
     #[serde(rename = "TC")]
     TurksAndCaicosIslands,
     #[serde(rename = "TH")]
     Thailand,
+    #[serde(rename = "TN")]
+    Tunisia,
     #[serde(rename = "TR")]
     Turkey,
     #[serde(rename = "UA")]
