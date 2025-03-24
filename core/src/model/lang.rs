@@ -118,6 +118,8 @@ pub enum Lang {
     Sindhi,
     #[serde(rename = "si")]
     Sinhalese,
+    #[serde(rename = "sk")]
+    Slovak,
     #[serde(rename = "sl")]
     Slovenian,
     #[serde(rename = "sr")]
