@@ -9,5 +9,6 @@ license = { workspace = true }
 [dependencies]
 birdsite = { path = "../core/" }
 chrono = { workspace = true }
+either = { workspace = true }
 rocksdb = { workspace = true }
 thiserror = { workspace = true }

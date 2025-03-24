@@ -1,8 +1,9 @@
 use birdsite::model::wbm::data::FormatError;
-use birdsite_db::{TweetMetadata, UserMetadata};
+use birdsite_db::metadata::{TweetMetadata, UserMetadata};
 use chrono::{DateTime, Utc};
 use cli_helpers::prelude::*;
 use itertools::Itertools;
+use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 #[tokio::main]
@@ -11,6 +12,81 @@ async fn main() -> Result<(), Error> {
     opts.verbose.init_logging()?;
 
     match opts.command {
+        Command::KnownTweets { db } => {
+            let db = birdsite_db::metadata::Database::open(db)?;
+
+            for result in db.known_tweets() {
+                let (id, user_id, timestamp) = result?;
+                let timestamp_code = if timestamp.is_stored() { "+" } else { "" };
+
+                println!(
+                    "{},{},{},{}",
+                    id,
+                    user_id,
+                    timestamp_code,
+                    DateTime::<Utc>::from(timestamp)
+                );
+            }
+        }
+        Command::KnownUsers { db } => {
+            let db = birdsite_db::metadata::Database::open(db)?;
+
+            for result in db.known_users() {
+                let (id, timestamp) = result?;
+                let timestamp_code = if timestamp.is_stored() { "+" } else { "" };
+
+                println!(
+                    "{},{},{}",
+                    id,
+                    timestamp_code,
+                    DateTime::<Utc>::from(timestamp)
+                );
+            }
+        }
+        Command::UnknownTweets { db } => {
+            let db = birdsite_db::metadata::Database::open(db)?;
+
+            let known_ids = db
+                .known_tweets()
+                .map(|result| result.map(|(id, _, _)| id))
+                .collect::<Result<BTreeSet<_>, _>>()?;
+
+            let unknown_ids = db
+                .seen_tweets()
+                .filter(|result| {
+                    result
+                        .as_ref()
+                        .map(|id| !known_ids.contains(&id))
+                        .unwrap_or(true)
+                })
+                .collect::<Result<BTreeSet<_>, _>>()?;
+
+            for id in unknown_ids {
+                println!("{}", id);
+            }
+        }
+        Command::UnknownUsers { db } => {
+            let db = birdsite_db::metadata::Database::open(db)?;
+
+            let known_ids = db
+                .known_users()
+                .map(|result| result.map(|(id, _)| id))
+                .collect::<Result<BTreeSet<_>, _>>()?;
+
+            let unknown_ids = db
+                .seen_users()
+                .filter(|result| {
+                    result
+                        .as_ref()
+                        .map(|id| !known_ids.contains(&id))
+                        .unwrap_or(true)
+                })
+                .collect::<Result<BTreeSet<_>, _>>()?;
+
+            for id in unknown_ids {
+                println!("{}", id);
+            }
+        }
         Command::Extract { input } => {
             let mut paths = std::fs::read_dir(input)?
                 .map(|entry| entry.map(|entry| entry.path()))
@@ -44,7 +120,7 @@ async fn main() -> Result<(), Error> {
             }
         }
         Command::Import { input, db } => {
-            let db = birdsite_db::Database::open(db)?;
+            let db = birdsite_db::metadata::Database::open(db)?;
 
             let mut paths = std::fs::read_dir(input)?
                 .map(|entry| entry.map(|entry| entry.path()))
@@ -84,7 +160,7 @@ async fn main() -> Result<(), Error> {
             }
         }
         Command::LookupUser { db, id } => {
-            let db = birdsite_db::Database::open(db)?;
+            let db = birdsite_db::metadata::Database::open(db)?;
             log::info!("Loaded");
 
             let created_at = db.lookup_user(id)?;
@@ -155,9 +231,6 @@ async fn main() -> Result<(), Error> {
                 .collect::<Vec<_>>();
             mentioned.sort_by_key(|(_, len)| std::cmp::Reverse(*len));
 
-            //let mention_tweet_ids = db.lookup_mention_sources(id).collect::<Result<Vec<_>, _>>()?;
-            //let mention_ids =
-
             let result = UserInfo {
                 created_at,
                 retweets,
@@ -184,7 +257,7 @@ pub enum Error {
     #[error("JSON error")]
     Json(#[from] serde_json::Error),
     #[error("Database error")]
-    Db(#[from] birdsite_db::Error),
+    Db(#[from] birdsite_db::metadata::Error),
     #[error("Wayback Machine snapshot format error")]
     WbmDataFormat(#[from] birdsite::model::wbm::data::FormatError),
 }
@@ -200,6 +273,22 @@ struct Opts {
 
 #[derive(Debug, Parser)]
 enum Command {
+    KnownTweets {
+        #[clap(long)]
+        db: PathBuf,
+    },
+    KnownUsers {
+        #[clap(long)]
+        db: PathBuf,
+    },
+    UnknownTweets {
+        #[clap(long)]
+        db: PathBuf,
+    },
+    UnknownUsers {
+        #[clap(long)]
+        db: PathBuf,
+    },
     Extract {
         #[clap(long)]
         input: PathBuf,
@@ -249,8 +338,6 @@ fn parse_tweet_data(
             )
         })
         .collect::<Vec<_>>();
-
-    //log::info!("{} users mentioned", mentions.len());
 
     Ok(TweetMetadata::new(
         data.id,

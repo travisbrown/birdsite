@@ -17,14 +17,22 @@ fn deserialize_dir<P: AsRef<Path>>(dir: P) -> Result<(), Box<dyn std::error::Err
     let skip: Option<&str> = None;
 
     let mut paths = std::fs::read_dir(dir)?
-        .map(|entry| entry.map(|entry| entry.path()))
+        .map(|entry| {
+            entry.and_then(|entry| {
+                let modified = entry.metadata()?.modified()?;
+
+                Ok((modified, entry.path()))
+            })
+        })
         .collect::<Result<Vec<_>, _>>()?;
 
-    paths.sort();
+    paths.sort_by_key(|(timestamp, _)| std::cmp::Reverse(*timestamp));
+
+    eprintln!("Files prepared: {}", paths.len());
 
     let mut count = 0;
 
-    for path in paths {
+    for (_, path) in paths {
         if let Some(file_name) = path.file_name().and_then(|file_name| file_name.to_str()) {
             if skip
                 .map(|skip| &file_name[0..skip.len()] >= skip)
