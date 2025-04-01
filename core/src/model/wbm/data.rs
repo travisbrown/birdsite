@@ -293,6 +293,12 @@ pub enum TweetSource {
     TwitterFor_iPhone,
     #[serde(rename = "Tweetbot for Mac")]
     TweetbotForMac,
+    #[serde(rename = "Make (formerly Integromat)")]
+    MakeFormerlyIntegromat,
+    #[serde(rename = "libertyrecap")]
+    Libertyrecap,
+    #[serde(rename = "FS-Poster-App")]
+    FsPosterApp,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

@@ -102,6 +102,8 @@ pub enum TimeZone {
     AsiaJerusalem,
     #[serde(rename = "Asia/Kabul")]
     AsiaKabul,
+    #[serde(rename = "Asia/Kolkata")]
+    AsiaKolkata,
     #[serde(rename = "Asia/Manila")]
     AsiaManila,
     #[serde(rename = "Asia/Riyadh")]
@@ -126,6 +128,8 @@ pub enum TimeZone {
     EuropeDublin,
     #[serde(rename = "Europe/Istanbul")]
     EuropeIstanbul,
+    #[serde(rename = "Europe/Kiev")]
+    EuropeKiev,
     #[serde(rename = "Europe/London")]
     EuropeLondon,
     #[serde(rename = "Europe/Luxembourg")]
@@ -144,6 +148,8 @@ pub enum TimeZone {
     EuropeVienna,
     #[serde(rename = "Europe/Warsaw")]
     EuropeWarsaw,
+    #[serde(rename = "Pacific/Auckland")]
+    PacificAuckland,
     #[serde(rename = "Pacific/Honolulu")]
     PacificHonolulu,
     #[serde(rename = "Abu Dhabi")]
@@ -282,6 +288,7 @@ pub enum TimeZone {
     Tokyo,
     Urumqi,
     Vienna,
+    Vilnius,
     Volgograd,
     Warsaw,
     Wellington,

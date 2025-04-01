@@ -14,12 +14,16 @@ pub enum Country {
     Austria,
     #[serde(rename = "AU")]
     Australia,
+    #[serde(rename = "BB")]
+    Barbados,
     #[serde(rename = "BE")]
     Belgium,
     #[serde(rename = "BG")]
     Bulgaria,
     #[serde(rename = "BL")]
     SaintBarthelemy,
+    #[serde(rename = "BO")]
+    Bolivia,
     #[serde(rename = "BR")]
     Brazil,
     #[serde(rename = "BS")]
@@ -42,6 +46,8 @@ pub enum Country {
     Chile,
     #[serde(rename = "CO")]
     Colombia,
+    #[serde(rename = "CR")]
+    CostaRica,
     #[serde(rename = "CU")]
     Cuba,
     #[serde(rename = "CY")]
@@ -54,6 +60,8 @@ pub enum Country {
     Denmark,
     #[serde(rename = "DO")]
     DominicanRepublic,
+    #[serde(rename = "DZ")]
+    Algeria,
     #[serde(rename = "EC")]
     Ecuador,
     #[serde(rename = "EE")]
@@ -74,10 +82,16 @@ pub enum Country {
     Ghana,
     #[serde(rename = "GR")]
     Greece,
+    #[serde(rename = "GT")]
+    Guatemala,
     #[serde(rename = "HK")]
     HongKong,
+    #[serde(rename = "HN")]
+    Honduras,
     #[serde(rename = "HR")]
     Croatia,
+    #[serde(rename = "HT")]
+    Haiti,
     #[serde(rename = "HU")]
     Hungary,
     #[serde(rename = "ID")]
@@ -86,10 +100,14 @@ pub enum Country {
     Ireland,
     #[serde(rename = "IL")]
     Israel,
+    #[serde(rename = "IM")]
+    IsleOfMan,
     #[serde(rename = "IN")]
     India,
     #[serde(rename = "IQ")]
     Iraq,
+    #[serde(rename = "IR")]
+    Iran,
     #[serde(rename = "IS")]
     Iceland,
     #[serde(rename = "IT")]
@@ -114,6 +132,8 @@ pub enum Country {
     CaymanIslands,
     #[serde(rename = "LB")]
     Lebanon,
+    #[serde(rename = "LC")]
+    SaintLucia,
     #[serde(rename = "LT")]
     Lithuania,
     #[serde(rename = "LU")]
@@ -122,6 +142,10 @@ pub enum Country {
     Latvia,
     #[serde(rename = "MA")]
     Morocco,
+    #[serde(rename = "MC")]
+    Monaco,
+    #[serde(rename = "ME")]
+    Montenegro,
     #[serde(rename = "MK")]
     Macedonia,
     #[serde(rename = "MM")]
@@ -132,10 +156,14 @@ pub enum Country {
     Mexico,
     #[serde(rename = "MY")]
     Malaysia,
+    #[serde(rename = "MZ")]
+    Mozambique,
     #[serde(rename = "NA")]
     Namibia,
     #[serde(rename = "NG")]
     Nigeria,
+    #[serde(rename = "NI")]
+    Nicaragua,
     #[serde(rename = "NL")]
     Netherlands,
     #[serde(rename = "NO")]
@@ -144,6 +172,8 @@ pub enum Country {
     NewZealand,
     #[serde(rename = "PA")]
     Panama,
+    #[serde(rename = "PE")]
+    Peru,
     #[serde(rename = "PK")]
     Pakistan,
     #[serde(rename = "PH")]
@@ -162,6 +192,8 @@ pub enum Country {
     Romania,
     #[serde(rename = "RS")]
     Serbia,
+    #[serde(rename = "RW")]
+    Rwanda,
     #[serde(rename = "SA")]
     SaudiArabia,
     #[serde(rename = "SD")]
@@ -188,6 +220,12 @@ pub enum Country {
     Tunisia,
     #[serde(rename = "TR")]
     Turkey,
+    #[serde(rename = "TT")]
+    TrinidadAndTobago,
+    #[serde(rename = "TW")]
+    Taiwan,
+    #[serde(rename = "TZ")]
+    Tanzania,
     #[serde(rename = "UA")]
     Ukraine,
     #[serde(rename = "UG")]
@@ -198,12 +236,18 @@ pub enum Country {
     Uruguay,
     #[serde(rename = "VA")]
     VaticanCity,
+    #[serde(rename = "VE")]
+    Venezuela,
     #[serde(rename = "VN")]
     Vietnam,
     #[serde(rename = "ZA")]
     SouthAfrica,
+    #[serde(rename = "XK")]
+    Kosovo,
     #[serde(rename = "XX")]
     Xx,
+    #[serde(rename = "ZW")]
+    Zimbabwe,
 }
 
 /// A possible country code that may be an empty string to represent an absent value.
