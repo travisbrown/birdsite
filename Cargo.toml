@@ -20,7 +20,7 @@ itertools = "0.14"
 num-bigint = "0.4"
 num-rational = "0.4"
 regex = "1"
-rocksdb = { version = "0.23", default-features = false, features = ["zstd"] }
+rocksdb = { version = "0.23", default-features = false, features = ["bindgen-runtime", "zstd"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "2"
