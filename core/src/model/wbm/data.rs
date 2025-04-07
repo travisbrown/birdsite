@@ -299,6 +299,8 @@ pub enum TweetSource {
     Libertyrecap,
     #[serde(rename = "FS-Poster-App")]
     FsPosterApp,
+    #[serde(rename = "MyKCM")]
+    MyKcm,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

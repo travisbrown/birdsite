@@ -16,6 +16,10 @@ pub enum TimeZone {
     Gmt,
     #[serde(rename = "GMT+8")]
     Gmt8,
+    #[serde(rename = "MDT")]
+    Mdt,
+    #[serde(rename = "MST")]
+    Mst,
     #[serde(rename = "PST")]
     Pst,
     #[serde(rename = "UTC")]
@@ -56,6 +60,8 @@ pub enum TimeZone {
     AmericaBogota,
     #[serde(rename = "America/Boise")]
     AmericaBoise,
+    #[serde(rename = "America/Cancun")]
+    AmericaCancun,
     #[serde(rename = "America/Caracas")]
     AmericaCaracas,
     #[serde(rename = "America/Chicago")]
@@ -70,6 +76,8 @@ pub enum TimeZone {
     AmericaDetroit,
     #[serde(rename = "America/Edmonton")]
     AmericaEdmonton,
+    #[serde(rename = "America/Indiana/Indianapolis")]
+    AmericaIndianaIndianapolis,
     #[serde(rename = "America/La_Paz")]
     AmericaLaPaz,
     #[serde(rename = "America/Lima")]
@@ -217,6 +225,7 @@ pub enum TimeZone {
     Chihuahua,
     Chongqing,
     Copenhagen,
+    Darwin,
     Dhaka,
     Dublin,
     Edinburgh,
@@ -277,6 +286,7 @@ pub enum TimeZone {
     Saskatchewan,
     Seoul,
     Singapore,
+    Skopje,
     Sofia,
     Stockholm,
     Sydney,
