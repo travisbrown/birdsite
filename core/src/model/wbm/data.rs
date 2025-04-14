@@ -290,7 +290,7 @@ pub enum TweetSource {
     #[serde(rename = "BotFrens.com")]
     BotFrensCom,
     #[serde(rename = "Twitter for  iPhone")]
-    TwitterFor_iPhone,
+    TwitterForSpaceIphone,
     #[serde(rename = "Tweetbot for Mac")]
     TweetbotForMac,
     #[serde(rename = "Make (formerly Integromat)")]
