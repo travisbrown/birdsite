@@ -30,6 +30,8 @@ pub enum Country {
     Bahamas,
     #[serde(rename = "BY")]
     Belarus,
+    #[serde(rename = "BZ")]
+    Belize,
     #[serde(rename = "CA")]
     Canada,
     #[serde(rename = "CD")]
@@ -80,6 +82,8 @@ pub enum Country {
     Georgia,
     #[serde(rename = "GH")]
     Ghana,
+    #[serde(rename = "GI")]
+    Gibraltar,
     #[serde(rename = "GR")]
     Greece,
     #[serde(rename = "GT")]
@@ -146,6 +150,8 @@ pub enum Country {
     Monaco,
     #[serde(rename = "ME")]
     Montenegro,
+    #[serde(rename = "MG")]
+    Madagascar,
     #[serde(rename = "MK")]
     Macedonia,
     #[serde(rename = "MM")]
