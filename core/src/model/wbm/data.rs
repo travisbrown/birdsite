@@ -301,6 +301,8 @@ pub enum TweetSource {
     FsPosterApp,
     #[serde(rename = "MyKCM")]
     MyKcm,
+    #[serde(rename = "Tweet Hunter Pro")]
+    TweetHunterPro,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
