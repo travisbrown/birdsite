@@ -243,6 +243,47 @@ async fn main() -> Result<(), Error> {
 
             println!("{}", serde_json::json!(result));
         }
+        Command::TweetsDbAdd { db } => {
+            let mut reader = csv::ReaderBuilder::new()
+                .has_headers(false)
+                .from_reader(std::io::stdin());
+
+            let pairs = reader.deserialize::<TweetIdLine>();
+
+            let db = birdsite_db::tweets::Database::open(db)?;
+
+            for result in pairs {
+                let TweetIdLine { user_id, tweet_id } = result?;
+
+                db.insert(user_id, tweet_id)?;
+            }
+        }
+        Command::TweetsDbLookup { db, last } => {
+            let mut reader = csv::ReaderBuilder::new()
+                .has_headers(false)
+                .from_reader(std::io::stdin());
+
+            let user_ids = reader.deserialize::<u64>();
+
+            let db = birdsite_db::tweets::Database::open(db)?;
+
+            for result in user_ids {
+                let user_id = result?;
+
+                if last {
+                    if let Some(tweet_id) = db
+                        .lookup_live(user_id)
+                        .max_by_key(|result| result.as_ref().copied().unwrap_or(u64::MAX))
+                    {
+                        println!("{},{}", user_id, tweet_id?);
+                    }
+                } else {
+                    for tweet_id in db.lookup_live(user_id) {
+                        println!("{},{}", user_id, tweet_id?);
+                    }
+                }
+            }
+        }
     }
 
     Ok(())
@@ -256,8 +297,12 @@ pub enum Error {
     Args(#[from] cli_helpers::Error),
     #[error("JSON error")]
     Json(#[from] serde_json::Error),
-    #[error("Database error")]
-    Db(#[from] birdsite_db::metadata::Error),
+    #[error("CSV error")]
+    Csv(#[from] csv::Error),
+    #[error("Metadata database error")]
+    MetadataDb(#[from] birdsite_db::metadata::Error),
+    #[error("Tweets database error")]
+    TweetsDb(#[from] birdsite_db::tweets::Error),
     #[error("Wayback Machine snapshot format error")]
     WbmDataFormat(#[from] birdsite::model::wbm::data::FormatError),
 }
@@ -304,6 +349,16 @@ enum Command {
         db: PathBuf,
         #[clap(long)]
         id: u64,
+    },
+    TweetsDbAdd {
+        #[clap(long)]
+        db: PathBuf,
+    },
+    TweetsDbLookup {
+        #[clap(long)]
+        db: PathBuf,
+        #[clap(long)]
+        last: bool,
     },
 }
 
@@ -380,4 +435,10 @@ fn parse_snapshot(
     }
 
     Ok(tweets)
+}
+
+#[derive(serde::Deserialize)]
+struct TweetIdLine {
+    user_id: u64,
+    tweet_id: u64,
 }
