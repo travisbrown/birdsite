@@ -303,6 +303,18 @@ pub enum TweetSource {
     MyKcm,
     #[serde(rename = "Tweet Hunter Pro")]
     TweetHunterPro,
+    #[serde(rename = "Ayrshare")]
+    Ayrshare,
+    #[serde(rename = "Khoros Publishing App")]
+    KhorosPublishingApp,
+    #[serde(rename = "Freedom for all HQ")]
+    FreedomForAllHq,
+    #[serde(rename = "CWIS Twitter Feed")]
+    CwisTwitterFeed,
+    #[serde(rename = "Emergency Operations Data Ingest")]
+    EmergencyOperationsDataIngest,
+    #[serde(rename = "USGS Texas Rain")]
+    UsgsTexasRain,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

@@ -14,6 +14,8 @@ pub enum Country {
     Austria,
     #[serde(rename = "AU")]
     Australia,
+    #[serde(rename = "AZ")]
+    Azerbaijan,
     #[serde(rename = "BB")]
     Barbados,
     #[serde(rename = "BE")]
@@ -180,10 +182,12 @@ pub enum Country {
     Panama,
     #[serde(rename = "PE")]
     Peru,
-    #[serde(rename = "PK")]
-    Pakistan,
+    #[serde(rename = "PG")]
+    PapuaNewGuinea,
     #[serde(rename = "PH")]
     Philippines,
+    #[serde(rename = "PK")]
+    Pakistan,
     #[serde(rename = "PL")]
     Poland,
     #[serde(rename = "PT")]
