@@ -7,6 +7,10 @@ use rocksdb::{
 use std::path::Path;
 use std::sync::Arc;
 
+pub mod tweet;
+
+use tweet::{TweetMetadata, UserMetadata};
+
 const TWEET0_CF_NAME: &str = "tweet0";
 const TWEET1_CF_NAME: &str = "tweet1";
 const USER0_CF_NAME: &str = "user0";
@@ -53,51 +57,6 @@ impl From<Timestamp> for DateTime<Utc> {
             Timestamp::Stored(timestamp) => timestamp,
             Timestamp::Computed(timestamp) => timestamp,
         }
-    }
-}
-
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct TweetMetadata {
-    pub id: u64,
-    pub user: UserMetadata,
-    pub created_at: DateTime<Utc>,
-    pub retweeted_id: Option<u64>,
-    pub replied_to_id: Option<u64>,
-    pub quoted_id: Option<u64>,
-    pub mentions: Vec<UserMetadata>,
-}
-
-impl TweetMetadata {
-    pub fn new(
-        id: u64,
-        user: UserMetadata,
-        created_at: DateTime<Utc>,
-        retweeted_id: Option<u64>,
-        replied_to_id: Option<u64>,
-        quoted_id: Option<u64>,
-        mentions: Vec<UserMetadata>,
-    ) -> Self {
-        Self {
-            id,
-            user,
-            created_at,
-            retweeted_id,
-            replied_to_id,
-            quoted_id,
-            mentions,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct UserMetadata {
-    pub id: u64,
-    pub created_at: Option<DateTime<Utc>>,
-}
-
-impl UserMetadata {
-    pub fn new(id: u64, created_at: Option<DateTime<Utc>>) -> Self {
-        Self { id, created_at }
     }
 }
 

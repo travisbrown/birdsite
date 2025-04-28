@@ -98,6 +98,10 @@ pub enum TimeZone {
     AmericaPhoenix,
     #[serde(rename = "America/Regina")]
     AmericaRegina,
+    #[serde(rename = "America/Resolute")]
+    AmericaResolute,
+    #[serde(rename = "America/Santiago")]
+    AmericaSantiago,
     #[serde(rename = "America/Sao_Paulo")]
     AmericaSaoPaulo,
     #[serde(rename = "America/Toronto")]
@@ -178,6 +182,8 @@ pub enum TimeZone {
     HongKong,
     #[serde(rename = "Kuala Lumpur")]
     KualaLumpur,
+    #[serde(rename = "Marshall Is.")]
+    MarshallIs,
     #[serde(rename = "Mexico City")]
     MexicoCity,
     #[serde(rename = "Mid-Atlantic")]

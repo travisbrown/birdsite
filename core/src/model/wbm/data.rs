@@ -315,6 +315,7 @@ pub enum TweetSource {
     EmergencyOperationsDataIngest,
     #[serde(rename = "USGS Texas Rain")]
     UsgsTexasRain,
+    LaterMedia,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

@@ -1,5 +1,5 @@
 use birdsite::model::wbm::data::FormatError;
-use birdsite_db::metadata::{TweetMetadata, UserMetadata};
+use birdsite_db::metadata::tweet::{TweetMetadata, UserMetadata};
 use chrono::{DateTime, Utc};
 use cli_helpers::prelude::*;
 use itertools::Itertools;
@@ -137,7 +137,7 @@ async fn main() -> Result<(), Error> {
                                 &contents,
                             ) {
                                 Ok(birdsite::model::wbm::TweetSnapshot::Data(tweet)) => {
-                                    match parse_snapshot(&tweet) {
+                                    match birdsite_db::metadata::tweet::TweetMetadata::from_data_tweet(&tweet) {
                                         Ok(snapshot) => {
                                             db.insert_snapshot(&snapshot)?;
                                         }
@@ -370,71 +370,6 @@ struct UserInfo {
     mentions: Vec<(u64, usize)>,
     mentioned: Vec<(u64, usize)>,
     tweets: Vec<u64>,
-}
-
-fn parse_tweet_data(
-    snapshot: &birdsite::model::wbm::data::Tweet,
-    data: &birdsite::model::wbm::data::TweetData,
-) -> Result<TweetMetadata, FormatError> {
-    let user = UserMetadata::new(
-        data.author_id,
-        snapshot
-            .lookup_user(data.author_id)
-            .map(|user| user.created_at),
-    );
-
-    let mentions = data
-        .mention_ids()
-        .into_iter()
-        .map(|user_id| {
-            UserMetadata::new(
-                user_id,
-                snapshot.lookup_user(user_id).map(|user| user.created_at),
-            )
-        })
-        .collect::<Vec<_>>();
-
-    Ok(TweetMetadata::new(
-        data.id,
-        user,
-        data.created_at,
-        data.retweeted_id()?,
-        data.replied_to_id()?,
-        data.quoted_id()?,
-        mentions,
-    ))
-}
-
-fn parse_snapshot(
-    snapshot: &birdsite::model::wbm::data::Tweet,
-) -> Result<Vec<TweetMetadata>, FormatError> {
-    let mut tweets = vec![parse_tweet_data(snapshot, &snapshot.data)?];
-
-    if let Some(tweet) = snapshot
-        .data
-        .retweeted_id()?
-        .and_then(|id| snapshot.lookup_tweet(id))
-    {
-        tweets.extend(parse_tweet_data(snapshot, &tweet));
-    }
-
-    if let Some(tweet) = snapshot
-        .data
-        .replied_to_id()?
-        .and_then(|id| snapshot.lookup_tweet(id))
-    {
-        tweets.extend(parse_tweet_data(snapshot, &tweet));
-    }
-
-    if let Some(tweet) = snapshot
-        .data
-        .quoted_id()?
-        .and_then(|id| snapshot.lookup_tweet(id))
-    {
-        tweets.extend(parse_tweet_data(snapshot, &tweet));
-    }
-
-    Ok(tweets)
 }
 
 #[derive(serde::Deserialize)]
