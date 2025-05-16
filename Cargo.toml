@@ -1,0 +1,21 @@
+[workspace]
+resolver = "2"
+members = ["core"]
+
+[workspace.package]
+authors = ["Travis Brown <travisrobertbrown@gmail.com>"]
+homepage = "https://github.com/travisbrown/birdsite"
+repository = "https://github.com/travisbrown/birdsite"
+keywords = ["twitter"]
+edition = "2024"
+license = "GPL-3.0-only"
+version = "0.1.0"
+
+[workspace.dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+num-rational = "0.4"
+quickcheck = "1"
+regex = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+thiserror = "2"
