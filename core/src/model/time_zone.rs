@@ -62,6 +62,8 @@ pub enum TimeZone {
     AmericaBogota,
     #[serde(rename = "America/Boise")]
     AmericaBoise,
+    #[serde(rename = "America/Buenos_Aires")]
+    AmericaBuenosAires,
     #[serde(rename = "America/Cancun")]
     AmericaCancun,
     #[serde(rename = "America/Caracas")]
@@ -100,6 +102,8 @@ pub enum TimeZone {
     AmericaPhoenix,
     #[serde(rename = "America/Puerto_Rico")]
     AmericaPuertoRico,
+    #[serde(rename = "America/Recife")]
+    AmericaRecife,
     #[serde(rename = "America/Regina")]
     AmericaRegina,
     #[serde(rename = "America/Resolute")]
