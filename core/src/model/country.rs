@@ -259,6 +259,8 @@ pub enum Country {
     Slovakia,
     #[serde(rename = "SN")]
     Senegal,
+    #[serde(rename = "SO")]
+    Somalia,
     #[serde(rename = "SV")]
     ElSalvador,
     #[serde(rename = "SY")]

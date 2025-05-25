@@ -42,6 +42,8 @@ pub enum TimeZone {
     AfricaBangui,
     #[serde(rename = "Africa/Cairo")]
     AfricaCairo,
+    #[serde(rename = "Africa/Casablanca")]
+    AfricaCasablanca,
     #[serde(rename = "Africa/Dakar")]
     AfricaDakar,
     #[serde(rename = "Africa/Harare")]
