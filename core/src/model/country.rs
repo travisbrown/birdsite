@@ -181,6 +181,8 @@ pub enum Country {
     Luxembourg,
     #[serde(rename = "LV")]
     Latvia,
+    #[serde(rename = "LY")]
+    Libya,
     #[serde(rename = "MA")]
     Morocco,
     #[serde(rename = "MC")]
@@ -195,6 +197,8 @@ pub enum Country {
     Myanmar,
     #[serde(rename = "MO")]
     Macau,
+    #[serde(rename = "MR")]
+    Mauritania,
     #[serde(rename = "MT")]
     Malta,
     #[serde(rename = "MX")]
@@ -205,6 +209,8 @@ pub enum Country {
     Mozambique,
     #[serde(rename = "NA")]
     Namibia,
+    #[serde(rename = "NC")]
+    NewCaledonia,
     #[serde(rename = "NG")]
     Nigeria,
     #[serde(rename = "NI")]
