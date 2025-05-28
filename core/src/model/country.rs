@@ -105,6 +105,8 @@ pub enum Country {
     Ethiopia,
     #[serde(rename = "FI")]
     Finland,
+    #[serde(rename = "FJ")]
+    Fiji,
     #[serde(rename = "FR")]
     France,
     #[serde(rename = "GB")]

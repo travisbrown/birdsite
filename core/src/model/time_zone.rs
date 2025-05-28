@@ -58,6 +58,8 @@ pub enum TimeZone {
     AfricaNouakchott,
     #[serde(rename = "America/Anchorage")]
     AmericaAnchorage,
+    #[serde(rename = "America/Antigua")]
+    AmericaAntigua,
     #[serde(rename = "America/Argentina/Buenos_Aires")]
     AmericaArgentinaBuenosAires,
     #[serde(rename = "America/Bogota")]
@@ -138,6 +140,8 @@ pub enum TimeZone {
     AsiaManila,
     #[serde(rename = "Asia/Riyadh")]
     AsiaRiyadh,
+    #[serde(rename = "Asia/Seoul")]
+    AsiaSeoul,
     #[serde(rename = "Asia/Shanghai")]
     AsiaShanghai,
     #[serde(rename = "Asia/Singapore")]
