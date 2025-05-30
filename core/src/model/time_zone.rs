@@ -20,6 +20,8 @@ pub enum TimeZone {
     Mdt,
     #[serde(rename = "MST")]
     Mst,
+    #[serde(rename = "PDT")]
+    Pdt,
     #[serde(rename = "PST")]
     Pst,
     #[serde(rename = "UTC")]
@@ -62,6 +64,8 @@ pub enum TimeZone {
     AmericaAntigua,
     #[serde(rename = "America/Argentina/Buenos_Aires")]
     AmericaArgentinaBuenosAires,
+    #[serde(rename = "America/Bahia_Banderas")]
+    AmericaBahiaBanderas,
     #[serde(rename = "America/Bogota")]
     AmericaBogota,
     #[serde(rename = "America/Boise")]
@@ -120,6 +124,8 @@ pub enum TimeZone {
     AmericaToronto,
     #[serde(rename = "America/Vancouver")]
     AmericaVancouver,
+    #[serde(rename = "Asia/Amman")]
+    AsiaAmman,
     #[serde(rename = "Asia/Bangkok")]
     AsiaBangkok,
     #[serde(rename = "Asia/Calcutta")]
@@ -206,6 +212,8 @@ pub enum TimeZone {
     HongKong,
     #[serde(rename = "Kuala Lumpur")]
     KualaLumpur,
+    #[serde(rename = "La Paz")]
+    LaPaz,
     #[serde(rename = "Marshall Is.")]
     MarshallIs,
     #[serde(rename = "Mexico City")]
@@ -220,6 +228,8 @@ pub enum TimeZone {
     NewDelhi,
     #[serde(rename = "Nuku'alofa")]
     NukuAlofa,
+    #[serde(rename = "Port Moresby")]
+    PortMoresby,
     #[serde(rename = "Solomon Is.")]
     SolomonIs,
     #[serde(rename = "Sri Jayawardenepura")]

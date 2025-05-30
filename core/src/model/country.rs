@@ -273,6 +273,8 @@ pub enum Country {
     ElSalvador,
     #[serde(rename = "SY")]
     Syria,
+    #[serde(rename = "SX")]
+    SintMaarten,
     #[serde(rename = "TC")]
     TurksAndCaicosIslands,
     #[serde(rename = "TH")]
