@@ -301,6 +301,8 @@ pub enum Country {
     VaticanCity,
     #[serde(rename = "VE")]
     Venezuela,
+    #[serde(rename = "VI")]
+    VirginIslands,
     #[serde(rename = "VN")]
     Vietnam,
     #[serde(rename = "VU")]
