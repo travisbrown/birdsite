@@ -11,6 +11,7 @@ pub struct Url<'a> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum UrlType {
     ExternalUrl,
+    DeepLink,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
