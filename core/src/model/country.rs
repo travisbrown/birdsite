@@ -159,6 +159,8 @@ pub enum Country {
     Japan,
     #[serde(rename = "KE")]
     Kenya,
+    #[serde(rename = "KG")]
+    Kyrgyzstan,
     #[serde(rename = "KH")]
     Cambodia,
     #[serde(rename = "KP")]
