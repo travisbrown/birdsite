@@ -23,6 +23,8 @@ pub enum Country {
     Anguilla,
     #[serde(rename = "AL")]
     Albania,
+    #[serde(rename = "AO")]
+    Angola,
     #[serde(rename = "AQ")]
     Antarctica,
     #[serde(rename = "AR")]
