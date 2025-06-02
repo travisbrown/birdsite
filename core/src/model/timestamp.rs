@@ -54,30 +54,10 @@ impl Serialize for TextTimestamp {
     }
 }
 
-pub mod text_timestamp {
-    use super::TextTimestamp;
-    use chrono::{DateTime, Utc};
-    use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
-    pub fn deserialize<'de, D: Deserializer<'de>>(
-        deserializer: D,
-    ) -> Result<DateTime<Utc>, D::Error> {
-        TextTimestamp::deserialize(deserializer).map(|text_timestamp| text_timestamp.0)
-    }
-
-    pub fn serialize<S: Serializer>(
-        value: &DateTime<Utc>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error> {
-        TextTimestamp::serialize(&TextTimestamp(*value), serializer)
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{TextTimestamp, text_timestamp};
-    use chrono::{DateTime, TimeZone, Utc};
-    use serde_json::json;
+    use crate::model::timestamp::TextTimestamp;
+    use chrono::{TimeZone, Utc};
     use std::io::Cursor;
 
     const SAMPLE_TEXT_TIMESTAMP: &str = "Thu Jun 25 16:18:41 +0000 2009";
@@ -121,32 +101,9 @@ mod tests {
     fn serialize_text_timestamp() {
         let value = TextTimestamp(Utc.timestamp_opt(SAMPLE_EPOCH_S, 0).single().unwrap());
 
-        assert_eq!(json!(value), json!(SAMPLE_TEXT_TIMESTAMP));
-    }
-
-    #[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-    struct Data {
-        #[serde(with = "text_timestamp")]
-        value: DateTime<Utc>,
-    }
-
-    #[test]
-    fn codec_deserialize_text_timestamp() {
-        let json = format!(r#"{{"value":"{}"}}"#, SAMPLE_TEXT_TIMESTAMP);
-        let expected = Data {
-            value: Utc.timestamp_opt(SAMPLE_EPOCH_S, 0).single().unwrap(),
-        };
-
-        assert_eq!(serde_json::from_str::<Data>(&json).unwrap(), expected);
-    }
-
-    #[test]
-    fn codec_serialize_text_timestamp() {
-        let value = Data {
-            value: Utc.timestamp_opt(SAMPLE_EPOCH_S, 0).single().unwrap(),
-        };
-        let expected = format!(r#"{{"value":"{}"}}"#, SAMPLE_TEXT_TIMESTAMP);
-
-        assert_eq!(json!(value).to_string(), expected);
+        assert_eq!(
+            serde_json::json!(value),
+            serde_json::json!(SAMPLE_TEXT_TIMESTAMP)
+        );
     }
 }
