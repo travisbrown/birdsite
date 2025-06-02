@@ -29,9 +29,10 @@ pub enum ParodyCommentaryFanLabel {
     Parody,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct HighlightsInfo {
     pub can_highlight_tweets: bool,
+    #[serde(with = "crate::model::attributes::integer_str")]
     pub highlighted_tweets: usize,
 }
 
