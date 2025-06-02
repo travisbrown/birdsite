@@ -36,6 +36,11 @@ pub struct HighlightsInfo {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct BusinessAccount {
+    pub affiliates_count: Option<usize>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum ProfileInterstitialType {
     #[serde(rename = "")]
     Empty,
