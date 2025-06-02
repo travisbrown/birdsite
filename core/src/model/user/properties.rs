@@ -8,6 +8,15 @@ pub enum VerifiedType {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TranslatorType {
+    None,
+    Regular,
+    Badged,
+    Moderator,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum ProfileImageShape {
     Circle,
     Square,
