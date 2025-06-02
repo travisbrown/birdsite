@@ -4,9 +4,9 @@ use std::ops::Range;
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Url<'a> {
-    pub expanded_url: Cow<'a, str>,
+    pub expanded_url: Option<Cow<'a, str>>,
     pub url: Cow<'a, str>,
-    pub display_url: Cow<'a, str>,
+    pub display_url: Option<Cow<'a, str>>,
     #[serde(with = "crate::model::indices")]
     pub indices: Range<usize>,
 }
@@ -14,11 +14,19 @@ pub struct Url<'a> {
 impl<'a> Url<'a> {
     pub fn into_owned(self) -> Url<'static> {
         Url {
-            expanded_url: self.expanded_url.into_owned().into(),
+            expanded_url: self
+                .expanded_url
+                .map(|expanded_url| expanded_url.into_owned().into()),
             url: self.url.into_owned().into(),
-            display_url: self.display_url.into_owned().into(),
+            display_url: self
+                .display_url
+                .map(|display_url| display_url.into_owned().into()),
             indices: self.indices,
         }
+    }
+
+    pub fn url(&self) -> Cow<'a, str> {
+        self.expanded_url.clone().unwrap_or(self.url.clone())
     }
 }
 
@@ -105,7 +113,7 @@ mod tests {
 
         assert_eq!(parsed.description_urls.len(), 1);
         assert_eq!(
-            parsed.description_urls[0].expanded_url,
+            parsed.description_urls[0].url(),
             "http://www.youtube.com/user/EnglishAttitude"
         );
         assert!(parsed.url.is_some());
