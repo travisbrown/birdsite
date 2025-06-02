@@ -27,6 +27,8 @@ pub enum ProfileImageShape {
 pub enum ParodyCommentaryFanLabel {
     None,
     Parody,
+    Commentary,
+    Fan,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
