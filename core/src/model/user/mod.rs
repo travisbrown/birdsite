@@ -24,7 +24,11 @@ pub struct User<'a> {
     pub statuses_count: Option<usize>,
     pub media_count: Option<usize>,
     pub listed_count: Option<usize>,
+    pub subscribers_count: Option<usize>,
     pub creator_subscriptions_count: Option<usize>,
+    pub pinned_tweet_id: Option<Option<u64>>,
+    pub default_profile: Option<bool>,
+    pub default_profile_image: Option<bool>,
     pub profile_image_url: Option<Cow<'a, str>>,
     pub profile_image_shape: Option<properties::ProfileImageShape>,
     pub highlights_info: Option<properties::HighlightsInfo>,
@@ -62,7 +66,11 @@ impl<'a> User<'a> {
             statuses_count: self.statuses_count,
             media_count: self.media_count,
             listed_count: self.listed_count,
+            subscribers_count: self.subscribers_count,
             creator_subscriptions_count: self.creator_subscriptions_count,
+            pinned_tweet_id: self.pinned_tweet_id,
+            default_profile: self.default_profile,
+            default_profile_image: self.default_profile_image,
             profile_image_url: self
                 .profile_image_url
                 .map(|profile_image_url| profile_image_url.into_owned().into()),
