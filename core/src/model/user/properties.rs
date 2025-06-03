@@ -174,6 +174,27 @@ impl<'a> ProfessionalCategory<'a> {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub enum Visibility {
+    Public,
+    Following,
+    Followers,
+    MutualFollow,
+    #[serde(rename = "Self")]
+    SelfVisible,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Birthdate {
+    pub year: Option<usize>,
+    pub month: Option<usize>,
+    pub day: Option<usize>,
+    pub visibility: Visibility,
+    pub year_visibility: Visibility,
+}
+
 mod internal {
     #[derive(serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
