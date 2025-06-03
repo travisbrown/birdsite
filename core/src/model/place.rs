@@ -16,7 +16,7 @@ pub struct PlaceMetadata<'a> {
     pub id: &'a str,
     pub place_type: PlaceType,
     pub name: Cow<'a, str>,
-    pub country_code: crate::model::country::Country,
+    pub country_code: crate::model::country::PossibleCountry,
     pub country: Cow<'a, str>,
     pub full_name: Cow<'a, str>,
 }
