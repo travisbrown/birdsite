@@ -3,7 +3,7 @@ pub mod color;
 pub mod country;
 pub mod entity;
 pub mod lang;
-pub mod probability;
+pub mod place;
 pub mod properties;
 pub mod snowflake;
 pub mod time_zone;

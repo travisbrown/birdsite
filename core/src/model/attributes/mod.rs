@@ -1,3 +1,6 @@
+pub mod ratio_i64;
+pub mod ratio_u64;
+
 pub mod text_timestamp {
     use crate::model::timestamp::TextTimestamp;
     use chrono::{DateTime, Utc};
