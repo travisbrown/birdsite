@@ -316,12 +316,14 @@ pub enum Country {
     #[serde(rename = "XK")]
     Kosovo,
     #[serde(rename = "XX")]
-    Xx,
+    All,
+    #[serde(rename = "XY")]
+    Copyright,
     #[serde(rename = "ZW")]
     Zimbabwe,
 }
 
-pub const COUNTRY_VALUES: [Country; 144] = [
+pub const COUNTRY_VALUES: [Country; 145] = [
     Country::UnitedArabEmirates,
     Country::Afghanistan,
     Country::AntiguaAndBarbuda,
@@ -464,7 +466,8 @@ pub const COUNTRY_VALUES: [Country; 144] = [
     Country::Vanuatu,
     Country::SouthAfrica,
     Country::Kosovo,
-    Country::Xx,
+    Country::All,
+    Country::Copyright,
     Country::Zimbabwe,
 ];
 
