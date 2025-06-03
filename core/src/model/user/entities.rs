@@ -7,7 +7,7 @@ pub struct Url<'a> {
     pub expanded_url: Option<Cow<'a, str>>,
     pub url: Cow<'a, str>,
     pub display_url: Option<Cow<'a, str>>,
-    #[serde(with = "crate::model::attributes::indices")]
+    #[serde(with = "crate::model::attributes::range")]
     pub indices: Range<usize>,
 }
 
