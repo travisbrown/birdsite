@@ -60,7 +60,7 @@ pub enum ProfileInterstitialType {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TipjarSettings<'a> {
-    pub is_enabled: bool,
+    pub is_enabled: Option<bool>,
     pub bandcamp_handle: Option<Cow<'a, str>>,
     pub bitcoin_handle: Option<Cow<'a, str>>,
     pub cash_app_handle: Option<Cow<'a, str>>,
