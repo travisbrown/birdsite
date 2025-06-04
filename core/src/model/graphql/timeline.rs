@@ -13,9 +13,15 @@ use crate::model::graphql::{
 };
 use std::borrow::Cow;
 
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ResultWrapper<A> {
+    pub result: Option<A>,
+}
+
 #[derive(Clone, Debug, serde::Deserialize)]
 #[serde(tag = "itemType", deny_unknown_fields)]
-pub enum ItemContent<'a, TR, UR, U> {
+pub enum ItemContent<'a, T, UR, U> {
     #[serde(rename = "TimelineTimelineCursor")]
     Cursor {
         #[serde(rename = "__typename")]
@@ -30,7 +36,7 @@ pub enum ItemContent<'a, TR, UR, U> {
     User {
         #[serde(rename = "__typename")]
         typename: &'a str,
-        user_results: UR,
+        user_results: ResultWrapper<UR>,
         #[serde(rename = "userDisplayType")]
         user_display_type: UserDisplayType,
         #[serde(rename = "socialContext")]
@@ -40,7 +46,7 @@ pub enum ItemContent<'a, TR, UR, U> {
     Tweet {
         #[serde(rename = "__typename")]
         typename: &'a str,
-        tweet_results: TR,
+        tweet_results: ResultWrapper<T>,
         #[serde(rename = "tweetDisplayType")]
         tweet_display_type: TweetDisplayType,
         #[serde(rename = "hasModeratedReplies")]
