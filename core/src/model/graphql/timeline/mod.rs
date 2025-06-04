@@ -1,19 +1,17 @@
 use crate::model::graphql::{
     ResultWrapper,
-    ads::{PrerollMetadata, PromotedMetadata},
+    ads::PromotedMetadata,
     image::{Image, OriginalImage},
     properties::{
-        ConversationAnnotation, CursorType, TombstoneInfo,
+        TombstoneInfo,
         context::SocialContext,
-        display::{
-            DisplayTreatment, LabelDisplayType, PivotDisplayType, TombstoneDisplayType,
-            TweetDisplayType, UserDisplayType,
-        },
+        display::{LabelDisplayType, PivotDisplayType, TombstoneDisplayType},
     },
     trends::TrendMetadata,
-    user::UserResult,
 };
 use std::borrow::Cow;
+
+pub mod item;
 
 #[derive(Clone, Debug, serde::Deserialize)]
 #[serde(tag = "itemType", deny_unknown_fields)]
@@ -22,39 +20,22 @@ pub enum ItemContent<'a, T, U> {
     Cursor {
         #[serde(rename = "__typename")]
         typename: &'a str,
-        value: Cow<'a, str>,
-        #[serde(rename = "cursorType")]
-        cursor_type: CursorType,
-        #[serde(rename = "displayTreatment")]
-        display_treatment: Option<DisplayTreatment<'a>>,
+        #[serde(flatten)]
+        cursor: item::Cursor<'a>,
     },
     #[serde(rename = "TimelineUser")]
     User {
         #[serde(rename = "__typename")]
         typename: &'a str,
-        user_results: ResultWrapper<UserResult<'a, U>>,
-        #[serde(rename = "userDisplayType")]
-        user_display_type: UserDisplayType,
-        #[serde(rename = "socialContext")]
-        social_context: Option<SocialContext<'a>>,
+        #[serde(flatten)]
+        user: item::User<'a, U>,
     },
     #[serde(rename = "TimelineTweet")]
     Tweet {
         #[serde(rename = "__typename")]
         typename: &'a str,
-        tweet_results: ResultWrapper<T>,
-        #[serde(rename = "tweetDisplayType")]
-        tweet_display_type: TweetDisplayType,
-        #[serde(rename = "hasModeratedReplies")]
-        has_moderated_replies: Option<bool>,
-        conversation_annotation: Option<ConversationAnnotation>,
-        #[serde(rename = "socialContext")]
-        social_context: Option<SocialContext<'a>>,
-        #[serde(rename = "promotedMetadata")]
-        promoted_metadata: Option<PromotedMetadata<'a, U>>,
-        #[serde(rename = "prerollMetadata")]
-        preroll_metadata: Option<PrerollMetadata<'a>>,
-        highlights: Option<serde::de::IgnoredAny>,
+        #[serde(flatten)]
+        tweet: item::Tweet<'a, T, U>,
     },
     #[serde(rename = "TimelineTombstone")]
     Tombstone {
