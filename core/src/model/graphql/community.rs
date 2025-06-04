@@ -21,9 +21,13 @@ pub struct Community<'a> {
     pub default_theme: Option<Theme>,
     pub custom_theme: Option<Theme>,
     #[serde(rename = "id")]
-    _internal_id: Cow<'a, str>,
-    #[serde(rename = "rest_id", with = "crate::model::attributes::integer_str")]
-    _rest_id: u64,
+    _internal_id: Option<Cow<'a, str>>,
+    #[serde(
+        rename = "rest_id",
+        with = "crate::model::attributes::integer_str_opt",
+        default
+    )]
+    _rest_id: Option<u64>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
