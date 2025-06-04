@@ -31,6 +31,8 @@ pub enum Country {
     Antarctica,
     #[serde(rename = "AR")]
     Argentina,
+    #[serde(rename = "AS")]
+    AmericanSamoa,
     #[serde(rename = "AT")]
     Austria,
     #[serde(rename = "AU")]
@@ -65,6 +67,8 @@ pub enum Country {
     Brunei,
     #[serde(rename = "BO")]
     Bolivia,
+    #[serde(rename = "BQ")]
+    CaribbeanNetherlands,
     #[serde(rename = "BR")]
     Brazil,
     #[serde(rename = "BS")]
@@ -79,6 +83,8 @@ pub enum Country {
     Canada,
     #[serde(rename = "CD")]
     DemocraticRepublicOfTheCongo,
+    #[serde(rename = "CF")]
+    CentralAfricanRepublic,
     #[serde(rename = "CG")]
     Congo,
     #[serde(rename = "CH")]
@@ -99,6 +105,10 @@ pub enum Country {
     CostaRica,
     #[serde(rename = "CU")]
     Cuba,
+    #[serde(rename = "CV")]
+    CapeVerde,
+    #[serde(rename = "CW")]
+    Curacao,
     #[serde(rename = "CY")]
     Cyprus,
     #[serde(rename = "CZ")]
@@ -127,6 +137,10 @@ pub enum Country {
     Finland,
     #[serde(rename = "FJ")]
     Fiji,
+    #[serde(rename = "FK")]
+    FalklandIslands,
+    #[serde(rename = "FO")]
+    FaroeIslands,
     #[serde(rename = "FR")]
     France,
     #[serde(rename = "GA")]
@@ -135,6 +149,8 @@ pub enum Country {
     UnitedKingdom,
     #[serde(rename = "GE")]
     Georgia,
+    #[serde(rename = "GF")]
+    FrenchGuiana,
     #[serde(rename = "GH")]
     Ghana,
     #[serde(rename = "GI")]
@@ -191,6 +207,10 @@ pub enum Country {
     Kyrgyzstan,
     #[serde(rename = "KH")]
     Cambodia,
+    #[serde(rename = "KM")]
+    Comoros,
+    #[serde(rename = "KN")]
+    SaintKittsAndNevis,
     #[serde(rename = "KP")]
     NorthKorea,
     #[serde(rename = "KR")]
@@ -241,6 +261,8 @@ pub enum Country {
     Mongolia,
     #[serde(rename = "MO")]
     Macau,
+    #[serde(rename = "MP")]
+    NorthernMarianaIslands,
     #[serde(rename = "MR")]
     Mauritania,
     #[serde(rename = "MT")]
@@ -261,6 +283,8 @@ pub enum Country {
     Namibia,
     #[serde(rename = "NC")]
     NewCaledonia,
+    #[serde(rename = "NE")]
+    Niger,
     #[serde(rename = "NG")]
     Nigeria,
     #[serde(rename = "NI")]
@@ -279,6 +303,8 @@ pub enum Country {
     Panama,
     #[serde(rename = "PE")]
     Peru,
+    #[serde(rename = "PF")]
+    FrenchPolynesia,
     #[serde(rename = "PG")]
     PapuaNewGuinea,
     #[serde(rename = "PH")]
@@ -297,6 +323,8 @@ pub enum Country {
     Paraguay,
     #[serde(rename = "QA")]
     Qatar,
+    #[serde(rename = "RE")]
+    Reunion,
     #[serde(rename = "RO")]
     Romania,
     #[serde(rename = "RS")]
@@ -307,6 +335,8 @@ pub enum Country {
     Rwanda,
     #[serde(rename = "SA")]
     SaudiArabia,
+    #[serde(rename = "SC")]
+    Seychelles,
     #[serde(rename = "SD")]
     Sudan,
     #[serde(rename = "SE")]
@@ -373,6 +403,8 @@ pub enum Country {
     VaticanCity,
     #[serde(rename = "VE")]
     Venezuela,
+    #[serde(rename = "VG")]
+    BritishVirginIslands,
     #[serde(rename = "VI")]
     VirginIslands,
     #[serde(rename = "VN")]
@@ -387,6 +419,8 @@ pub enum Country {
     Copyright,
     #[serde(rename = "YE")]
     Yemen,
+    #[serde(rename = "YT")]
+    Mayotte,
     #[serde(rename = "ZA")]
     SouthAfrica,
     #[serde(rename = "ZM")]
@@ -395,7 +429,7 @@ pub enum Country {
     Zimbabwe,
 }
 
-pub const COUNTRY_VALUES: [Country; 190] = [
+pub const COUNTRY_VALUES: [Country; 207] = [
     Country::UnitedArabEmirates,
     Country::Afghanistan,
     Country::AntiguaAndBarbuda,
@@ -405,6 +439,7 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::Angola,
     Country::Antarctica,
     Country::Argentina,
+    Country::AmericanSamoa,
     Country::Austria,
     Country::Australia,
     Country::Aruba,
@@ -422,6 +457,7 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::Bermuda,
     Country::Brunei,
     Country::Bolivia,
+    Country::CaribbeanNetherlands,
     Country::Brazil,
     Country::Bahamas,
     Country::Botswana,
@@ -429,6 +465,7 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::Belize,
     Country::Canada,
     Country::DemocraticRepublicOfTheCongo,
+    Country::CentralAfricanRepublic,
     Country::Congo,
     Country::Switzerland,
     Country::IvoryCoast,
@@ -439,6 +476,8 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::Colombia,
     Country::CostaRica,
     Country::Cuba,
+    Country::CapeVerde,
+    Country::Curacao,
     Country::Cyprus,
     Country::Czechia,
     Country::Germany,
@@ -453,10 +492,13 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::Ethiopia,
     Country::Finland,
     Country::Fiji,
+    Country::FalklandIslands,
+    Country::FaroeIslands,
     Country::France,
     Country::Gabon,
     Country::UnitedKingdom,
     Country::Georgia,
+    Country::FrenchGuiana,
     Country::Ghana,
     Country::Gibraltar,
     Country::Gambia,
@@ -485,6 +527,8 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::Kenya,
     Country::Kyrgyzstan,
     Country::Cambodia,
+    Country::Comoros,
+    Country::SaintKittsAndNevis,
     Country::NorthKorea,
     Country::Korea,
     Country::Kuwait,
@@ -510,6 +554,7 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::Myanmar,
     Country::Mongolia,
     Country::Macau,
+    Country::NorthernMarianaIslands,
     Country::Mauritania,
     Country::Malta,
     Country::Mauritius,
@@ -520,6 +565,7 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::Mozambique,
     Country::Namibia,
     Country::NewCaledonia,
+    Country::Niger,
     Country::Nigeria,
     Country::Nicaragua,
     Country::Netherlands,
@@ -529,6 +575,7 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::Oman,
     Country::Panama,
     Country::Peru,
+    Country::FrenchPolynesia,
     Country::PapuaNewGuinea,
     Country::Philippines,
     Country::Pakistan,
@@ -538,11 +585,13 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::Palau,
     Country::Paraguay,
     Country::Qatar,
+    Country::Reunion,
     Country::Romania,
     Country::Serbia,
     Country::Russia,
     Country::Rwanda,
     Country::SaudiArabia,
+    Country::Seychelles,
     Country::Sudan,
     Country::Sweden,
     Country::Singapore,
@@ -576,6 +625,7 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::Uzbekistan,
     Country::VaticanCity,
     Country::Venezuela,
+    Country::BritishVirginIslands,
     Country::VirginIslands,
     Country::Vietnam,
     Country::Vanuatu,
@@ -583,6 +633,7 @@ pub const COUNTRY_VALUES: [Country; 190] = [
     Country::All,
     Country::Copyright,
     Country::Yemen,
+    Country::Mayotte,
     Country::SouthAfrica,
     Country::Zambia,
     Country::Zimbabwe,
