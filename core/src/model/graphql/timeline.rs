@@ -10,6 +10,7 @@ use crate::model::graphql::{
         },
     },
     trends::TrendMetadata,
+    user::UserResult,
 };
 use std::borrow::Cow;
 
@@ -21,7 +22,7 @@ pub struct ResultWrapper<A> {
 
 #[derive(Clone, Debug, serde::Deserialize)]
 #[serde(tag = "itemType", deny_unknown_fields)]
-pub enum ItemContent<'a, T, UR, U> {
+pub enum ItemContent<'a, T, U> {
     #[serde(rename = "TimelineTimelineCursor")]
     Cursor {
         #[serde(rename = "__typename")]
@@ -36,7 +37,7 @@ pub enum ItemContent<'a, T, UR, U> {
     User {
         #[serde(rename = "__typename")]
         typename: &'a str,
-        user_results: ResultWrapper<UR>,
+        user_results: ResultWrapper<UserResult<'a, U>>,
         #[serde(rename = "userDisplayType")]
         user_display_type: UserDisplayType,
         #[serde(rename = "socialContext")]
