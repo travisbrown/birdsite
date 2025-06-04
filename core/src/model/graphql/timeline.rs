@@ -1,4 +1,5 @@
 use crate::model::graphql::{
+    ResultWrapper,
     ads::{PrerollMetadata, PromotedMetadata},
     image::{Image, OriginalImage},
     properties::{
@@ -13,12 +14,6 @@ use crate::model::graphql::{
     user::UserResult,
 };
 use std::borrow::Cow;
-
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ResultWrapper<A> {
-    pub result: Option<A>,
-}
 
 #[derive(Clone, Debug, serde::Deserialize)]
 #[serde(tag = "itemType", deny_unknown_fields)]
@@ -74,7 +69,7 @@ pub enum ItemContent<'a, T, U> {
     Community {
         #[serde(rename = "__typename")]
         typename: &'a str,
-        community_results: serde::de::IgnoredAny,
+        community_results: ResultWrapper<crate::model::graphql::community::CommunityResult<'a>>,
     },
     #[serde(rename = "TimelinePivot")]
     Pivot {
