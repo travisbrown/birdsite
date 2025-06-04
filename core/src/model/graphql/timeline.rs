@@ -69,7 +69,7 @@ pub enum ItemContent<'a, T, U> {
     Community {
         #[serde(rename = "__typename")]
         typename: &'a str,
-        community_results: ResultWrapper<crate::model::graphql::community::CommunityResult<'a>>,
+        community_results: ResultWrapper<crate::model::graphql::community::CommunityResult<'a, U>>,
     },
     #[serde(rename = "TimelinePivot")]
     Pivot {

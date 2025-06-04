@@ -23,6 +23,38 @@ pub mod text_timestamp {
     }
 }
 
+pub mod timestamp_msec {
+    use chrono::{DateTime, Utc};
+    use serde::{
+        de::{Deserialize, Deserializer},
+        ser::{Serialize, Serializer},
+    };
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<DateTime<Utc>, D::Error> {
+        u64::deserialize(deserializer).and_then(|timestamp_msec| {
+            timestamp_msec
+                .try_into()
+                .ok()
+                .and_then(DateTime::from_timestamp_millis)
+                .ok_or_else(|| {
+                    serde::de::Error::invalid_value(
+                        serde::de::Unexpected::Unsigned(timestamp_msec),
+                        &"epoch millisecond",
+                    )
+                })
+        })
+    }
+
+    pub fn serialize<S: Serializer>(
+        value: &DateTime<Utc>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        i64::serialize(&value.timestamp_millis(), serializer)
+    }
+}
+
 /// Decode a range from a pair of values.
 pub mod range {
     use serde::{
