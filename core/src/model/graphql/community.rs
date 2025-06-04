@@ -18,8 +18,8 @@ pub struct Community<'a> {
     pub description: Cow<'a, str>,
     pub invites_policy: InvitesPolicy,
     pub join_policy: JoinPolicy,
-    pub default_theme: Theme,
-    pub custom_theme: Theme,
+    pub default_theme: Option<Theme>,
+    pub custom_theme: Option<Theme>,
     #[serde(rename = "id")]
     _internal_id: Cow<'a, str>,
     #[serde(rename = "rest_id", with = "crate::model::attributes::integer_str")]
