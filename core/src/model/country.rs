@@ -13,6 +13,8 @@ pub enum Error {
     Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, serde::Deserialize, serde::Serialize,
 )]
 pub enum Country {
+    #[serde(rename = "AD")]
+    Andorra,
     #[serde(rename = "AE")]
     UnitedArabEmirates,
     #[serde(rename = "AF")]
@@ -429,7 +431,8 @@ pub enum Country {
     Zimbabwe,
 }
 
-pub const COUNTRY_VALUES: [Country; 207] = [
+pub const COUNTRY_VALUES: [Country; 208] = [
+    Country::Andorra,
     Country::UnitedArabEmirates,
     Country::Afghanistan,
     Country::AntiguaAndBarbuda,
