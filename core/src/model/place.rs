@@ -4,21 +4,16 @@ use std::borrow::Cow;
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Place<'a> {
-    #[serde(flatten, borrow)]
-    pub metadata: PlaceMetadata<'a>,
-    pub url: Cow<'a, str>,
-    pub bounding_box: Option<BoundingBox>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct PlaceMetadata<'a> {
     pub id: &'a str,
+    pub url: Cow<'a, str>,
     pub place_type: PlaceType,
     pub name: Cow<'a, str>,
     pub country_code: crate::model::country::PossibleCountry,
     pub country: Cow<'a, str>,
     pub full_name: Cow<'a, str>,
+    pub bounding_box: Option<BoundingBox>,
+    pub attributes: Option<Attributes>,
+    pub contained_within: Option<Vec<()>>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -67,3 +62,7 @@ pub struct TypedCoordinates {
 pub enum CoordinatesType {
     Point,
 }
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Attributes {}
