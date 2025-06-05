@@ -11,6 +11,7 @@ use crate::model::graphql::{
 };
 use std::borrow::Cow;
 
+pub mod client;
 pub mod item;
 
 #[derive(Clone, Debug, serde::Deserialize)]
