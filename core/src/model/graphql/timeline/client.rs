@@ -132,7 +132,7 @@ pub mod event {
             #[serde(rename = "trendName")]
             trend_name: &'a str,
             #[serde(rename = "relatedTerms")]
-            related_terms: Option<Cow<'a, Cow<'a, str>>>,
+            related_terms: Option<Cow<'a, [Cow<'a, str>]>>,
             #[serde(
                 rename = "clusterId",
                 with = "crate::model::attributes::integer_str_opt",
