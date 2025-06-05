@@ -18,7 +18,7 @@ pub struct Community<'a, U> {
     #[serde(rename = "id_str", with = "crate::model::attributes::integer_str")]
     pub id: u64,
     pub name: Cow<'a, str>,
-    pub description: Cow<'a, str>,
+    pub description: Option<Cow<'a, str>>,
     #[serde(with = "crate::model::attributes::timestamp_msec")]
     pub created_at: DateTime<Utc>,
     pub default_theme: Option<Theme>,
