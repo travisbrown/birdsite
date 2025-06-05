@@ -9,7 +9,8 @@ pub enum UserResult<'a, U> {
     },
     UserUnavailable {
         reason: crate::model::graphql::unavailable::UserUnavailableReason,
-        message: &'a str,
+        /// This fields seems to have been added as mandatory around 16 September 2023.
+        message: Option<&'a str>,
         unavailable_message: Option<crate::model::graphql::text::Text<'a>>,
     },
 }
