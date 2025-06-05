@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 
-pub mod context;
 pub mod display;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]

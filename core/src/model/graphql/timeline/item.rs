@@ -3,9 +3,9 @@ use crate::model::graphql::{
     ads::{PrerollMetadata, PromotedMetadata},
     properties::{
         ConversationAnnotation, CursorType,
-        context::SocialContext,
         display::{DisplayTreatment, TweetDisplayType, UserDisplayType},
     },
+    timeline::context::{ForwardPivot, SocialContext},
     user::UserResult,
 };
 use std::borrow::Cow;
@@ -47,6 +47,8 @@ pub struct Tweet<'a, T, U> {
     #[serde(rename = "prerollMetadata")]
     pub preroll_metadata: Option<PrerollMetadata<'a>>,
     pub highlights: Option<TweetHighlights>,
+    #[serde(rename = "forwardPivot")]
+    pub forward_pivot: Option<ForwardPivot<'a>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

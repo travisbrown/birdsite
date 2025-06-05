@@ -9,4 +9,5 @@ pub mod properties;
 pub mod snowflake;
 pub mod time_zone;
 pub mod timestamp;
+pub mod url;
 pub mod user;

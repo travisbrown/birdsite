@@ -4,7 +4,6 @@ use crate::model::graphql::{
     image::{Image, OriginalImage},
     properties::{
         TombstoneInfo,
-        context::SocialContext,
         display::{LabelDisplayType, PivotDisplayType, TombstoneDisplayType},
     },
     trends::TrendMetadata,
@@ -12,6 +11,7 @@ use crate::model::graphql::{
 use std::borrow::Cow;
 
 pub mod client;
+pub mod context;
 pub mod item;
 pub mod trends;
 
@@ -86,13 +86,12 @@ pub enum ItemContent<'a, T, U> {
         detail_text_image: Option<Image<'a>>,
     },
     #[serde(rename = "TimelineLabel")]
-    // TODO: Add URL
     Label {
         #[serde(rename = "__typename")]
         typename: &'a str,
         text: Cow<'a, str>,
         display_type: Option<LabelDisplayType>,
-        url: Option<crate::model::entity::Url<'a>>,
+        url: Option<crate::model::url::Url<'a>>,
     },
     #[serde(rename = "TimelineEventSummary")]
     // TODO: Support access for possible media tweets
@@ -103,7 +102,7 @@ pub enum ItemContent<'a, T, U> {
         typename: &'a str,
         name: Cow<'a, str>,
         description: Option<Cow<'a, str>>,
-        social_context: Option<SocialContext<'a>>,
+        social_context: Option<context::SocialContext<'a>>,
         is_ai_trend: Option<bool>,
         trend_url: crate::model::graphql::trends::TrendUrl<'a>,
         trend_metadata: TrendMetadata<'a>,

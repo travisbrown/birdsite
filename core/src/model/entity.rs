@@ -1,28 +1,28 @@
+use crate::model::url::{Url, UrlType};
 use std::borrow::Cow;
 use std::ops::Range;
 
+/// A URL representation that uses snake case (used in the untyped entity representation).
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct Url<'a> {
-    /// Note that the typed representation uses camel case, and the untyped uses snake.
-    ///
-    /// We keep things simple by accepting both in both cases. Note that this means round-tripping
-    /// is not possible for untyped entities.
-    #[serde(rename = "urlType", alias = "url_type")]
-    pub url_type: UrlType,
+pub struct LegacyUrl<'a> {
     pub url: Cow<'a, str>,
+    pub url_type: UrlType,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-pub enum UrlType {
-    ExternalUrl,
-    DeepLink,
+impl<'a> From<&LegacyUrl<'a>> for Url<'a> {
+    fn from(value: &LegacyUrl<'a>) -> Self {
+        Self {
+            url: value.url.clone(),
+            url_type: value.url_type,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Entity<'a> {
     pub indices: Range<usize>,
-    pub reference: Url<'a>,
+    pub reference: LegacyUrl<'a>,
 }
 
 impl<'a, 'de: 'a> serde::de::Deserialize<'de> for Entity<'a> {
@@ -100,7 +100,7 @@ mod internal {
         pub from_index: usize,
         pub to_index: usize,
         #[serde(rename = "ref")]
-        pub reference: super::Url<'a>,
+        pub reference: super::LegacyUrl<'a>,
     }
 
     #[derive(serde::Deserialize, serde::Serialize)]
@@ -123,7 +123,7 @@ mod tests {
             indices: 44..67,
             reference: super::TypedEntityReference::TimelineUrl {
                 url: super::Url {
-                    url_type: super::UrlType::ExternalUrl,
+                    url_type: crate::model::url::UrlType::ExternalUrl,
                     url: "https://t.co/GAQgLgyG02".into(),
                 },
             },
@@ -141,7 +141,7 @@ mod tests {
             indices: 44..67,
             reference: super::TypedEntityReference::TimelineUrl {
                 url: super::Url {
-                    url_type: super::UrlType::ExternalUrl,
+                    url_type: crate::model::url::UrlType::ExternalUrl,
                     url: "https://t.co/GAQgLgyG02".into(),
                 },
             },
