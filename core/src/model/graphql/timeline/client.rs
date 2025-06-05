@@ -45,6 +45,8 @@ pub enum ConversationSection {
 }
 
 pub mod event {
+    use std::borrow::Cow;
+
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
     pub struct ClientEventInfo<'a> {
@@ -61,6 +63,8 @@ pub mod event {
         pub conversation_details: Option<super::ConversationDetails>,
         #[serde(rename = "timelinesDetails", borrow)]
         pub timelines_details: Option<TimelinesDetails<'a>>,
+        #[serde(rename = "guideDetails")]
+        pub guide_details: Option<GuideDetails<'a>>,
     }
 
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -88,6 +92,60 @@ pub mod event {
         WhoToFollow,
         WhoToSubscribe,
         Other(&'a str),
+    }
+
+    #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct GuideDetails<'a> {
+        pub identifier: &'a str,
+        pub token: Option<&'a str>,
+        #[serde(rename = "transparentGuideDetails")]
+        pub transparent_guide_details: Option<TransparentGuideDetails<'a>>,
+    }
+
+    #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[serde(tag = "type", deny_unknown_fields)]
+    pub enum TransparentGuideDetails<'a> {
+        TimelineEventUrtMetadata {
+            #[serde(rename = "impressionId")]
+            impression_id: &'a str,
+            position: usize,
+            #[serde(
+                rename = "sourceId",
+                with = "crate::model::attributes::integer_str_opt",
+                default
+            )]
+            source_id: Option<u64>,
+            #[serde(rename = "eventId", with = "crate::model::attributes::integer_str")]
+            event_id: u64,
+        },
+        TimelineTrendUrtMetadata {
+            /// This can be negative (for example, `-8530644708937920429`).
+            #[serde(
+                rename = "impressionId",
+                with = "crate::model::attributes::integer_str"
+            )]
+            impression_id: i64,
+            #[serde(rename = "impressionToken")]
+            impression_token: &'a str,
+            position: usize,
+            #[serde(rename = "trendName")]
+            trend_name: &'a str,
+            #[serde(rename = "relatedTerms")]
+            related_terms: Option<Cow<'a, [&'a str]>>,
+            #[serde(
+                rename = "clusterId",
+                with = "crate::model::attributes::integer_str_opt",
+                default
+            )]
+            cluster_id: Option<u64>,
+        },
+        TimelineSemanticCoreInterest {
+            #[serde(rename = "domainId", with = "crate::model::attributes::integer_str")]
+            domain_id: u64,
+            #[serde(rename = "entityId", with = "crate::model::attributes::integer_str")]
+            entity_id: u64,
+        },
     }
 }
 
