@@ -34,8 +34,8 @@ pub mod event {
     #[serde(deny_unknown_fields)]
     pub struct ClientEventInfo<'a> {
         #[serde(borrow)]
-        pub component: super::Component<'a>,
-        pub element: super::Element<'a>,
+        pub component: Option<super::Component<'a>>,
+        pub element: Option<super::Element<'a>>,
         pub details: Option<Details<'a>>,
     }
 
