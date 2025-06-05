@@ -15,6 +15,26 @@ pub mod client;
 pub mod item;
 
 #[derive(Clone, Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ModuleItem<'a, T, U> {
+    #[serde(rename = "entryId")]
+    pub entry_id: &'a str,
+    pub dispensable: Option<bool>,
+    pub item: Item<'a, T, U>,
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Item<'a, T, U> {
+    #[serde(rename = "itemContent", borrow)]
+    pub item_content: ItemContent<'a, T, U>,
+    #[serde(rename = "clientEventInfo")]
+    pub client_event_info: Option<client::event::ClientEventInfo<'a>>,
+    #[serde(rename = "feedbackInfo")]
+    pub feedback_info: Option<client::feedback::FeedbackInfo<'a>>,
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
 #[serde(tag = "itemType", deny_unknown_fields)]
 pub enum ItemContent<'a, T, U> {
     #[serde(rename = "TimelineTimelineCursor")]
