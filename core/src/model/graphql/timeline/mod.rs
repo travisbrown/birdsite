@@ -107,7 +107,7 @@ pub enum ItemContent<'a, T, U> {
         is_ai_trend: Option<bool>,
         trend_url: crate::model::graphql::trends::TrendUrl<'a>,
         trend_metadata: TrendMetadata<'a>,
-        grouped_trends: Option<trends::Trend<'a>>,
+        grouped_trends: Option<Vec<trends::Trend<'a>>>,
         rank: Option<Cow<'a, str>>,
         thumbnail_image: Option<OriginalImage<'a>>,
         images: Option<Vec<trends::TrendImage<'a>>>,
