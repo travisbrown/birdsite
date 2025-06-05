@@ -39,7 +39,8 @@ pub struct ScreenNameUserResults<'a> {
 #[serde(tag = "__typename", deny_unknown_fields)]
 pub enum ScreenNameUserResult<'a> {
     User {
-        #[serde(borrow)]
+        /// Seems to have switched to `core` around 22 May 2025.
+        #[serde(alias = "core", borrow)]
         legacy: ScreenNameUserResultLegacy<'a>,
     },
     UserUnavailable {},
