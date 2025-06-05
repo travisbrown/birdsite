@@ -29,6 +29,21 @@ pub enum Element<'a> {
     Other(&'a str),
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConversationDetails {
+    #[serde(rename = "conversationSection")]
+    pub conversation_section: ConversationSection,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
+pub enum ConversationSection {
+    AbusiveQuality,
+    HighQuality,
+    LowQuality,
+    RelatedTweet,
+}
+
 pub mod event {
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
@@ -43,24 +58,9 @@ pub mod event {
     #[serde(deny_unknown_fields)]
     pub struct Details<'a> {
         #[serde(rename = "conversationDetails")]
-        pub conversation_details: Option<ConversationDetails>,
+        pub conversation_details: Option<super::ConversationDetails>,
         #[serde(rename = "timelinesDetails", borrow)]
         pub timelines_details: Option<TimelinesDetails<'a>>,
-    }
-
-    #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-    #[serde(deny_unknown_fields)]
-    pub struct ConversationDetails {
-        #[serde(rename = "conversationSection")]
-        pub conversation_section: ConversationSection,
-    }
-
-    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
-    pub enum ConversationSection {
-        AbusiveQuality,
-        HighQuality,
-        LowQuality,
-        RelatedTweet,
     }
 
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -112,5 +112,13 @@ pub mod feedback {
         #[serde(borrow)]
         pub component: super::Component<'a>,
         pub element: super::Element<'a>,
+        pub details: Option<Details>,
+    }
+
+    #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct Details {
+        #[serde(rename = "conversationDetails")]
+        pub conversation_details: Option<super::ConversationDetails>,
     }
 }
