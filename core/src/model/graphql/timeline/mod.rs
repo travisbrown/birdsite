@@ -15,7 +15,7 @@ pub mod client;
 pub mod item;
 pub mod trends;
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ModuleItem<'a, T, U> {
     #[serde(rename = "entryId")]
@@ -24,7 +24,7 @@ pub struct ModuleItem<'a, T, U> {
     pub item: Item<'a, T, U>,
 }
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Item<'a, T, U> {
     #[serde(rename = "itemContent", borrow)]
@@ -35,7 +35,7 @@ pub struct Item<'a, T, U> {
     pub feedback_info: Option<client::feedback::FeedbackInfo<'a>>,
 }
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "itemType", deny_unknown_fields)]
 pub enum ItemContent<'a, T, U> {
     #[serde(rename = "TimelineTimelineCursor")]
@@ -110,8 +110,7 @@ pub enum ItemContent<'a, T, U> {
         grouped_trends: Option<trends::Trend<'a>>,
         rank: Option<Cow<'a, str>>,
         thumbnail_image: Option<OriginalImage<'a>>,
-        /// TODO: The elements here are both string and objects, need to decide how to handle this.
-        images: Option<Vec<serde::de::IgnoredAny>>,
+        images: Option<Vec<trends::TrendImage<'a>>>,
         promoted_metadata: Option<PromotedMetadata<'a, U>>,
         associated_cards: Option<Vec<()>>,
     },

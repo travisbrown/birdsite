@@ -30,7 +30,7 @@ pub struct ConversationAnnotation {
     pub conversation_annotation_type: ConversationAnnotationType,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TombstoneInfo<'a> {
     text: Cow<'a, str>,
