@@ -39,7 +39,7 @@ pub struct Community<'a, U> {
     pub member_count: usize,
     pub role: Role,
     pub rules: Vec<Rule<'a>>,
-    pub custom_banner_media: BannerMedia<'a>,
+    pub custom_banner_media: Option<BannerMedia<'a>>,
     pub default_banner_media: BannerMedia<'a>,
     pub viewer_relationship: ViewerRelationship,
     pub join_requests_result: JoinRequestsResult,
