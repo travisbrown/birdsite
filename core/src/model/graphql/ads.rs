@@ -43,7 +43,7 @@ pub struct AdvertiserResults<U> {
 #[serde(deny_unknown_fields)]
 pub struct AdMetadataContainer<'a> {
     #[serde(rename = "renderLegacyWebsiteCard")]
-    pub render_legacy_website_card: bool,
+    pub render_legacy_website_card: Option<bool>,
     #[serde(rename = "isQuickPromote")]
     pub is_quick_promote: Option<bool>,
     pub remove_promoted_attribution_for_preroll: Option<bool>,
