@@ -13,6 +13,7 @@ use std::borrow::Cow;
 
 pub mod client;
 pub mod item;
+pub mod trends;
 
 #[derive(Clone, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -104,10 +105,9 @@ pub enum ItemContent<'a, T, U> {
         description: Option<Cow<'a, str>>,
         social_context: Option<SocialContext<'a>>,
         is_ai_trend: Option<bool>,
-        trend_url: crate::model::entity::Url<'a>,
+        trend_url: crate::model::graphql::trends::TrendUrl<'a>,
         trend_metadata: TrendMetadata<'a>,
-        // TODO: Consider extracting these.
-        grouped_trends: Option<serde::de::IgnoredAny>,
+        grouped_trends: Option<trends::Trend<'a>>,
         rank: Option<Cow<'a, str>>,
         thumbnail_image: Option<OriginalImage<'a>>,
         /// TODO: The elements here are both string and objects, need to decide how to handle this.

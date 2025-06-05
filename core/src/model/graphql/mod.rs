@@ -14,3 +14,10 @@ pub mod user;
 pub struct ResultWrapper<A> {
     pub result: Option<A>,
 }
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct KeyValuePair<'a> {
+    pub key: &'a str,
+    pub value: &'a str,
+}

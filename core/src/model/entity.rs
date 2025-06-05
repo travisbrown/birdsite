@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::ops::Range;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Url<'a> {
     /// Note that the typed representation uses camel case, and the untyped uses snake.
     ///
@@ -79,7 +80,7 @@ impl<'a> serde::ser::Serialize for TypedEntity<'a> {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(tag = "type")]
+#[serde(tag = "type", deny_unknown_fields)]
 pub enum TypedEntityReference<'a> {
     TimelineUrl {
         #[serde(flatten)]

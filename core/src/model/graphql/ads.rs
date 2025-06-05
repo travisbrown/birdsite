@@ -1,12 +1,5 @@
 use std::borrow::Cow;
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct KeyValuePair<'a> {
-    pub key: &'a str,
-    pub value: &'a str,
-}
-
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum DisclosureType {
     Issue,
@@ -23,7 +16,7 @@ pub struct PromotedMetadata<'a, U> {
     #[serde(rename = "disclosureType")]
     pub disclosure_type: DisclosureType,
     #[serde(rename = "experimentValues")]
-    pub experiment_values: Option<Vec<KeyValuePair<'a>>>,
+    pub experiment_values: Option<Vec<super::KeyValuePair<'a>>>,
     #[serde(rename = "impressionId")]
     pub impression_id: &'a str,
     #[serde(rename = "impressionString")]
@@ -100,7 +93,7 @@ pub struct MediaInfo<'a> {
 #[serde(deny_unknown_fields)]
 pub struct ClickTrackingInfo<'a> {
     #[serde(rename = "urlParams", borrow)]
-    pub url_params: Vec<KeyValuePair<'a>>,
+    pub url_params: Vec<super::KeyValuePair<'a>>,
     #[serde(rename = "urlOverride")]
     pub url_override: Option<&'a str>,
     #[serde(rename = "urlOverrideType")]
