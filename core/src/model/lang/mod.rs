@@ -107,13 +107,13 @@ impl serde::Serialize for Lang {
     }
 }
 
-const LANGUAGE_CODES: [&str; 92] = [
+const LANGUAGE_CODES: [&str; 93] = [
     "af", "am", "ar", "az", "bg", "bn", "bo", "ca", "ckb", "cs", "cy", "da", "de", "dv", "el",
     "en", "en-AU", "en-GB", "en-IN", "en-gb", "es", "es-MX", "et", "eu", "fa", "fi", "fil", "fr",
     "fy", "ga", "gl", "gu", "haw", "he", "hi", "hr", "ht", "hu", "hy", "id", "in", "is", "it",
-    "iw", "ja", "ka", "km", "kn", "ko", "lo", "lt", "lv", "ml", "mr", "ms", "msa", "my", "ne",
-    "nl", "no", "ny", "or", "pa", "pl", "ps", "pt", "ro", "ru", "sd", "si", "sk", "sl", "so", "sr",
-    "sv", "ta", "te", "th", "tl", "tr", "ug", "uk", "ur", "vi", "xh", "yo", "zh", "zh-CN",
+    "iw", "ja", "ka", "kk", "km", "kn", "ko", "lo", "lt", "lv", "ml", "mr", "ms", "msa", "my",
+    "ne", "nl", "no", "ny", "or", "pa", "pl", "ps", "pt", "ro", "ru", "sd", "si", "sk", "sl", "so",
+    "sr", "sv", "ta", "te", "th", "tl", "tr", "ug", "uk", "ur", "vi", "xh", "yo", "zh", "zh-CN",
     "zh-Hans", "zh-TW", "zh-cn", "zh-tw",
 ];
 
@@ -159,6 +159,7 @@ pub enum Language {
     Italian,
     Japanese,
     Kannada,
+    Kazakh,
     Korean,
     Lao,
     Latvian,
@@ -276,6 +277,7 @@ impl Language {
             }),
             "ja" => Some(Self::Japanese),
             "ka" => Some(Self::Georgian),
+            "kk" => Some(Self::Kazakh),
             "km" => Some(Self::CentralKhmer),
             "kn" => Some(Self::Kannada),
             "ko" => Some(Self::Korean),
@@ -391,6 +393,7 @@ impl Language {
             Self::Italian => "it",
             Self::Japanese => "ja",
             Self::Kannada => "kn",
+            Self::Kazakh => "kk",
             Self::Korean => "ko",
             Self::Lao => "lo",
             Self::Latvian => "lv",
@@ -577,7 +580,7 @@ impl serde::Serialize for Special {
     }
 }
 
-const LANGUAGE_VALUES: [Language; 92] = [
+const LANGUAGE_VALUES: [Language; 93] = [
     Language::Afrikaans,
     Language::Amharic,
     Language::Arabic,
@@ -635,6 +638,7 @@ const LANGUAGE_VALUES: [Language; 92] = [
     Language::Italian,
     Language::Japanese,
     Language::Kannada,
+    Language::Kazakh,
     Language::Korean,
     Language::Lao,
     Language::Latvian,

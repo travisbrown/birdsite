@@ -7,7 +7,7 @@
 use super::Language;
 use std::{collections::HashMap, sync::LazyLock};
 
-pub const TOTAL_COUNT: usize = 935214258;
+pub const TOTAL_COUNT: usize = 935214304;
 
 pub static RANKED_LANGUAGE_VALUES: LazyLock<Vec<Language>> = LazyLock::new(|| {
     // If the code doesn't parse, that's a development error.
@@ -102,6 +102,7 @@ const RAW_DATA: &[(&str, usize)] = &[
     ("pa", 398),
     ("lo", 369),
     ("ml", 348),
+    ("kk", 344),
     ("ne", 284),
     ("te", 284),
     ("hy", 240),

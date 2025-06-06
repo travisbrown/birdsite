@@ -125,6 +125,8 @@ pub enum Country {
     Djibouti,
     #[serde(rename = "DK")]
     Denmark,
+    #[serde(rename = "DM")]
+    Dominica,
     #[serde(rename = "DO")]
     DominicanRepublic,
     #[serde(rename = "DZ")]
@@ -271,6 +273,8 @@ pub enum Country {
     Montenegro,
     #[serde(rename = "MG")]
     Madagascar,
+    #[serde(rename = "MH")]
+    MarshallIslands,
     #[serde(rename = "MK")]
     Macedonia,
     #[serde(rename = "ML")]
@@ -317,6 +321,8 @@ pub enum Country {
     Norway,
     #[serde(rename = "NP")]
     Nepal,
+    #[serde(rename = "NR")]
+    Nauru,
     #[serde(rename = "NZ")]
     NewZealand,
     #[serde(rename = "OM")]
@@ -357,6 +363,8 @@ pub enum Country {
     Rwanda,
     #[serde(rename = "SA")]
     SaudiArabia,
+    #[serde(rename = "SB")]
+    SolomonIslands,
     #[serde(rename = "SC")]
     Seychelles,
     #[serde(rename = "SD")]
@@ -457,7 +465,7 @@ pub enum Country {
     Zimbabwe,
 }
 
-pub const COUNTRY_VALUES: [Country; 221] = [
+pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Andorra,
     Country::UnitedArabEmirates,
     Country::Afghanistan,
@@ -514,6 +522,7 @@ pub const COUNTRY_VALUES: [Country; 221] = [
     Country::Germany,
     Country::Djibouti,
     Country::Denmark,
+    Country::Dominica,
     Country::DominicanRepublic,
     Country::Algeria,
     Country::Ecuador,
@@ -587,6 +596,7 @@ pub const COUNTRY_VALUES: [Country; 221] = [
     Country::Moldova,
     Country::Montenegro,
     Country::Madagascar,
+    Country::MarshallIslands,
     Country::Macedonia,
     Country::Mali,
     Country::Myanmar,
@@ -610,6 +620,7 @@ pub const COUNTRY_VALUES: [Country; 221] = [
     Country::Netherlands,
     Country::Norway,
     Country::Nepal,
+    Country::Nauru,
     Country::NewZealand,
     Country::Oman,
     Country::Panama,
@@ -630,6 +641,7 @@ pub const COUNTRY_VALUES: [Country; 221] = [
     Country::Russia,
     Country::Rwanda,
     Country::SaudiArabia,
+    Country::SolomonIslands,
     Country::Seychelles,
     Country::Sudan,
     Country::Sweden,
