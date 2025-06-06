@@ -35,7 +35,7 @@ pub enum PlaceType {
 pub struct BoundingBox {
     #[serde(rename = "type")]
     pub bounding_box_type: BoundingBoxType,
-    pub coordinates: Vec<Vec<Coordinates>>,
+    pub coordinates: Option<Vec<Vec<Coordinates>>>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
