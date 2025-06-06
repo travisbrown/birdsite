@@ -75,6 +75,8 @@ pub enum Country {
     Brazil,
     #[serde(rename = "BS")]
     Bahamas,
+    #[serde(rename = "BT")]
+    Bhutan,
     #[serde(rename = "BW")]
     Botswana,
     #[serde(rename = "BY")]
@@ -111,6 +113,8 @@ pub enum Country {
     CapeVerde,
     #[serde(rename = "CW")]
     Curacao,
+    #[serde(rename = "CX")]
+    ChristmasIsland,
     #[serde(rename = "CY")]
     Cyprus,
     #[serde(rename = "CZ")]
@@ -131,6 +135,8 @@ pub enum Country {
     Estonia,
     #[serde(rename = "EG")]
     Egypt,
+    #[serde(rename = "ER")]
+    Eritrea,
     #[serde(rename = "ES")]
     Spain,
     #[serde(rename = "ET")]
@@ -141,6 +147,8 @@ pub enum Country {
     Fiji,
     #[serde(rename = "FK")]
     FalklandIslands,
+    #[serde(rename = "FM")]
+    Micronesia,
     #[serde(rename = "FO")]
     FaroeIslands,
     #[serde(rename = "FR")]
@@ -149,6 +157,8 @@ pub enum Country {
     Gabon,
     #[serde(rename = "GB")]
     UnitedKingdom,
+    #[serde(rename = "GD")]
+    Grenada,
     #[serde(rename = "GE")]
     Georgia,
     #[serde(rename = "GF")]
@@ -157,10 +167,14 @@ pub enum Country {
     Ghana,
     #[serde(rename = "GI")]
     Gibraltar,
+    #[serde(rename = "GL")]
+    Greenland,
     #[serde(rename = "GM")]
     Gambia,
     #[serde(rename = "GN")]
     Guinea,
+    #[serde(rename = "GP")]
+    Guadeloupe,
     #[serde(rename = "GQ")]
     EquatorialGuinea,
     #[serde(rename = "GR")]
@@ -169,6 +183,8 @@ pub enum Country {
     Guatemala,
     #[serde(rename = "GU")]
     Guam,
+    #[serde(rename = "GY")]
+    Guyana,
     #[serde(rename = "HK")]
     HongKong,
     #[serde(rename = "HN")]
@@ -229,6 +245,8 @@ pub enum Country {
     Lebanon,
     #[serde(rename = "LC")]
     SaintLucia,
+    #[serde(rename = "LI")]
+    Liechtenstein,
     #[serde(rename = "LK")]
     SriLanka,
     #[serde(rename = "LR")]
@@ -265,6 +283,8 @@ pub enum Country {
     Macau,
     #[serde(rename = "MP")]
     NorthernMarianaIslands,
+    #[serde(rename = "MQ")]
+    Martinique,
     #[serde(rename = "MR")]
     Mauritania,
     #[serde(rename = "MT")]
@@ -379,6 +399,8 @@ pub enum Country {
     Thailand,
     #[serde(rename = "TJ")]
     Tajikistan,
+    #[serde(rename = "TM")]
+    Turkmenistan,
     #[serde(rename = "TN")]
     Tunisia,
     #[serde(rename = "TO")]
@@ -403,6 +425,8 @@ pub enum Country {
     Uzbekistan,
     #[serde(rename = "VA")]
     VaticanCity,
+    #[serde(rename = "VC")]
+    SaintVincentAndTheGrenadines,
     #[serde(rename = "VE")]
     Venezuela,
     #[serde(rename = "VG")]
@@ -413,6 +437,8 @@ pub enum Country {
     Vietnam,
     #[serde(rename = "VU")]
     Vanuatu,
+    #[serde(rename = "WS")]
+    Samoa,
     #[serde(rename = "XK")]
     Kosovo,
     #[serde(rename = "XX")]
@@ -431,7 +457,7 @@ pub enum Country {
     Zimbabwe,
 }
 
-pub const COUNTRY_VALUES: [Country; 208] = [
+pub const COUNTRY_VALUES: [Country; 221] = [
     Country::Andorra,
     Country::UnitedArabEmirates,
     Country::Afghanistan,
@@ -463,6 +489,7 @@ pub const COUNTRY_VALUES: [Country; 208] = [
     Country::CaribbeanNetherlands,
     Country::Brazil,
     Country::Bahamas,
+    Country::Bhutan,
     Country::Botswana,
     Country::Belarus,
     Country::Belize,
@@ -481,6 +508,7 @@ pub const COUNTRY_VALUES: [Country; 208] = [
     Country::Cuba,
     Country::CapeVerde,
     Country::Curacao,
+    Country::ChristmasIsland,
     Country::Cyprus,
     Country::Czechia,
     Country::Germany,
@@ -491,25 +519,31 @@ pub const COUNTRY_VALUES: [Country; 208] = [
     Country::Ecuador,
     Country::Estonia,
     Country::Egypt,
+    Country::Eritrea,
     Country::Spain,
     Country::Ethiopia,
     Country::Finland,
     Country::Fiji,
     Country::FalklandIslands,
+    Country::Micronesia,
     Country::FaroeIslands,
     Country::France,
     Country::Gabon,
     Country::UnitedKingdom,
+    Country::Grenada,
     Country::Georgia,
     Country::FrenchGuiana,
     Country::Ghana,
     Country::Gibraltar,
+    Country::Greenland,
     Country::Gambia,
     Country::Guinea,
+    Country::Guadeloupe,
     Country::EquatorialGuinea,
     Country::Greece,
     Country::Guatemala,
     Country::Guam,
+    Country::Guyana,
     Country::HongKong,
     Country::Honduras,
     Country::Croatia,
@@ -540,6 +574,7 @@ pub const COUNTRY_VALUES: [Country; 208] = [
     Country::Laos,
     Country::Lebanon,
     Country::SaintLucia,
+    Country::Liechtenstein,
     Country::SriLanka,
     Country::Liberia,
     Country::Lesotho,
@@ -558,6 +593,7 @@ pub const COUNTRY_VALUES: [Country; 208] = [
     Country::Mongolia,
     Country::Macau,
     Country::NorthernMarianaIslands,
+    Country::Martinique,
     Country::Mauritania,
     Country::Malta,
     Country::Mauritius,
@@ -615,6 +651,7 @@ pub const COUNTRY_VALUES: [Country; 208] = [
     Country::Togo,
     Country::Thailand,
     Country::Tajikistan,
+    Country::Turkmenistan,
     Country::Tunisia,
     Country::Tonga,
     Country::Turkey,
@@ -627,11 +664,13 @@ pub const COUNTRY_VALUES: [Country; 208] = [
     Country::Uruguay,
     Country::Uzbekistan,
     Country::VaticanCity,
+    Country::SaintVincentAndTheGrenadines,
     Country::Venezuela,
     Country::BritishVirginIslands,
     Country::VirginIslands,
     Country::Vietnam,
     Country::Vanuatu,
+    Country::Samoa,
     Country::Kosovo,
     Country::All,
     Country::Copyright,

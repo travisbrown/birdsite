@@ -107,13 +107,14 @@ impl serde::Serialize for Lang {
     }
 }
 
-const LANGUAGE_CODES: [&str; 85] = [
+const LANGUAGE_CODES: [&str; 92] = [
     "af", "am", "ar", "az", "bg", "bn", "bo", "ca", "ckb", "cs", "cy", "da", "de", "dv", "el",
     "en", "en-AU", "en-GB", "en-IN", "en-gb", "es", "es-MX", "et", "eu", "fa", "fi", "fil", "fr",
-    "ga", "gl", "gu", "he", "hi", "hr", "ht", "hu", "hy", "id", "in", "is", "it", "iw", "ja", "ka",
-    "km", "kn", "ko", "lo", "lt", "lv", "ml", "mr", "msa", "my", "ne", "nl", "no", "or", "pa",
-    "pl", "ps", "pt", "ro", "ru", "sd", "si", "sk", "sl", "sr", "sv", "ta", "te", "th", "tl", "tr",
-    "ug", "uk", "ur", "vi", "zh", "zh-CN", "zh-Hans", "zh-TW", "zh-cn", "zh-tw",
+    "fy", "ga", "gl", "gu", "haw", "he", "hi", "hr", "ht", "hu", "hy", "id", "in", "is", "it",
+    "iw", "ja", "ka", "km", "kn", "ko", "lo", "lt", "lv", "ml", "mr", "ms", "msa", "my", "ne",
+    "nl", "no", "ny", "or", "pa", "pl", "ps", "pt", "ro", "ru", "sd", "si", "sk", "sl", "so", "sr",
+    "sv", "ta", "te", "th", "tl", "tr", "ug", "uk", "ur", "vi", "xh", "yo", "zh", "zh-CN",
+    "zh-Hans", "zh-TW", "zh-cn", "zh-tw",
 ];
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -130,6 +131,7 @@ pub enum Language {
     Catalan,
     CentralKhmer,
     CentralKurdish,
+    Chichewa,
     Chinese(Option<ChineseLocale>),
     Croatian,
     Czech,
@@ -147,6 +149,7 @@ pub enum Language {
     Greek,
     Gujarati,
     Haitian,
+    Hawaiian,
     Hebrew { iso_639_1988: bool },
     Hindi,
     Hungarian,
@@ -160,7 +163,7 @@ pub enum Language {
     Lao,
     Latvian,
     Lithuanian,
-    Malay,
+    Malay { iso_639_2: bool },
     Malayam,
     Marathi,
     Nepali,
@@ -173,11 +176,12 @@ pub enum Language {
     Portuguese,
     Romanian,
     Russian,
+    Serbian,
     Sindhi,
     Sinhalese,
     Slovak,
     Slovenian,
-    Serbian,
+    Somali,
     Spanish(Option<SpanishLocale>),
     Swedish,
     Tagalog,
@@ -190,6 +194,9 @@ pub enum Language {
     Ukrainian,
     Urdu,
     Vietnamese,
+    WesternFrisian,
+    Xhosa,
+    Yoruba,
     Welsh,
 }
 
@@ -247,9 +254,11 @@ impl Language {
             "fi" => Some(Self::Finnish),
             "fil" => Some(Self::Filipino),
             "fr" => Some(Self::French),
+            "fy" => Some(Self::WesternFrisian),
             "ga" => Some(Self::Irish),
             "gl" => Some(Self::Galician),
             "gu" => Some(Self::Gujarati),
+            "haw" => Some(Self::Hawaiian),
             "he" => Some(Self::Hebrew { iso_639_1988: true }),
             "hi" => Some(Self::Hindi),
             "hr" => Some(Self::Croatian),
@@ -275,11 +284,13 @@ impl Language {
             "lv" => Some(Self::Latvian),
             "ml" => Some(Self::Malayam),
             "mr" => Some(Self::Marathi),
-            "msa" => Some(Self::Malay),
+            "ms" => Some(Self::Malay { iso_639_2: false }),
+            "msa" => Some(Self::Malay { iso_639_2: true }),
             "my" => Some(Self::Burmese),
             "ne" => Some(Self::Nepali),
             "nl" => Some(Self::Dutch),
             "no" => Some(Self::Norwegian),
+            "ny" => Some(Self::Chichewa),
             "or" => Some(Self::Oriya),
             "pa" => Some(Self::Panjabi),
             "pl" => Some(Self::Polish),
@@ -291,6 +302,7 @@ impl Language {
             "si" => Some(Self::Sinhalese),
             "sk" => Some(Self::Slovak),
             "sl" => Some(Self::Slovenian),
+            "so" => Some(Self::Somali),
             "sr" => Some(Self::Serbian),
             "sv" => Some(Self::Swedish),
             "ta" => Some(Self::Tamil),
@@ -302,6 +314,8 @@ impl Language {
             "uk" => Some(Self::Ukrainian),
             "ur" => Some(Self::Urdu),
             "vi" => Some(Self::Vietnamese),
+            "xh" => Some(Self::Xhosa),
+            "yo" => Some(Self::Yoruba),
             "zh" => Some(Self::Chinese(None)),
             "zh-CN" => Some(Self::Chinese(Some(ChineseLocale::Simplified {
                 capitalized: true,
@@ -334,6 +348,7 @@ impl Language {
             Self::Catalan => "ca",
             Self::CentralKhmer => "km",
             Self::CentralKurdish => "ckb",
+            Self::Chichewa => "ny",
             Self::Chinese(None) => "zh",
             Self::Chinese(Some(ChineseLocale::Han)) => "zh-Hans",
             Self::Chinese(Some(ChineseLocale::Simplified { capitalized: false })) => "zh-cn",
@@ -360,6 +375,7 @@ impl Language {
             Self::Greek => "el",
             Self::Gujarati => "gu",
             Self::Haitian => "ht",
+            Self::Hawaiian => "haw",
             Self::Hebrew {
                 iso_639_1988: false,
             } => "iw",
@@ -379,7 +395,8 @@ impl Language {
             Self::Lao => "lo",
             Self::Latvian => "lv",
             Self::Lithuanian => "lt",
-            Self::Malay => "msa",
+            Self::Malay { iso_639_2: false } => "ms",
+            Self::Malay { iso_639_2: true } => "msa",
             Self::Malayam => "ml",
             Self::Marathi => "mr",
             Self::Nepali => "ne",
@@ -396,6 +413,7 @@ impl Language {
             Self::Sinhalese => "si",
             Self::Slovak => "sk",
             Self::Slovenian => "sl",
+            Self::Somali => "so",
             Self::Serbian => "sr",
             Self::Spanish(None) => "es",
             Self::Spanish(Some(SpanishLocale::Mexico)) => "es-MX",
@@ -410,6 +428,9 @@ impl Language {
             Self::Ukrainian => "uk",
             Self::Urdu => "ur",
             Self::Vietnamese => "vi",
+            Self::WesternFrisian => "fy",
+            Self::Xhosa => "xh",
+            Self::Yoruba => "yo",
             Self::Welsh => "cy",
         }
     }
@@ -556,7 +577,7 @@ impl serde::Serialize for Special {
     }
 }
 
-const LANGUAGE_VALUES: [Language; 85] = [
+const LANGUAGE_VALUES: [Language; 92] = [
     Language::Afrikaans,
     Language::Amharic,
     Language::Arabic,
@@ -569,6 +590,7 @@ const LANGUAGE_VALUES: [Language; 85] = [
     Language::Catalan,
     Language::CentralKhmer,
     Language::CentralKurdish,
+    Language::Chichewa,
     Language::Chinese(None),
     Language::Chinese(Some(ChineseLocale::Han)),
     Language::Chinese(Some(ChineseLocale::Simplified { capitalized: false })),
@@ -597,6 +619,7 @@ const LANGUAGE_VALUES: [Language; 85] = [
     Language::Greek,
     Language::Gujarati,
     Language::Haitian,
+    Language::Hawaiian,
     Language::Hebrew {
         iso_639_1988: false,
     },
@@ -616,7 +639,8 @@ const LANGUAGE_VALUES: [Language; 85] = [
     Language::Lao,
     Language::Latvian,
     Language::Lithuanian,
-    Language::Malay,
+    Language::Malay { iso_639_2: false },
+    Language::Malay { iso_639_2: true },
     Language::Malayam,
     Language::Marathi,
     Language::Nepali,
@@ -633,6 +657,7 @@ const LANGUAGE_VALUES: [Language; 85] = [
     Language::Sinhalese,
     Language::Slovak,
     Language::Slovenian,
+    Language::Somali,
     Language::Serbian,
     Language::Spanish(None),
     Language::Spanish(Some(SpanishLocale::Mexico)),
@@ -647,7 +672,10 @@ const LANGUAGE_VALUES: [Language; 85] = [
     Language::Ukrainian,
     Language::Urdu,
     Language::Vietnamese,
+    Language::Xhosa,
+    Language::Yoruba,
     Language::Welsh,
+    Language::WesternFrisian,
 ];
 
 const SPECIAL_VALUES: [Special; 9] = [
