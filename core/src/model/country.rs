@@ -77,6 +77,8 @@ pub enum Country {
     Bahamas,
     #[serde(rename = "BT")]
     Bhutan,
+    #[serde(rename = "BV")]
+    BouvetIsland,
     #[serde(rename = "BW")]
     Botswana,
     #[serde(rename = "BY")]
@@ -137,6 +139,8 @@ pub enum Country {
     Estonia,
     #[serde(rename = "EG")]
     Egypt,
+    #[serde(rename = "EH")]
+    WesternSahara,
     #[serde(rename = "ER")]
     Eritrea,
     #[serde(rename = "ES")]
@@ -165,6 +169,8 @@ pub enum Country {
     Georgia,
     #[serde(rename = "GF")]
     FrenchGuiana,
+    #[serde(rename = "GG")]
+    Guernsey,
     #[serde(rename = "GH")]
     Ghana,
     #[serde(rename = "GI")]
@@ -181,10 +187,14 @@ pub enum Country {
     EquatorialGuinea,
     #[serde(rename = "GR")]
     Greece,
+    #[serde(rename = "GS")]
+    SouthGeorgiaAndTheSouthSandwichIslands,
     #[serde(rename = "GT")]
     Guatemala,
     #[serde(rename = "GU")]
     Guam,
+    #[serde(rename = "GW")]
+    GuineaBissau,
     #[serde(rename = "GY")]
     Guyana,
     #[serde(rename = "HK")]
@@ -207,6 +217,8 @@ pub enum Country {
     IsleOfMan,
     #[serde(rename = "IN")]
     India,
+    #[serde(rename = "IO")]
+    BritishIndianOceanTerritory,
     #[serde(rename = "IQ")]
     Iraq,
     #[serde(rename = "IR")]
@@ -215,6 +227,8 @@ pub enum Country {
     Iceland,
     #[serde(rename = "IT")]
     Italy,
+    #[serde(rename = "JE")]
+    Jersey,
     #[serde(rename = "JM")]
     Jamaica,
     #[serde(rename = "JO")]
@@ -227,6 +241,8 @@ pub enum Country {
     Kyrgyzstan,
     #[serde(rename = "KH")]
     Cambodia,
+    #[serde(rename = "KI")]
+    Kiribati,
     #[serde(rename = "KM")]
     Comoros,
     #[serde(rename = "KN")]
@@ -271,6 +287,8 @@ pub enum Country {
     Moldova,
     #[serde(rename = "ME")]
     Montenegro,
+    #[serde(rename = "MF")]
+    SaintMartin,
     #[serde(rename = "MG")]
     Madagascar,
     #[serde(rename = "MH")]
@@ -291,6 +309,8 @@ pub enum Country {
     Martinique,
     #[serde(rename = "MR")]
     Mauritania,
+    #[serde(rename = "MS")]
+    Montserrat,
     #[serde(rename = "MT")]
     Malta,
     #[serde(rename = "MU")]
@@ -323,6 +343,8 @@ pub enum Country {
     Nepal,
     #[serde(rename = "NR")]
     Nauru,
+    #[serde(rename = "NU")]
+    Niue,
     #[serde(rename = "NZ")]
     NewZealand,
     #[serde(rename = "OM")]
@@ -381,6 +403,8 @@ pub enum Country {
     Slovakia,
     #[serde(rename = "SL")]
     SierraLeone,
+    #[serde(rename = "SM")]
+    SanMarino,
     #[serde(rename = "SN")]
     Senegal,
     #[serde(rename = "SO")]
@@ -401,12 +425,18 @@ pub enum Country {
     TurksAndCaicosIslands,
     #[serde(rename = "TD")]
     Chad,
+    #[serde(rename = "TF")]
+    FrenchSouthernTerritories,
     #[serde(rename = "TG")]
     Togo,
     #[serde(rename = "TH")]
     Thailand,
     #[serde(rename = "TJ")]
     Tajikistan,
+    #[serde(rename = "TK")]
+    Tokelau,
+    #[serde(rename = "TL")]
+    EastTimor,
     #[serde(rename = "TM")]
     Turkmenistan,
     #[serde(rename = "TN")]
@@ -417,6 +447,8 @@ pub enum Country {
     Turkey,
     #[serde(rename = "TT")]
     TrinidadAndTobago,
+    #[serde(rename = "TV")]
+    Tuvalu,
     #[serde(rename = "TW")]
     Taiwan,
     #[serde(rename = "TZ")]
@@ -425,6 +457,8 @@ pub enum Country {
     Ukraine,
     #[serde(rename = "UG")]
     Uganda,
+    #[serde(rename = "UM")]
+    UnitedStatesMinorOutlyingIslands,
     #[serde(rename = "US")]
     UnitedStates,
     #[serde(rename = "UY")]
@@ -465,7 +499,7 @@ pub enum Country {
     Zimbabwe,
 }
 
-pub const COUNTRY_VALUES: [Country; 225] = [
+pub const COUNTRY_VALUES: [Country; 242] = [
     Country::Andorra,
     Country::UnitedArabEmirates,
     Country::Afghanistan,
@@ -498,6 +532,7 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Brazil,
     Country::Bahamas,
     Country::Bhutan,
+    Country::BouvetIsland,
     Country::Botswana,
     Country::Belarus,
     Country::Belize,
@@ -528,6 +563,7 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Ecuador,
     Country::Estonia,
     Country::Egypt,
+    Country::WesternSahara,
     Country::Eritrea,
     Country::Spain,
     Country::Ethiopia,
@@ -542,6 +578,7 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Grenada,
     Country::Georgia,
     Country::FrenchGuiana,
+    Country::Guernsey,
     Country::Ghana,
     Country::Gibraltar,
     Country::Greenland,
@@ -550,8 +587,10 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Guadeloupe,
     Country::EquatorialGuinea,
     Country::Greece,
+    Country::SouthGeorgiaAndTheSouthSandwichIslands,
     Country::Guatemala,
     Country::Guam,
+    Country::GuineaBissau,
     Country::Guyana,
     Country::HongKong,
     Country::Honduras,
@@ -563,16 +602,19 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Israel,
     Country::IsleOfMan,
     Country::India,
+    Country::BritishIndianOceanTerritory,
     Country::Iraq,
     Country::Iran,
     Country::Iceland,
     Country::Italy,
+    Country::Jersey,
     Country::Jamaica,
     Country::Jordan,
     Country::Japan,
     Country::Kenya,
     Country::Kyrgyzstan,
     Country::Cambodia,
+    Country::Kiribati,
     Country::Comoros,
     Country::SaintKittsAndNevis,
     Country::NorthKorea,
@@ -595,6 +637,7 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Monaco,
     Country::Moldova,
     Country::Montenegro,
+    Country::SaintMartin,
     Country::Madagascar,
     Country::MarshallIslands,
     Country::Macedonia,
@@ -605,6 +648,7 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::NorthernMarianaIslands,
     Country::Martinique,
     Country::Mauritania,
+    Country::Montserrat,
     Country::Malta,
     Country::Mauritius,
     Country::Maldives,
@@ -621,6 +665,7 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Norway,
     Country::Nepal,
     Country::Nauru,
+    Country::Niue,
     Country::NewZealand,
     Country::Oman,
     Country::Panama,
@@ -650,6 +695,7 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Slovenia,
     Country::Slovakia,
     Country::SierraLeone,
+    Country::SanMarino,
     Country::Senegal,
     Country::Somalia,
     Country::Suriname,
@@ -660,18 +706,23 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Eswatini,
     Country::TurksAndCaicosIslands,
     Country::Chad,
+    Country::FrenchSouthernTerritories,
     Country::Togo,
     Country::Thailand,
     Country::Tajikistan,
+    Country::Tokelau,
+    Country::EastTimor,
     Country::Turkmenistan,
     Country::Tunisia,
     Country::Tonga,
     Country::Turkey,
     Country::TrinidadAndTobago,
+    Country::Tuvalu,
     Country::Taiwan,
     Country::Tanzania,
     Country::Ukraine,
     Country::Uganda,
+    Country::UnitedStatesMinorOutlyingIslands,
     Country::UnitedStates,
     Country::Uruguay,
     Country::Uzbekistan,
