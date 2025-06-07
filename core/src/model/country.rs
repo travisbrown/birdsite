@@ -227,6 +227,8 @@ pub enum Country {
     Kyrgyzstan,
     #[serde(rename = "KH")]
     Cambodia,
+    #[serde(rename = "KI")]
+    Kiribati,
     #[serde(rename = "KM")]
     Comoros,
     #[serde(rename = "KN")]
@@ -271,6 +273,8 @@ pub enum Country {
     Moldova,
     #[serde(rename = "ME")]
     Montenegro,
+    #[serde(rename = "MF")]
+    SaintMartin,
     #[serde(rename = "MG")]
     Madagascar,
     #[serde(rename = "MH")]
@@ -425,6 +429,8 @@ pub enum Country {
     Ukraine,
     #[serde(rename = "UG")]
     Uganda,
+    #[serde(rename = "UM")]
+    UnitedStatesMinorOutlyingIslands,
     #[serde(rename = "US")]
     UnitedStates,
     #[serde(rename = "UY")]
@@ -465,7 +471,7 @@ pub enum Country {
     Zimbabwe,
 }
 
-pub const COUNTRY_VALUES: [Country; 225] = [
+pub const COUNTRY_VALUES: [Country; 228] = [
     Country::Andorra,
     Country::UnitedArabEmirates,
     Country::Afghanistan,
@@ -573,6 +579,7 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Kenya,
     Country::Kyrgyzstan,
     Country::Cambodia,
+    Country::Kiribati,
     Country::Comoros,
     Country::SaintKittsAndNevis,
     Country::NorthKorea,
@@ -595,6 +602,7 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Monaco,
     Country::Moldova,
     Country::Montenegro,
+    Country::SaintMartin,
     Country::Madagascar,
     Country::MarshallIslands,
     Country::Macedonia,
@@ -672,6 +680,7 @@ pub const COUNTRY_VALUES: [Country; 225] = [
     Country::Tanzania,
     Country::Ukraine,
     Country::Uganda,
+    Country::UnitedStatesMinorOutlyingIslands,
     Country::UnitedStates,
     Country::Uruguay,
     Country::Uzbekistan,
