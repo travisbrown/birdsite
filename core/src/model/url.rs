@@ -13,4 +13,13 @@ pub struct Url<'a> {
     #[serde(rename = "urlType")]
     pub url_type: UrlType,
     pub url: Cow<'a, str>,
+    #[serde(rename = "urtEndpointOptions")]
+    pub urt_endpoint_options: Option<UrtEndpointOptions<'a>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct UrtEndpointOptions<'a> {
+    #[serde(rename = "requestParams")]
+    pub request_params: Vec<crate::model::KeyValuePair<'a>>,
 }

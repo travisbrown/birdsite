@@ -15,12 +15,5 @@ pub struct TrendUrl<'a> {
     #[serde(borrow, flatten)]
     pub url: crate::model::url::Url<'a>,
     #[serde(rename = "urtEndpointOptions")]
-    pub urt_endpoint_options: Option<UrtEndpointOptions<'a>>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct UrtEndpointOptions<'a> {
-    #[serde(rename = "requestParams", borrow)]
-    pub request_params: Vec<super::KeyValuePair<'a>>,
+    pub urt_endpoint_options: Option<crate::model::url::UrtEndpointOptions<'a>>,
 }

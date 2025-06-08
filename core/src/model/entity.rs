@@ -15,6 +15,7 @@ impl<'a> From<&LegacyUrl<'a>> for Url<'a> {
         Self {
             url: value.url.clone(),
             url_type: value.url_type,
+            urt_endpoint_options: None,
         }
     }
 }
@@ -125,6 +126,7 @@ mod tests {
                 url: super::Url {
                     url_type: crate::model::url::UrlType::ExternalUrl,
                     url: "https://t.co/GAQgLgyG02".into(),
+                    urt_endpoint_options: None,
                 },
             },
         };
@@ -143,6 +145,7 @@ mod tests {
                 url: super::Url {
                     url_type: crate::model::url::UrlType::ExternalUrl,
                     url: "https://t.co/GAQgLgyG02".into(),
+                    urt_endpoint_options: None,
                 },
             },
         };
