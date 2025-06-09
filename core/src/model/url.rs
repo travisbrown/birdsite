@@ -22,4 +22,5 @@ pub struct Url<'a> {
 pub struct UrtEndpointOptions<'a> {
     #[serde(rename = "requestParams")]
     pub request_params: Vec<crate::model::KeyValuePair<'a>>,
+    pub title: Option<Cow<'a, str>>,
 }
