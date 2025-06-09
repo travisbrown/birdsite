@@ -17,6 +17,7 @@ pub struct Url<'a> {
     pub urt_endpoint_options: Option<UrtEndpointOptions<'a>>,
 }
 
+/// TODO: Determine whether the URT pieces are GraphQL-specific.
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct UrtEndpointOptions<'a> {
