@@ -28,14 +28,14 @@ pub fn serialize<S: Serializer>(value: &Ratio<u64>, serializer: S) -> Result<S::
 
 #[cfg(test)]
 mod tests {
-    use crate::model::probability;
+    use crate::model::attributes::ratio_u64;
     use num_rational::Ratio;
 
     #[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     struct Test {
-        #[serde(with = "probability")]
+        #[serde(with = "ratio_u64")]
         foo: Ratio<u64>,
-        #[serde(with = "probability")]
+        #[serde(with = "ratio_u64")]
         bar: Ratio<u64>,
     }
 
