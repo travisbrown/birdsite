@@ -4,6 +4,7 @@ pub mod attributes;
 pub mod color;
 pub mod country;
 pub mod entity;
+pub mod graphql;
 pub mod lang;
 pub mod place;
 pub mod properties;
