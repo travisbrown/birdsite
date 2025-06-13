@@ -16,6 +16,8 @@ pub enum TimeZone {
     Gmt,
     #[serde(rename = "GMT+8")]
     Gmt8,
+    #[serde(rename = "JST")]
+    Jst,
     #[serde(rename = "MDT")]
     Mdt,
     #[serde(rename = "MST")]

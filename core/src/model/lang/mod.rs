@@ -107,16 +107,16 @@ impl serde::Serialize for Lang {
     }
 }
 
-const LANGUAGE_CODES: [&str; 128] = [
+const LANGUAGE_CODES: [&str; 129] = [
     "af", "am", "ar", "az", "be", "bg", "bn", "bo", "bs", "ca", "ceb", "ckb", "co", "cs", "cy",
     "da", "de", "dv", "el", "en", "en-AU", "en-GB", "en-IN", "en-gb", "eo", "es", "es-MX", "et",
     "eu", "fa", "fi", "fil", "fil-ph", "fr", "fy", "ga", "gd", "gl", "gu", "ha", "haw", "he", "hi",
     "hmn", "hr", "ht", "hu", "hy", "id", "ig", "in", "is", "it", "iw", "ja", "jw", "ka", "kk",
     "km", "kn", "ko", "ku", "ky", "la", "lb", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn", "mr",
-    "ms", "msa", "mt", "my", "ne", "nl", "no", "ny", "or", "pa", "pl", "ps", "pt", "ro", "ru",
-    "rw", "sd", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "sr-cyrl", "sr-latn", "st", "su",
-    "sv", "sw", "ta", "te", "tg", "th", "tk", "tl", "tr", "tt", "ug", "uk", "ur", "uz", "vi", "xh",
-    "yi", "yo", "zh", "zh-CN", "zh-Hans", "zh-TW", "zh-cn", "zh-tw", "zu",
+    "ms", "msa", "mt", "my", "nb", "ne", "nl", "no", "ny", "or", "pa", "pl", "ps", "pt", "ro",
+    "ru", "rw", "sd", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "sr-cyrl", "sr-latn", "st",
+    "su", "sv", "sw", "ta", "te", "tg", "th", "tk", "tl", "tr", "tt", "ug", "uk", "ur", "uz", "vi",
+    "xh", "yi", "yo", "zh", "zh-CN", "zh-Hans", "zh-TW", "zh-cn", "zh-tw", "zu",
 ];
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -192,6 +192,7 @@ pub enum Language {
     Mongolian,
     Nepali,
     Norwegian,
+    NorwegianBokmal,
     Oriya,
     Panjabi,
     Pashto,
@@ -354,6 +355,7 @@ impl Language {
             "msa" => Some(Self::Malay { iso_639_2: true }),
             "mt" => Some(Self::Maltese),
             "my" => Some(Self::Burmese),
+            "nb" => Some(Self::NorwegianBokmal),
             "ne" => Some(Self::Nepali),
             "nl" => Some(Self::Dutch),
             "no" => Some(Self::Norwegian),
@@ -503,6 +505,7 @@ impl Language {
             Self::Maori => "mi",
             Self::Marathi => "mr",
             Self::Mongolian => "mn",
+            Self::NorwegianBokmal => "nb",
             Self::Nepali => "ne",
             Self::Norwegian => "no",
             Self::Oriya => "or",
@@ -695,7 +698,7 @@ impl serde::Serialize for Special {
     }
 }
 
-const LANGUAGE_VALUES: [Language; 128] = [
+const LANGUAGE_VALUES: [Language; 129] = [
     Language::Afrikaans,
     Language::Amharic,
     Language::Arabic,
@@ -778,6 +781,7 @@ const LANGUAGE_VALUES: [Language; 128] = [
     Language::Malay { iso_639_2: true },
     Language::Maltese,
     Language::Burmese,
+    Language::NorwegianBokmal,
     Language::Nepali,
     Language::Dutch,
     Language::Norwegian,
