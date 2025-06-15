@@ -172,6 +172,8 @@ pub enum TimeZone {
     EuropeBelgrade,
     #[serde(rename = "Europe/Berlin")]
     EuropeBerlin,
+    #[serde(rename = "Europe/Brussels")]
+    EuropeBrussels,
     #[serde(rename = "Europe/Dublin")]
     EuropeDublin,
     #[serde(rename = "Europe/Istanbul")]
