@@ -6,6 +6,7 @@ pub mod country;
 pub mod entity;
 pub mod graphql;
 pub mod lang;
+pub mod metadata;
 pub mod place;
 pub mod properties;
 pub mod snowflake;
@@ -13,6 +14,7 @@ pub mod time_zone;
 pub mod timestamp;
 pub mod url;
 pub mod user;
+pub mod wxj;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
