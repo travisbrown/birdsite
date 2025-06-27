@@ -25,6 +25,19 @@ pub struct TweetSnapshot<'a> {
 }
 
 impl<'a> TweetSnapshot<'a> {
+    pub fn into_owned(self) -> TweetSnapshot<'static> {
+        TweetSnapshot {
+            data: self.data.into_owned(),
+            includes: self.includes.into_owned(),
+            errors: self.errors.map(|errors| {
+                errors
+                    .into_iter()
+                    .map(|tweet_error| tweet_error.into_owned())
+                    .collect()
+            }),
+        }
+    }
+
     pub fn lookup_user(&self, id: u64) -> Option<&User<'a>> {
         self.includes.users.iter().find(|user| user.id == id)
     }
@@ -99,6 +112,29 @@ pub struct Tweet<'a> {
 }
 
 impl Tweet<'_> {
+    pub fn into_owned(self) -> Tweet<'static> {
+        Tweet {
+            article: self.article.map(|article| article.into_owned()),
+            id: self.id,
+            author_id: self.author_id,
+            context_annotations: self.context_annotations.map(|context_annotations| {
+                context_annotations
+                    .into_iter()
+                    .map(|context_annotation| context_annotation.into_owned())
+                    .collect()
+            }),
+            conversation_id: self.conversation_id,
+            created_at: self.created_at,
+            lang: self.lang,
+            possibly_sensitive: self.possibly_sensitive,
+            referenced_tweets: self.referenced_tweets,
+            reply_settings: self.reply_settings,
+            text: self.text.to_string().into(),
+            in_reply_to_user_id: self.in_reply_to_user_id,
+            withheld: self.withheld,
+        }
+    }
+
     pub fn retweeted_id(&self) -> Result<Option<u64>, FormatError> {
         self.referenced_tweet_id(ReferenceType::Retweeted)
     }
@@ -162,13 +198,34 @@ pub struct ContextAnnotation<'a> {
     pub entity: ContextEntity<'a>,
 }
 
+impl<'a> ContextAnnotation<'a> {
+    pub fn into_owned(self) -> ContextAnnotation<'static> {
+        ContextAnnotation {
+            domain: self.domain.into_owned(),
+            entity: self.entity.into_owned(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ContextDomain<'a> {
     #[serde(with = "integer_str")]
     pub id: u64,
-    pub name: &'a str,
+    pub name: Cow<'a, str>,
     pub description: Option<Cow<'a, str>>,
+}
+
+impl<'a> ContextDomain<'a> {
+    pub fn into_owned(self) -> ContextDomain<'static> {
+        ContextDomain {
+            id: self.id,
+            name: self.name.to_string().into(),
+            description: self
+                .description
+                .map(|description| description.to_string().into()),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -178,6 +235,18 @@ pub struct ContextEntity<'a> {
     pub id: u64,
     pub name: Cow<'a, str>,
     pub description: Option<Cow<'a, str>>,
+}
+
+impl<'a> ContextEntity<'a> {
+    pub fn into_owned(self) -> ContextEntity<'static> {
+        ContextEntity {
+            id: self.id,
+            name: self.name.to_string().into(),
+            description: self
+                .description
+                .map(|description| description.to_string().into()),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -191,6 +260,26 @@ pub struct TweetIncludes<'a> {
     pub places: Option<Vec<Place>>,
 }
 
+impl<'a> TweetIncludes<'a> {
+    pub fn into_owned(self) -> TweetIncludes<'static> {
+        TweetIncludes {
+            users: self
+                .users
+                .into_iter()
+                .map(|user| user.into_owned())
+                .collect(),
+            tweets: self
+                .tweets
+                .map(|tweets| tweets.into_iter().map(|tweet| tweet.into_owned()).collect()),
+            media: self.media,
+            polls: self
+                .polls
+                .map(|polls| polls.into_iter().map(|poll| poll.into_owned()).collect()),
+            places: self.places,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Poll<'a> {
@@ -200,6 +289,22 @@ pub struct Poll<'a> {
     pub duration_minutes: usize,
     pub end_datetime: DateTime<Utc>,
     pub options: Vec<PollOption<'a>>,
+}
+
+impl<'a> Poll<'a> {
+    pub fn into_owned(self) -> Poll<'static> {
+        Poll {
+            id: self.id,
+            voting_status: self.voting_status,
+            duration_minutes: self.duration_minutes,
+            end_datetime: self.end_datetime,
+            options: self
+                .options
+                .into_iter()
+                .map(|option| option.into_owned())
+                .collect(),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -216,6 +321,16 @@ pub struct PollOption<'a> {
     pub position: usize,
     pub label: Cow<'a, str>,
     pub votes: usize,
+}
+
+impl<'a> PollOption<'a> {
+    pub fn into_owned(self) -> PollOption<'static> {
+        PollOption {
+            position: self.position,
+            label: self.label.to_string().into(),
+            votes: self.votes,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -280,6 +395,25 @@ pub struct User<'a> {
     pub withheld: Option<Withheld>,
 }
 
+impl<'a> User<'a> {
+    pub fn into_owned(self) -> User<'static> {
+        User {
+            id: self.id,
+            username: self.username.to_string().into(),
+            name: self.name.to_string().into(),
+            created_at: self.created_at,
+            description: self.description.to_string().into(),
+            location: self.location.map(|location| location.to_string().into()),
+            url: self.url.map(|url| url.to_string().into()),
+            profile_image_url: self.profile_image_url.to_string().into(),
+            pinned_tweet_id: self.pinned_tweet_id,
+            verified: self.verified,
+            protected: self.protected,
+            withheld: self.withheld,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Withheld {
@@ -293,18 +427,41 @@ pub struct Article<'a> {
     pub title: Option<Cow<'a, str>>,
 }
 
+impl<'a> Article<'a> {
+    pub fn into_owned(self) -> Article<'static> {
+        Article {
+            title: self.title.map(|title| title.to_string().into()),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TweetError<'a> {
-    pub resource_id: &'a str,
-    pub parameter: &'a str,
+    pub resource_id: Cow<'a, str>,
+    pub parameter: Cow<'a, str>,
     pub resource_type: TweetErrorResourceType,
     pub section: Option<TweetErrorSection>,
-    pub title: &'a str,
-    pub value: &'a str,
-    pub detail: &'a str,
+    pub title: Cow<'a, str>,
+    pub value: Cow<'a, str>,
+    pub detail: Cow<'a, str>,
     #[serde(rename = "type")]
     pub error_type: TweetErrorType,
+}
+
+impl<'a> TweetError<'a> {
+    pub fn into_owned(self) -> TweetError<'static> {
+        TweetError {
+            resource_id: self.resource_id.to_string().into(),
+            parameter: self.parameter.to_string().into(),
+            resource_type: self.resource_type,
+            section: self.section,
+            title: self.title.to_string().into(),
+            value: self.value.to_string().into(),
+            detail: self.detail.to_string().into(),
+            error_type: self.error_type,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
