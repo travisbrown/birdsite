@@ -87,6 +87,8 @@ pub enum Country {
     Belize,
     #[serde(rename = "CA")]
     Canada,
+    #[serde(rename = "CC")]
+    CocosIslands,
     #[serde(rename = "CD")]
     DemocraticRepublicOfTheCongo,
     #[serde(rename = "CF")]
@@ -499,7 +501,7 @@ pub enum Country {
     Zimbabwe,
 }
 
-pub const COUNTRY_VALUES: [Country; 242] = [
+pub const COUNTRY_VALUES: [Country; 243] = [
     Country::Andorra,
     Country::UnitedArabEmirates,
     Country::Afghanistan,
@@ -537,6 +539,7 @@ pub const COUNTRY_VALUES: [Country; 242] = [
     Country::Belarus,
     Country::Belize,
     Country::Canada,
+    Country::CocosIslands,
     Country::DemocraticRepublicOfTheCongo,
     Country::CentralAfricanRepublic,
     Country::Congo,
