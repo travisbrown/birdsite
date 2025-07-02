@@ -6,6 +6,7 @@ pub mod country;
 pub mod entity;
 pub mod graphql;
 pub mod lang;
+pub mod media;
 pub mod metadata;
 pub mod place;
 pub mod properties;

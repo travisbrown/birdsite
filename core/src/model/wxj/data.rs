@@ -1,7 +1,7 @@
 //! This data format appears for tweets in the Wayback Machine from at least 2023 into 2025 (TODO: find previous start date).
 
 use crate::model::attributes::{integer_str, integer_str_opt};
-use crate::model::{country::Country, lang::Lang};
+use crate::model::{country::Country, lang::Lang, media::MediaVariant};
 use chrono::{DateTime, Utc};
 use std::borrow::Cow;
 
@@ -255,7 +255,7 @@ pub struct TweetIncludes<'a> {
     #[serde(borrow)]
     pub users: Vec<User<'a>>,
     pub tweets: Option<Vec<Tweet<'a>>>,
-    pub media: Option<Vec<Media>>,
+    pub media: Option<Vec<Media<'a>>>,
     pub polls: Option<Vec<Poll<'a>>>,
     pub places: Option<Vec<Place>>,
 }
@@ -271,7 +271,9 @@ impl<'a> TweetIncludes<'a> {
             tweets: self
                 .tweets
                 .map(|tweets| tweets.into_iter().map(|tweet| tweet.into_owned()).collect()),
-            media: self.media,
+            media: self
+                .media
+                .map(|media| media.into_iter().map(|media| media.into_owned()).collect()),
             polls: self
                 .polls
                 .map(|polls| polls.into_iter().map(|poll| poll.into_owned()).collect()),
@@ -337,7 +339,107 @@ impl<'a> PollOption<'a> {
 pub struct Place {}
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-pub struct Media {}
+#[serde(tag = "type", deny_unknown_fields)]
+pub enum Media<'a> {
+    #[serde(rename = "photo")]
+    Photo {
+        #[serde(flatten)]
+        metadata: MediaMetadata<'a>,
+        url: Cow<'a, str>,
+        alt_text: Option<Cow<'a, str>>,
+    },
+    #[serde(rename = "video")]
+    Video {
+        #[serde(flatten)]
+        metadata: MediaMetadata<'a>,
+        variants: Vec<MediaVariant<'a>>,
+        duration_ms: Option<usize>,
+        preview_image_url: Cow<'a, str>,
+    },
+    #[serde(rename = "animated_gif")]
+    AnimatedGif {
+        #[serde(flatten)]
+        metadata: MediaMetadata<'a>,
+        variants: Vec<MediaVariant<'a>>,
+        preview_image_url: Cow<'a, str>,
+    },
+}
+
+impl<'a> Media<'a> {
+    pub fn into_owned(self) -> Media<'static> {
+        match self {
+            Self::Photo {
+                metadata,
+                url,
+                alt_text,
+            } => Media::Photo {
+                metadata: metadata.into_owned(),
+                url: url.to_string().into(),
+                alt_text: alt_text.map(|alt_text| alt_text.to_string().into()),
+            },
+            Self::Video {
+                metadata,
+                variants,
+                duration_ms,
+                preview_image_url,
+            } => Media::Video {
+                metadata: metadata.into_owned(),
+                variants: variants
+                    .into_iter()
+                    .map(|variant| variant.into_owned())
+                    .collect(),
+                duration_ms,
+                preview_image_url: preview_image_url.to_string().into(),
+            },
+            Self::AnimatedGif {
+                metadata,
+                variants,
+                preview_image_url,
+            } => Media::AnimatedGif {
+                metadata: metadata.into_owned(),
+                variants: variants
+                    .into_iter()
+                    .map(|variant| variant.into_owned())
+                    .collect(),
+                preview_image_url: preview_image_url.to_string().into(),
+            },
+        }
+    }
+
+    pub fn metadata(&self) -> &MediaMetadata<'a> {
+        match self {
+            Self::Photo { metadata, .. } => metadata,
+            Self::Video { metadata, .. } => metadata,
+            Self::AnimatedGif { metadata, .. } => metadata,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct MediaMetadata<'a> {
+    pub media_key: Cow<'a, str>,
+    pub public_metrics: Option<MediaPublicMetrics>,
+    pub height: usize,
+    pub width: usize,
+}
+
+impl<'a> MediaMetadata<'a> {
+    pub fn into_owned(self) -> MediaMetadata<'static> {
+        MediaMetadata {
+            media_key: self.media_key.to_string().into(),
+            public_metrics: self.public_metrics,
+            width: self.width,
+            height: self.height,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct MediaPublicMetrics {
+    pub view_count: Option<usize>,
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -484,4 +586,24 @@ pub enum TweetErrorType {
     NotAuthorizedForResource,
     #[serde(rename = "https://api.twitter.com/2/problems/resource-not-found")]
     ResourceNotFound,
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn deserialize_media_examples() {
+        let lines = include_str!("../../../../examples/wxj/media.ndjson")
+            .split("\n")
+            .filter(|line| !line.is_empty());
+
+        for (i, line) in lines.enumerate() {
+            let result = serde_json::from_str::<super::Media>(line);
+
+            if let Err(error) = &result {
+                println!("Line {}: {error:?} in invalid media object {line}", i + 1);
+            }
+
+            assert!(result.is_ok());
+        }
+    }
 }
