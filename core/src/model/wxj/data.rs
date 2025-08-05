@@ -1,6 +1,6 @@
 //! This data format appears for tweets in the Wayback Machine from around 9 December 2022 until into 2025.
 
-use crate::model::attributes::{integer_str, integer_str_opt};
+use crate::model::attributes::{integer_str, integer_str_array_opt, integer_str_opt};
 use crate::model::{country::Country, lang::Lang, media::MediaVariant};
 use chrono::{DateTime, Utc};
 use std::borrow::Cow;
@@ -82,7 +82,7 @@ impl<'a> TweetSnapshot<'a> {
 pub struct Tweet<'a> {
     #[serde(borrow)]
     pub article: Option<Article<'a>>,
-    //pub attachments: Option<Attachments<'a>>,
+    pub attachments: Option<Attachments>,
     #[serde(with = "integer_str")]
     pub id: u64,
     #[serde(with = "integer_str")]
@@ -115,6 +115,7 @@ impl Tweet<'_> {
     pub fn into_owned(self) -> Tweet<'static> {
         Tweet {
             article: self.article.map(|article| article.into_owned()),
+            attachments: self.attachments,
             id: self.id,
             author_id: self.author_id,
             context_annotations: self.context_annotations.map(|context_annotations| {
@@ -188,6 +189,24 @@ impl Tweet<'_> {
             })
             .unwrap_or_default()
     }*/
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Attachments {
+    pub media_keys: Option<Vec<String>>,
+    #[serde(
+        with = "integer_str_array_opt",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub media_source_tweet_id: Option<Vec<u64>>,
+    #[serde(
+        with = "integer_str_array_opt",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub poll_ids: Option<Vec<u64>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -600,7 +619,10 @@ mod tests {
             let result = serde_json::from_str::<super::Media>(line);
 
             if let Err(error) = &result {
-                println!("Line {}: {error:?} in invalid media object {line}", i + 1);
+                println!(
+                    "Line {}: {line:?} is an invalid media object: {error}",
+                    i + 1
+                );
             }
 
             assert!(result.is_ok());
