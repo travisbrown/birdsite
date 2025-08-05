@@ -1,4 +1,4 @@
-//! This data format appears for tweets in the Wayback Machine from at least 2023 into 2025 (TODO: find previous start date).
+//! This data format appears for tweets in the Wayback Machine from around 9 December 2022 until into 2025.
 
 use crate::model::attributes::{integer_str, integer_str_opt};
 use crate::model::{country::Country, lang::Lang, media::MediaVariant};
