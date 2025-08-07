@@ -355,6 +355,7 @@ pub enum TimeZone {
     Urumqi,
     Vienna,
     Vilnius,
+    Vladivostok,
     Volgograd,
     Warsaw,
     Wellington,
