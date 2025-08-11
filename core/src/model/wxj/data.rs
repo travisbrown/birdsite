@@ -494,7 +494,7 @@ pub enum ReplySettings {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-//#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields)]
 pub struct User<'a> {
     #[serde(with = "integer_str")]
     pub id: u64,
@@ -509,10 +509,10 @@ pub struct User<'a> {
     #[serde(with = "integer_str_opt")]
     #[serde(default)]
     pub pinned_tweet_id: Option<u64>,
-    //pub entities: Option<UserEntities<'a>>,
+    pub entities: Option<UserEntities<'a>>,
     pub verified: bool,
     pub protected: bool,
-    //pub public_metrics: UserPublicMetrics,
+    pub public_metrics: crate::model::metrics::UserPublicMetrics,
     pub withheld: Option<Withheld>,
 }
 
@@ -528,8 +528,10 @@ impl<'a> User<'a> {
             url: self.url.map(|url| url.to_string().into()),
             profile_image_url: self.profile_image_url.to_string().into(),
             pinned_tweet_id: self.pinned_tweet_id,
+            entities: self.entities.map(|entities| entities.into_owned()),
             verified: self.verified,
             protected: self.protected,
+            public_metrics: self.public_metrics,
             withheld: self.withheld,
         }
     }
@@ -607,8 +609,183 @@ pub enum TweetErrorType {
     ResourceNotFound,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct UserEntities<'a> {
+    #[serde(borrow)]
+    pub description: Option<DescriptionEntities<'a>>,
+    #[serde(borrow)]
+    pub url: Option<Urls<'a>>,
+}
+
+impl<'a> UserEntities<'a> {
+    pub fn into_owned(self) -> UserEntities<'static> {
+        UserEntities {
+            description: self.description.map(|description| description.into_owned()),
+            url: self.url.map(|url| url.into_owned()),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Urls<'a> {
+    #[serde(borrow)]
+    pub urls: Vec<UrlDetails<'a>>,
+}
+
+impl<'a> Urls<'a> {
+    pub fn into_owned(self) -> Urls<'static> {
+        Urls {
+            urls: self
+                .urls
+                .into_iter()
+                .map(|url_details| url_details.into_owned())
+                .collect(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct UrlDetails<'a> {
+    pub url: Cow<'a, str>,
+    pub display_url: Option<Cow<'a, str>>,
+    pub expanded_url: Option<Cow<'a, str>>,
+    pub start: usize,
+    pub end: usize,
+}
+
+impl<'a> UrlDetails<'a> {
+    pub fn into_owned(self) -> UrlDetails<'static> {
+        UrlDetails {
+            url: self.url.to_string().into(),
+            display_url: self
+                .display_url
+                .map(|display_url| display_url.to_string().into()),
+            expanded_url: self
+                .expanded_url
+                .map(|expanded_url| expanded_url.to_string().into()),
+            start: self.start,
+            end: self.end,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DescriptionEntities<'a> {
+    #[serde(borrow)]
+    pub urls: Option<Vec<UrlDetails<'a>>>,
+    #[serde(borrow)]
+    pub mentions: Option<Vec<Mention<'a>>>,
+    pub hashtags: Option<Vec<Hashtag<'a>>>,
+    pub cashtags: Option<Vec<Cashtag>>,
+}
+
+impl<'a> DescriptionEntities<'a> {
+    pub fn into_owned(self) -> DescriptionEntities<'static> {
+        DescriptionEntities {
+            urls: self.urls.map(|urls| {
+                urls.into_iter()
+                    .map(|url_details| url_details.into_owned())
+                    .collect()
+            }),
+            mentions: self.mentions.map(|mentions| {
+                mentions
+                    .into_iter()
+                    .map(|mention| mention.into_owned())
+                    .collect()
+            }),
+            hashtags: self.hashtags.map(|hashtags| {
+                hashtags
+                    .into_iter()
+                    .map(|hashtag| hashtag.into_owned())
+                    .collect()
+            }),
+            cashtags: self.cashtags.map(|cashtags| cashtags.into_iter().collect()),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Hashtag<'a> {
+    pub start: usize,
+    pub end: usize,
+    pub tag: Cow<'a, str>,
+}
+
+impl<'a> Hashtag<'a> {
+    pub fn into_owned(self) -> Hashtag<'static> {
+        Hashtag {
+            start: self.start,
+            end: self.end,
+            tag: self.tag.to_string().into(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Cashtag {
+    pub start: usize,
+    pub end: usize,
+    pub tag: crate::model::cashtag::Cashtag,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Mention<'a> {
+    pub start: usize,
+    pub end: usize,
+    pub username: Cow<'a, str>,
+    pub id: Option<u64>,
+}
+
+impl<'a> Mention<'a> {
+    pub fn into_owned(self) -> Mention<'static> {
+        Mention {
+            start: self.start,
+            end: self.end,
+            username: self.username.to_string().into(),
+            id: self.id,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::fs::File;
+    use std::io::{BufRead, BufReader};
+
+    #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    struct Container<'a> {
+        #[serde(borrow)]
+        content: super::TweetSnapshot<'a>,
+    }
+
+    #[test]
+    fn deserialize_examples() -> Result<(), Box<dyn std::error::Error>> {
+        let lines = BufReader::new(File::open(
+            "/Users/dev/projects/birdsite/examples/wxj/data-sample.ndjson",
+        )?)
+        .lines();
+
+        for (i, line) in lines.enumerate() {
+            let line = line?;
+            let result = serde_json::from_str::<Container>(&line);
+
+            if let Err(error) = &result {
+                println!("Line {}: {line:?} is an invalid object: {error}", i + 1);
+            }
+
+            assert!(result.is_ok());
+        }
+
+        Ok(())
+    }
+
     #[test]
     fn deserialize_media_examples() {
         let lines = include_str!("../../../../examples/wxj/media.ndjson")

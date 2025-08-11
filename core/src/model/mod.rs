@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
 pub mod attributes;
+pub mod cashtag;
 pub mod color;
 pub mod country;
 pub mod entity;
@@ -8,6 +9,7 @@ pub mod graphql;
 pub mod lang;
 pub mod media;
 pub mod metadata;
+pub mod metrics;
 pub mod place;
 pub mod properties;
 pub mod snowflake;
