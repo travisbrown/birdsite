@@ -13,6 +13,7 @@ pub mod metrics;
 pub mod place;
 pub mod properties;
 pub mod snowflake;
+pub mod source;
 pub mod time_zone;
 pub mod timestamp;
 pub mod url;

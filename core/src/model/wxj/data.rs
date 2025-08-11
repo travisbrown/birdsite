@@ -1,7 +1,7 @@
 //! This data format appears for tweets in the Wayback Machine from around 9 December 2022 until into 2025.
 
 use crate::model::attributes::{integer_str, integer_str_array_opt, integer_str_opt};
-use crate::model::{country::Country, lang::Lang, media::MediaVariant};
+use crate::model::{country::Country, lang::Lang, media::MediaVariant, source::Source};
 use chrono::{DateTime, Utc};
 use std::borrow::Cow;
 
@@ -107,7 +107,7 @@ pub struct Tweet<'a> {
     #[serde(with = "integer_str_opt")]
     #[serde(default)]
     pub in_reply_to_user_id: Option<u64>,
-    //pub source: Option<TweetSource>,
+    pub source: Option<Source<'a>>,
     pub withheld: Option<Withheld>,
 }
 
@@ -132,6 +132,7 @@ impl Tweet<'_> {
             reply_settings: self.reply_settings,
             text: self.text.to_string().into(),
             in_reply_to_user_id: self.in_reply_to_user_id,
+            source: self.source.map(|source| source.into_owned()),
             withheld: self.withheld,
         }
     }
