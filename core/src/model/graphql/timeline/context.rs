@@ -57,3 +57,12 @@ pub enum ForwardPivotDisplayType {
 pub enum SoftInterventionDisplayType {
     StayInformed,
 }
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(tag = "__typename", deny_unknown_fields)]
+pub enum TweetContext<'a> {
+    TimelineTweetGenericContext {
+        primary_text: Cow<'a, str>,
+        url: crate::model::url::Url<'a>,
+    },
+}

@@ -49,6 +49,8 @@ pub struct Tweet<'a, T, U> {
     pub highlights: Option<TweetHighlights>,
     #[serde(rename = "forwardPivot")]
     pub forward_pivot: Option<ForwardPivot<'a>>,
+    #[serde(rename = "tweetContext")]
+    pub tweet_context: Option<TweetContext<'a>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -63,4 +65,13 @@ pub struct TextHighlight {
     pub start_index: usize,
     #[serde(rename = "endIndex")]
     pub end_index: usize,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct TweetContext<'a> {
+    /// Should always be `"TimelineTweetContext"`.
+    #[serde(rename = "type")]
+    pub tweet_context_type: Cow<'a, str>,
+    #[serde(rename = "tweetContext")]
+    pub tweet_context: crate::model::graphql::timeline::context::TweetContext<'a>,
 }
