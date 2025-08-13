@@ -1,5 +1,6 @@
 pub mod data;
 pub mod flat;
+pub mod metadata;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TweetSnapshot<'a> {
