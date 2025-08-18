@@ -1,7 +1,11 @@
 //! This data format appears for tweets in the Wayback Machine from around 9 December 2022 until into 2025.
 
 use crate::model::attributes::{integer_str, integer_str_array_opt, integer_str_opt};
-use crate::model::{country::Country, lang::Lang, media::MediaVariant};
+use crate::model::{
+    country::Country,
+    lang::Lang,
+    media::{MediaType, MediaVariant},
+};
 use chrono::{DateTime, Utc};
 use std::borrow::Cow;
 
@@ -430,6 +434,14 @@ impl<'a> Media<'a> {
             Self::Photo { metadata, .. } => metadata,
             Self::Video { metadata, .. } => metadata,
             Self::AnimatedGif { metadata, .. } => metadata,
+        }
+    }
+
+    pub fn media_type(&self) -> MediaType {
+        match self {
+            Self::Photo { .. } => MediaType::Photo,
+            Self::Video { .. } => MediaType::Video,
+            Self::AnimatedGif { .. } => MediaType::AnimatedGif,
         }
     }
 }
