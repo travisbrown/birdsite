@@ -444,6 +444,14 @@ impl<'a> Media<'a> {
             Self::AnimatedGif { .. } => MediaType::AnimatedGif,
         }
     }
+
+    pub fn url(&self) -> Option<&str> {
+        match self {
+            Self::Photo { url, .. } => Some(url),
+            Self::Video { .. } => None,
+            Self::AnimatedGif { .. } => None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
