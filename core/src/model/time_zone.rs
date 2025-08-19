@@ -68,6 +68,8 @@ pub enum TimeZone {
     AmericaArgentinaBuenosAires,
     #[serde(rename = "America/Bahia_Banderas")]
     AmericaBahiaBanderas,
+    #[serde(rename = "America/Belem")]
+    AmericaBelem,
     #[serde(rename = "America/Bogota")]
     AmericaBogota,
     #[serde(rename = "America/Boise")]
@@ -128,6 +130,8 @@ pub enum TimeZone {
     AmericaVancouver,
     #[serde(rename = "Asia/Amman")]
     AsiaAmman,
+    #[serde(rename = "Asia/Baghdad")]
+    AsiaBaghdad,
     #[serde(rename = "Asia/Bangkok")]
     AsiaBangkok,
     #[serde(rename = "Asia/Calcutta")]
@@ -176,6 +180,8 @@ pub enum TimeZone {
     EuropeBerlin,
     #[serde(rename = "Europe/Brussels")]
     EuropeBrussels,
+    #[serde(rename = "Europe/Budapest")]
+    EuropeBudapest,
     #[serde(rename = "Europe/Dublin")]
     EuropeDublin,
     #[serde(rename = "Europe/Helsinki")]
@@ -196,6 +202,8 @@ pub enum TimeZone {
     EuropeParis,
     #[serde(rename = "Europe/Rome")]
     EuropeRome,
+    #[serde(rename = "Europe/Skopje")]
+    EuropeSkopje,
     #[serde(rename = "Europe/Stockholm")]
     EuropeStockholm,
     #[serde(rename = "Europe/Vienna")]
