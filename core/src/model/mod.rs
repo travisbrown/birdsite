@@ -7,6 +7,7 @@ pub mod entity;
 pub mod graphql;
 pub mod lang;
 pub mod media;
+pub mod metrics;
 pub mod place;
 pub mod properties;
 pub mod snowflake;

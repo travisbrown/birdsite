@@ -405,6 +405,56 @@ impl<'de, 'a, A: serde::de::SeqAccess<'de>, E: std::str::FromStr> Iterator
     }
 }
 
+/// An optional unsigned integer representation where `-1` indicates absence.
+pub mod usize_opt {
+    use serde::{
+        de::{Deserializer, Unexpected, Visitor},
+        ser::Serializer,
+    };
+
+    const EXPECTED: &str = "optional unsigned integer";
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Option<usize>, D::Error> {
+        struct UsizeOptVisitor;
+
+        impl<'de> Visitor<'de> for UsizeOptVisitor {
+            type Value = Option<usize>;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str(EXPECTED)
+            }
+
+            fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> {
+                v.try_into()
+                    .map_err(|_| E::invalid_value(Unexpected::Unsigned(v), &EXPECTED))
+                    .map(Some)
+            }
+
+            fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<Self::Value, E> {
+                if v == -1 {
+                    Ok(None)
+                } else {
+                    Err(E::invalid_value(Unexpected::Signed(v), &EXPECTED))
+                }
+            }
+        }
+
+        deserializer.deserialize_any(UsizeOptVisitor)
+    }
+
+    pub fn serialize<S: Serializer>(
+        value: &Option<usize>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        match value {
+            Some(value) => serializer.serialize_u64(*value as u64),
+            None => serializer.serialize_i64(-1),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::{DateTime, TimeZone, Utc};
@@ -594,6 +644,39 @@ mod tests {
             values: Some(vec![123, 456]),
         };
         let expected = r#"{"values":["123","456"]}"#;
+
+        assert_eq!(serde_json::json!(value).to_string(), expected);
+    }
+
+    #[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    struct UsizeOptData {
+        #[serde(with = "super::usize_opt")]
+        value_a: Option<usize>,
+        #[serde(with = "super::usize_opt")]
+        value_b: Option<usize>,
+    }
+
+    #[test]
+    fn deserialize_u64_opt() {
+        let json = r#"{"value_a":123,"value_b":-1}"#;
+        let expected = UsizeOptData {
+            value_a: Some(123),
+            value_b: None,
+        };
+
+        assert_eq!(
+            serde_json::from_str::<UsizeOptData>(&json).unwrap(),
+            expected
+        );
+    }
+
+    #[test]
+    fn serialize_u64_opt() {
+        let value = UsizeOptData {
+            value_a: Some(123),
+            value_b: None,
+        };
+        let expected = r#"{"value_a":123,"value_b":-1}"#;
 
         assert_eq!(serde_json::json!(value).to_string(), expected);
     }

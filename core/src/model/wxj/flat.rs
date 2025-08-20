@@ -1,6 +1,6 @@
 //! This data format appears for tweets in the Wayback Machine until at least 2020 (TODO: find more precise dates).
 use crate::model::{
-    attributes::{integer_str, integer_str_opt, text_timestamp},
+    attributes::{integer_str, integer_str_opt, text_timestamp, usize_opt},
     color::Color,
     country::Country,
     lang::Lang,
@@ -78,7 +78,7 @@ pub struct ExtendedTweet<'a> {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-//#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields)]
 pub struct User<'a> {
     pub id: u64,
     #[serde(with = "integer_str")]
@@ -91,11 +91,16 @@ pub struct User<'a> {
     pub translator_type: Option<TranslatorType>,
     pub protected: bool,
     pub verified: bool,
-    //pub followers_count: PossibleCount,
-    //pub friends_count: PossibleCount,
-    //pub listed_count: PossibleCount,
-    //pub favourites_count: PossibleCount,
-    //pub statuses_count: PossibleCount,
+    #[serde(with = "usize_opt")]
+    pub followers_count: Option<usize>,
+    #[serde(with = "usize_opt")]
+    pub friends_count: Option<usize>,
+    #[serde(with = "usize_opt")]
+    pub listed_count: Option<usize>,
+    #[serde(with = "usize_opt")]
+    pub favourites_count: Option<usize>,
+    #[serde(with = "usize_opt")]
+    pub statuses_count: Option<usize>,
     #[serde(with = "text_timestamp")]
     pub created_at: DateTime<Utc>,
     utc_offset: Option<isize>,

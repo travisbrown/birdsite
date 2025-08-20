@@ -5,6 +5,7 @@ use crate::model::{
     country::Country,
     lang::Lang,
     media::{MediaType, MediaVariant},
+    metrics::{MediaPublicMetrics, UserPublicMetrics},
 };
 use chrono::{DateTime, Utc};
 use std::borrow::Cow;
@@ -476,12 +477,6 @@ impl<'a> MediaMetadata<'a> {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct MediaPublicMetrics {
-    pub view_count: Option<usize>,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct ReferencedTweet {
     #[serde(rename = "type")]
     pub reference_type: ReferenceType,
@@ -532,7 +527,7 @@ pub struct User<'a> {
     //pub entities: Option<UserEntities<'a>>,
     pub verified: bool,
     pub protected: bool,
-    //pub public_metrics: UserPublicMetrics,
+    pub public_metrics: UserPublicMetrics,
     pub withheld: Option<Withheld>,
 }
 
@@ -550,6 +545,7 @@ impl<'a> User<'a> {
             pinned_tweet_id: self.pinned_tweet_id,
             verified: self.verified,
             protected: self.protected,
+            public_metrics: self.public_metrics,
             withheld: self.withheld,
         }
     }
