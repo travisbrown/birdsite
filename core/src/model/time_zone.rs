@@ -67,6 +67,8 @@ pub enum TimeZone {
     #[serde(rename = "America/Argentina/Buenos_Aires")]
     AmericaArgentinaBuenosAires,
     #[serde(rename = "America/Bahia_Banderas")]
+    AmericaAsuncion,
+    #[serde(rename = "America/Asuncion")]
     AmericaBahiaBanderas,
     #[serde(rename = "America/Belem")]
     AmericaBelem,
