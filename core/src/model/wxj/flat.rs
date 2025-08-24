@@ -95,7 +95,6 @@ pub struct User<'a> {
     pub followers_count: Option<usize>,
     #[serde(with = "usize_opt")]
     pub friends_count: Option<usize>,
-    #[serde(with = "usize_opt")]
     pub listed_count: Option<usize>,
     #[serde(with = "usize_opt")]
     pub favourites_count: Option<usize>,
