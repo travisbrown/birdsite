@@ -1,4 +1,5 @@
 pub mod ads;
+pub mod birdwatch;
 pub mod community;
 pub mod image;
 pub mod properties;

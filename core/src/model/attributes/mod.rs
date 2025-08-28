@@ -55,6 +55,42 @@ pub mod timestamp_msec {
     }
 }
 
+pub mod timestamp_msec_opt {
+    use chrono::{DateTime, Utc};
+    use serde::{
+        de::Deserialize,
+        ser::{Serialize, Serializer},
+    };
+    pub fn deserialize<'de, D: serde::de::Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Option<DateTime<Utc>>, D::Error> {
+        let timestamp_msec = Option::<u64>::deserialize(deserializer)?;
+        let timestamp = timestamp_msec
+            .map(|timestamp_msec| {
+                timestamp_msec
+                    .try_into()
+                    .ok()
+                    .and_then(DateTime::from_timestamp_millis)
+                    .ok_or_else(|| {
+                        serde::de::Error::invalid_value(
+                            serde::de::Unexpected::Unsigned(timestamp_msec),
+                            &"optional epoch millisecond",
+                        )
+                    })
+            })
+            .map_or(Ok(None), |v| v.map(Some))?;
+
+        Ok(timestamp)
+    }
+
+    pub fn serialize<S: Serializer>(
+        value: &Option<DateTime<Utc>>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        Option::<i64>::serialize(&value.map(|value| value.timestamp_millis()), serializer)
+    }
+}
+
 /// Decode a range from a pair of values.
 pub mod range {
     use serde::{
