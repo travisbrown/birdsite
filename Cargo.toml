@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["core", "rate-limits"]
+members = ["core", "rate-limits", "graphql"]
 
 [workspace.package]
 authors = ["Travis Brown <travisrobertbrown@gmail.com>"]
