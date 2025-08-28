@@ -31,17 +31,14 @@ pub enum Error {
 pub fn parse_exchange<
     'a: 'de,
     'de,
-    V,
-    R: super::response::ParseWithVariables<V>,
+    V: super::request::Variables<'a> + 'a,
+    R: super::response::ParseWithVariables<'a, V> + 'a,
     F: RequestFilter,
 >(
     input: &'a str,
     line_number: usize,
     filter: F,
-) -> Result<Result<Exchange<'a, V, R>, RequestName>, Error>
-where
-    super::request::Request<'a, V>: serde::de::Deserialize<'de>,
-{
+) -> Result<Result<Exchange<'a, V, R>, RequestName>, Error> {
     let input_bytes = input.as_bytes();
     let request_start = find_request_open_brace(input_bytes).ok_or(Error::InvalidRequest)?;
     let request: super::request::Request<V> =

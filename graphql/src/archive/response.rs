@@ -6,8 +6,8 @@ pub enum Error {
     InvalidResultLength { expected: usize, returned: usize },
 }
 
-pub trait ParseWithVariables<V> {
-    fn parse(input: &str, variables: &V) -> Result<Self, Error>
+pub trait ParseWithVariables<'a, V> {
+    fn parse(input: &'a str, variables: &V) -> Result<Self, Error>
     where
-        Self: Sized;
+        Self: Sized + 'a;
 }
