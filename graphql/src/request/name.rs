@@ -81,6 +81,7 @@ pub enum RequestName {
     #[serde(rename = "TVHomeMixer")]
     TvHomeMixer,
     TopicCarouselQuery,
+    TopicTimelineQuery,
     TweetDetail,
     TweetResultByRestId,
     TweetResultsByRestIds,
@@ -160,7 +161,7 @@ impl std::str::FromStr for RequestName {
     }
 }
 
-pub const REQUEST_NAME_VALUES: [RequestName; 107] = [
+pub const REQUEST_NAME_VALUES: [RequestName; 108] = [
     RequestName::AccountSwitcherDelegateQuery,
     RequestName::AudioSpaceById,
     RequestName::AuthenticatePeriscope,
@@ -229,6 +230,7 @@ pub const REQUEST_NAME_VALUES: [RequestName; 107] = [
     RequestName::SuperFollowsSubscribeQuery,
     RequestName::TvHomeMixer,
     RequestName::TopicCarouselQuery,
+    RequestName::TopicTimelineQuery,
     RequestName::TweetDetail,
     RequestName::TweetResultByRestId,
     RequestName::TweetResultsByRestIds,
