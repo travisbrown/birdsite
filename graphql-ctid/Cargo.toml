@@ -1,0 +1,20 @@
+[package]
+name = "birdsite-graphql-ctid"
+authors = { workspace = true }
+repository = { workspace = true }
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+
+[dependencies]
+base64 = "0.22"
+libmath = "0.2"
+rand = "0.9"
+regex = { workspace = true }
+reqwest = "0.12"
+scraper = "0.22"
+sha2 = "0.10"
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros"] }
