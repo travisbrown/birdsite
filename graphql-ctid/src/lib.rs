@@ -8,17 +8,44 @@
 //! [python-generator]: https://github.com/iSarabjitDhiman/XClientTransaction
 
 use base64::prelude::*;
+use chrono::{DateTime, Utc};
 use rand::Rng;
 use sha2::Digest;
+use std::borrow::Cow;
 
 pub mod client;
 mod color;
 mod cubic;
+pub mod store;
 
 const DEFAULT_METHOD: &str = "GET";
 const DEFAULT_KEYWORD: &str = "obfiowerehiring";
 const DEFAULT_NUMBER: u8 = 3;
 
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Endpoint<'a> {
+    pub name: Cow<'a, str>,
+    pub version: Cow<'a, str>,
+}
+
+impl<'a> Endpoint<'a> {
+    pub fn new<S: Into<Cow<'a, str>>>(name: S, version: S) -> Self {
+        Self {
+            name: name.into(),
+            version: version.into(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct TransactionId {
+    pub value: String,
+    /// Should not be needed (and not currently serialized), but may be useful for debugging.
+    pub animation_key: Option<String>,
+    pub timestamp: DateTime<Utc>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Generator {
     keyword: String,
     number: u8,
@@ -39,24 +66,26 @@ impl Generator {
     }
 
     /// Download site information and generate an ID for a given endpoint.
-    pub async fn generate(&self, name: &str, version: &str) -> Result<String, client::Error> {
+    pub async fn generate<'a>(
+        &self,
+        endpoint: Endpoint<'a>,
+    ) -> Result<TransactionId, client::Error> {
         let client = client::Client::default();
         let site_info = client.get_site_info().await?;
 
         let generator = Generator::default();
 
-        Ok(generator.compute(&site_info, name, version, None, None))
+        Ok(generator.compute(&site_info, endpoint, None, None))
     }
 
     /// Generate an ID for a given endpoint using current site information.
-    pub fn compute(
+    pub fn compute<'a>(
         &self,
         site_info: &client::SiteInfo,
-        name: &str,
-        version: &str,
+        endpoint: Endpoint<'a>,
         random_byte: Option<u8>,
         timestamp_s: Option<i64>,
-    ) -> String {
+    ) -> TransactionId {
         let key_bytes_indices = &site_info.indices[1..];
 
         let frame_time = key_bytes_indices
@@ -86,7 +115,7 @@ impl Generator {
         let digest_input = format!(
             "{}!{}!{}{}{}",
             DEFAULT_METHOD,
-            Self::path(name, version),
+            Self::path(&endpoint.name, &endpoint.version),
             timestamp_s,
             self.keyword,
             animation_key
@@ -107,7 +136,11 @@ impl Generator {
         output.push(random_byte);
         output.extend(bytes.iter().map(|value| value ^ random_byte));
 
-        base64::engine::general_purpose::STANDARD_NO_PAD.encode(output)
+        TransactionId {
+            value: base64::engine::general_purpose::STANDARD_NO_PAD.encode(output),
+            animation_key: Some(animation_key),
+            timestamp: Utc::now(),
+        }
     }
 
     fn path(name: &str, version: &str) -> String {
