@@ -16,7 +16,6 @@ use std::borrow::Cow;
 pub mod client;
 mod color;
 mod cubic;
-pub mod store;
 
 const DEFAULT_METHOD: &str = "GET";
 const DEFAULT_KEYWORD: &str = "obfiowerehiring";
