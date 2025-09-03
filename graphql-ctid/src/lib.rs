@@ -38,6 +38,17 @@ impl Generator {
         }
     }
 
+    /// Download site information and generate an ID for a given endpoint.
+    pub async fn generate(&self, name: &str, version: &str) -> Result<String, client::Error> {
+        let client = client::Client::default();
+        let site_info = client.get_site_info().await?;
+
+        let generator = Generator::default();
+
+        Ok(generator.compute(&site_info, name, version, None, None))
+    }
+
+    /// Generate an ID for a given endpoint using current site information.
     pub fn compute(
         &self,
         site_info: &client::SiteInfo,
