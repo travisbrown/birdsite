@@ -55,6 +55,7 @@ pub enum RequestName {
     GenericTimelineById,
     GlobalCommunitiesLatestPostSearchTimeline,
     GlobalCommunitiesPostSearchTimeline,
+    GrokConversationItemsByRestId,
     GrokHome,
     GrokShare,
     HomeLatestTimeline,
@@ -161,7 +162,7 @@ impl std::str::FromStr for RequestName {
     }
 }
 
-pub const REQUEST_NAME_VALUES: [RequestName; 108] = [
+pub const REQUEST_NAME_VALUES: [RequestName; 109] = [
     RequestName::AccountSwitcherDelegateQuery,
     RequestName::AudioSpaceById,
     RequestName::AuthenticatePeriscope,
@@ -206,6 +207,7 @@ pub const REQUEST_NAME_VALUES: [RequestName; 108] = [
     RequestName::GenericTimelineById,
     RequestName::GlobalCommunitiesLatestPostSearchTimeline,
     RequestName::GlobalCommunitiesPostSearchTimeline,
+    RequestName::GrokConversationItemsByRestId,
     RequestName::GrokHome,
     RequestName::GrokShare,
     RequestName::HomeLatestTimeline,
