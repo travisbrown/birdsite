@@ -65,6 +65,7 @@ pub mod event {
         pub timelines_details: Option<TimelinesDetails<'a>>,
         #[serde(rename = "guideDetails")]
         pub guide_details: Option<GuideDetails<'a>>,
+        pub ai_trend_details: Option<AiTrendDetails>,
     }
 
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -146,6 +147,13 @@ pub mod event {
             #[serde(rename = "entityId", with = "crate::model::attributes::integer_str")]
             entity_id: u64,
         },
+    }
+
+    #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct AiTrendDetails {
+        #[serde(with = "crate::model::attributes::integer_str")]
+        pub trend_id: u64,
     }
 }
 
