@@ -84,6 +84,7 @@ pub enum RequestName {
     TvHomeMixer,
     TopicCarouselQuery,
     TopicTimelineQuery,
+    TrendRelevantUsers,
     TweetDetail,
     TweetResultByRestId,
     TweetResultsByRestIds,
@@ -163,7 +164,7 @@ impl std::str::FromStr for RequestName {
     }
 }
 
-pub const REQUEST_NAME_VALUES: [RequestName; 110] = [
+pub const REQUEST_NAME_VALUES: [RequestName; 111] = [
     RequestName::AccountSwitcherDelegateQuery,
     RequestName::AiTrendByRestId,
     RequestName::AudioSpaceById,
@@ -235,6 +236,7 @@ pub const REQUEST_NAME_VALUES: [RequestName; 110] = [
     RequestName::TvHomeMixer,
     RequestName::TopicCarouselQuery,
     RequestName::TopicTimelineQuery,
+    RequestName::TrendRelevantUsers,
     RequestName::TweetDetail,
     RequestName::TweetResultByRestId,
     RequestName::TweetResultsByRestIds,
