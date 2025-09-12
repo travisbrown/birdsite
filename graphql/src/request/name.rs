@@ -11,6 +11,7 @@ pub enum Error {
 )]
 pub enum RequestName {
     AccountSwitcherDelegateQuery,
+    AiTrendByRestId,
     AudioSpaceById,
     AuthenticatePeriscope,
     BirdwatchFetchAliasSelfSelectStatus,
@@ -162,8 +163,9 @@ impl std::str::FromStr for RequestName {
     }
 }
 
-pub const REQUEST_NAME_VALUES: [RequestName; 109] = [
+pub const REQUEST_NAME_VALUES: [RequestName; 110] = [
     RequestName::AccountSwitcherDelegateQuery,
+    RequestName::AiTrendByRestId,
     RequestName::AudioSpaceById,
     RequestName::AuthenticatePeriscope,
     RequestName::BirdwatchFetchAliasSelfSelectStatus,
