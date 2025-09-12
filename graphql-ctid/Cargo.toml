@@ -13,7 +13,7 @@ libmath = "0.2"
 rand = "0.9"
 regex = { workspace = true }
 reqwest = "0.12"
-scraper = "0.22"
+scraper = "0.24"
 sha2 = "0.10"
 thiserror = { workspace = true }
 
