@@ -1,3 +1,5 @@
+#![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
+#![forbid(unsafe_code)]
 use chrono::{DateTime, TimeDelta, TimeZone, Utc};
 use std::hash::Hash;
 use std::sync::{Arc, atomic::AtomicU64};
@@ -27,10 +29,12 @@ pub struct RateLimit {
 }
 
 impl RateLimit {
-    pub fn new(reset: DateTime<Utc>, remaining: usize) -> Self {
+    #[must_use]
+    pub const fn new(reset: DateTime<Utc>, remaining: usize) -> Self {
         Self { reset, remaining }
     }
 
+    #[must_use]
     pub fn wait(&self) -> Option<Duration> {
         if self.remaining == 0 {
             let timestamp = Utc::now();
@@ -141,13 +145,13 @@ impl RateLimit {
             }
         }
 
-        match reset {
-            Some(reset) => match remaining {
+        reset.map_or_else(
+            || Err(Error::MissingHeader(reset_header_name.to_string())),
+            |reset| match remaining {
                 Some(remaining) => Ok(Self { reset, remaining }),
                 None => Err(Error::MissingHeader(remaining_header_name.to_string())),
             },
-            None => Err(Error::MissingHeader(reset_header_name.to_string())),
-        }
+        )
     }
 }
 
@@ -212,6 +216,7 @@ impl<S: Eq + Hash> RateLimits<S> {
         }
     }
 
+    #[must_use]
     pub fn iter(&self) -> RateLimitsIterator<'_, S> {
         RateLimitsIterator {
             underlying: self.underlying.iter(),
@@ -223,7 +228,7 @@ pub struct RateLimitsIterator<'a, S> {
     underlying: dashmap::iter::Iter<'a, S, AtomicU64>,
 }
 
-impl<'a, S: Clone + Eq + Hash> Iterator for RateLimitsIterator<'a, S> {
+impl<S: Clone + Eq + Hash> Iterator for RateLimitsIterator<'_, S> {
     type Item = (S, Option<RateLimit>);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -247,7 +252,7 @@ fn rate_limit_from_atomic64(value: &AtomicU64) -> Option<RateLimit> {
 
     // These conversions should never fail, since we control the values that go into the map.
     // In the case that one does fail, we simply show that there was no entry for this scope.
-    let reset = Utc.timestamp_opt(values[0] as i64, 0).single()?;
+    let reset = Utc.timestamp_opt(i64::from(values[0]), 0).single()?;
     let remaining = usize::try_from(values[1]).ok()?;
 
     Some(RateLimit::new(reset, remaining))

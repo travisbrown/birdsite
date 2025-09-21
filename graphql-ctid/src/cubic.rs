@@ -1,12 +1,12 @@
 const EPSILON: f64 = 1e-5;
 
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Cubic {
+pub struct Cubic {
     values: [f64; 4],
 }
 
 impl Cubic {
-    pub(super) fn new(values: [f64; 4]) -> Self {
+    pub(super) const fn new(values: [f64; 4]) -> Self {
         Self { values }
     }
 
@@ -33,7 +33,7 @@ impl Cubic {
                 0.0
             };
 
-            1.0 + end_gradient * (time - 1.0)
+            end_gradient.mul_add(time - 1.0, 1.0)
         } else {
             // We invert `x(t)` via binary search on `time` in `[0, 1]`.
             let mut start: f64 = 0.0;
@@ -69,5 +69,5 @@ impl Cubic {
 /// `3 * a * (1 - m)^2 * m + 3 * b * (1 - m) * m^2 + m^3`
 fn calculate(a: f64, b: f64, m: f64) -> f64 {
     let one_minus = 1.0 - m;
-    3.0 * a * one_minus * one_minus * m + 3.0 * b * one_minus * m * m + m * m * m
+    (m * m).mul_add(m, (3.0 * a * one_minus * one_minus).mul_add(m, 3.0 * b * one_minus * m * m))
 }

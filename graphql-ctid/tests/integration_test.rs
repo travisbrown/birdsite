@@ -6,7 +6,7 @@ mod tests {
         let endpoint =
             birdsite_graphql_ctid::Endpoint::new("UsersByRestIds", "1hjT2eXW1Zcw-2xk8EbvoA");
 
-        let transaction_id = generator.generate(endpoint).await?;
+        let transaction_id = generator.generate(&endpoint).await?;
 
         assert_eq!(transaction_id.value.len(), 94);
 

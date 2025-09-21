@@ -15,7 +15,7 @@ static ONDEMAND_NAME_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"['|"]ondemand\.s['|"]:\s*['|"]([\w]*)['|"]"#).unwrap());
 
 static ONDEMAND_INDICES_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"\(\w\[(\d{1,2})\],\s*16\)"#).unwrap());
+    LazyLock::new(|| Regex::new(r"\(\w\[(\d{1,2})\],\s*16\)").unwrap());
 
 static FRAME_SVG_SEL: LazyLock<Selector> =
     LazyLock::new(|| Selector::parse("svg[id^='loading-x-anim']").unwrap());
@@ -63,7 +63,7 @@ pub struct Client {
 impl Default for Client {
     fn default() -> Self {
         Self {
-            underlying: Default::default(),
+            underlying: reqwest::Client::default(),
             user_agent: USER_AGENT.to_string(),
         }
     }
@@ -191,9 +191,7 @@ impl Home {
 
         let second_paths = frame.select(&SECOND_PATH_SEL).collect::<Vec<_>>();
 
-        if second_paths.len() != 1 {
-            Err(Error::InvalidFrames)
-        } else {
+        if second_paths.len() == 1 {
             let second_path = second_paths[0];
             let d = second_path.attr("d").ok_or_else(|| Error::InvalidFrames)?;
             let array = d[9..]
@@ -201,13 +199,15 @@ impl Home {
                 .map(|part| {
                     part.replace([',', 'h', 's'], " ")
                         .split_whitespace()
-                        .map(|value| value.parse::<i32>())
+                        .map(str::parse::<i32>)
                         .collect::<Result<Vec<_>, _>>()
                 })
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|_| Error::InvalidFrames)?;
 
             Ok(array)
+        } else {
+            Err(Error::InvalidFrames)
         }
     }
 }

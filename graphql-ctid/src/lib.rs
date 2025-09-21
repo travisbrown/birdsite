@@ -7,6 +7,8 @@
 //! [generator-blog-1]: https://antibot.blog/posts/1741552025433
 //! [python-generator]: https://github.com/iSarabjitDhiman/XClientTransaction
 
+#![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
+#![forbid(unsafe_code)]
 use base64::prelude::*;
 use chrono::{DateTime, Utc};
 use rand::Rng;
@@ -57,6 +59,7 @@ impl Default for Generator {
 }
 
 impl Generator {
+    #[must_use]
     pub fn new(keyword: &str, number: u8) -> Self {
         Self {
             keyword: keyword.to_string(),
@@ -65,23 +68,21 @@ impl Generator {
     }
 
     /// Download site information and generate an ID for a given endpoint.
-    pub async fn generate<'a>(
-        &self,
-        endpoint: Endpoint<'a>,
-    ) -> Result<TransactionId, client::Error> {
+    pub async fn generate(&self, endpoint: &Endpoint<'_>) -> Result<TransactionId, client::Error> {
         let client = client::Client::default();
         let site_info = client.get_site_info().await?;
 
-        let generator = Generator::default();
+        let generator = Self::default();
 
         Ok(generator.compute(&site_info, endpoint, None, None))
     }
 
     /// Generate an ID for a given endpoint using current site information.
-    pub fn compute<'a>(
+    #[must_use]
+    pub fn compute(
         &self,
         site_info: &client::SiteInfo,
-        endpoint: Endpoint<'a>,
+        endpoint: &Endpoint<'_>,
         random_byte: Option<u8>,
         timestamp_s: Option<i64>,
     ) -> TransactionId {
@@ -89,10 +90,10 @@ impl Generator {
 
         let frame_time = key_bytes_indices
             .iter()
-            .map(|i| (site_info.verification_key[*i] % 16) as i32)
+            .map(|i| i32::from(site_info.verification_key[*i] % 16))
             .product::<i32>();
 
-        let frame_time = ((frame_time as f64 / 10.0).round() * 10.0) as usize;
+        let frame_time = ((f64::from(frame_time) / 10.0).round() * 10.0) as usize;
         let total_time: f64 = 4096.0;
         let target_time = frame_time as f64 / total_time;
 
@@ -162,14 +163,21 @@ fn animation_key(frames: &[i32], target_time: f64) -> String {
     let to_color = color::Color::new(frames[3] as u8, frames[4] as u8, frames[5] as u8);
 
     let from_rotation = 0.0f64;
-    let to_rotation = solve(frames[6] as f64, 60.0, 360.0, true);
+    let to_rotation = solve(f64::from(frames[6]), 60.0, 360.0, true);
 
     let curve_values = frames
         .iter()
         .skip(7)
         .take(4)
         .enumerate()
-        .map(|(i, &v)| solve(v as f64, if i % 2 == 1 { -1.0 } else { 0.0 }, 1.0, false))
+        .map(|(i, &v)| {
+            solve(
+                f64::from(v),
+                if i % 2 == 1 { -1.0 } else { 0.0 },
+                1.0,
+                false,
+            )
+        })
         .collect::<Vec<_>>();
 
     // Safe because we checked the length of the frame in the client.
@@ -197,7 +205,7 @@ fn animation_key(frames: &[i32], target_time: f64) -> String {
         if hex_value.is_empty() {
             pieces.push("0".to_string());
         } else if hex_value.starts_with('.') {
-            pieces.push(format!("0{}", hex_value).to_lowercase());
+            pieces.push(format!("0{hex_value}").to_lowercase());
         } else {
             pieces.push(hex_value.to_lowercase());
         }
@@ -246,7 +254,7 @@ fn float_to_hex(x: f64) -> String {
         while f > 0.0 && steps < 32 {
             f *= 16.0;
             let digit = f.trunc() as u32;
-            f -= digit as f64;
+            f -= f64::from(digit);
             frac_str.push(
                 std::char::from_digit(digit, 16)
                     .unwrap()
@@ -256,13 +264,13 @@ fn float_to_hex(x: f64) -> String {
         }
 
         if int_str.is_empty() {
-            format!(".{}", frac_str)
+            format!(".{frac_str}")
         } else {
-            format!("{}.{}", int_str, frac_str)
+            format!("{int_str}.{frac_str}")
         }
     }
 }
 
 fn interpolate(a: f64, b: f64, f: f64) -> f64 {
-    a * (1.0 - f) + b * f
+    a.mul_add(1.0 - f, b * f)
 }

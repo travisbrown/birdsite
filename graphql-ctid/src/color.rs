@@ -1,12 +1,12 @@
 #[derive(Clone, Copy)]
-pub(super) struct Color {
+pub struct Color {
     r: u8,
     g: u8,
     b: u8,
 }
 
 impl Color {
-    pub(super) fn new(r: u8, g: u8, b: u8) -> Self {
+    pub(super) const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
 
@@ -19,7 +19,7 @@ impl Color {
     }
 
     fn interpolate_value(a: u8, b: u8, f: f64) -> u8 {
-        math::round::half_to_even(interpolate(a as f64, b as f64, f).clamp(0.0, 255.0), 0) as u8
+        math::round::half_to_even(interpolate(f64::from(a), f64::from(b), f).clamp(0.0, 255.0), 0) as u8
     }
 }
 
@@ -30,5 +30,5 @@ impl std::fmt::Display for Color {
 }
 
 fn interpolate(a: f64, b: f64, f: f64) -> f64 {
-    a * (1.0 - f) + b * f
+    a.mul_add(1.0 - f, b * f)
 }
