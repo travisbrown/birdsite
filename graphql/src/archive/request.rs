@@ -29,7 +29,7 @@ impl<'a, 'de: 'a, V: Variables<'a> + 'a> serde::de::Deserialize<'de> for Request
         impl<'a, 'de: 'a, V: Variables<'a> + 'a> serde::de::Visitor<'de> for RequestVisitor<'a, V> {
             type Value = Request<'a, V>;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 formatter.write_str("struct Request")
             }
 
@@ -73,7 +73,7 @@ impl<'a, 'de: 'a, V: Variables<'a> + 'a> serde::de::Deserialize<'de> for Request
 
                 Ok(Self::Value {
                     name,
-                    version: version.map(|version| version.into()),
+                    version: version.map(std::convert::Into::into),
                     timestamp,
                     variables,
                 })
@@ -99,7 +99,7 @@ enum RequestField {
 }
 
 impl RequestField {
-    fn name(&self) -> &'static str {
+    const fn name(self) -> &'static str {
         match self {
             Self::Name => "name",
             Self::Version => "version",
@@ -108,10 +108,10 @@ impl RequestField {
         }
     }
 
-    fn map_key<'de, A: serde::de::MapAccess<'de>>(&self, map: &mut A) -> Result<Self, A::Error> {
-        map.next_key::<RequestField>().and_then(|field| {
+    fn map_key<'de, A: serde::de::MapAccess<'de>>(self, map: &mut A) -> Result<Self, A::Error> {
+        map.next_key::<Self>().and_then(|field| {
             field
-                .filter(|field| field == self)
+                .filter(|field| *field == self)
                 .ok_or_else(|| serde::de::Error::missing_field(self.name()))
         })
     }

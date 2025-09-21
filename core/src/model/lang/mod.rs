@@ -47,7 +47,8 @@ pub static LANG_VALUES: LazyLock<Vec<Lang>> = LazyLock::new(|| {
 });
 
 impl Lang {
-    #[must_use] pub const fn as_str(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Language(language) => language.as_str(),
             Self::Special(special) => special.as_str(),
@@ -418,7 +419,8 @@ impl Language {
         }
     }
 
-    #[must_use] pub const fn as_str(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Afrikaans => "af",
             Self::Albanian => "sq",
@@ -622,7 +624,8 @@ pub enum Special {
 }
 
 impl Special {
-    #[must_use] pub const fn as_str(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Art => "art",
             Self::Cashtags => "qct",

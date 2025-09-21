@@ -287,6 +287,7 @@ impl Counts {
         *count += 1;
     }
 
+    #[must_use]
     pub fn sorted(&self) -> Vec<(RequestName, usize)> {
         let mut values = self
             .0

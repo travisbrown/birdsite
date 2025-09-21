@@ -37,11 +37,11 @@ pub fn parse_exchange<
 >(
     input: &'a str,
     line_number: usize,
-    filter: F,
+    filter: &F,
 ) -> Result<Result<Exchange<'a, V, R>, RequestName>, Error> {
     let input_bytes = input.as_bytes();
     let request_start = find_request_open_brace(input_bytes).ok_or(Error::InvalidRequest)?;
-    let request: super::request::Request<V> =
+    let request: super::request::Request<'_, V> =
         serde_json::from_str(&input[request_start..input.len() - 1])
             .map_err(|error| Error::RequestJson { error, line_number })?;
 
@@ -49,10 +49,9 @@ pub fn parse_exchange<
         let (data_start, errors) = if input_bytes[2] == b'e' {
             let errors_end =
                 find_errors_closing_bracket(input_bytes).ok_or(Error::InvalidErrors)?;
-            let errors = serde_json::from_str::<Vec<crate::response::error::Error>>(
-                &input[10..errors_end + 1],
-            )
-            .map_err(|error| Error::ErrorsJson { error, line_number })?;
+            let errors =
+                serde_json::from_str::<Vec<crate::response::error::Error>>(&input[10..=errors_end])
+                    .map_err(|error| Error::ErrorsJson { error, line_number })?;
 
             (errors_end + 9, errors)
         } else {
@@ -104,9 +103,8 @@ fn find_request_open_brace(input_bytes: &[u8]) -> Option<usize> {
             b'{' => {
                 if brace_depth == 1 {
                     break;
-                } else {
-                    brace_depth -= 1;
                 }
+                brace_depth -= 1;
             }
             b'}' => {
                 brace_depth += 1;
@@ -129,9 +127,8 @@ fn find_errors_closing_bracket(input_bytes: &[u8]) -> Option<usize> {
             b']' => {
                 if bracket_depth == 1 {
                     break;
-                } else {
-                    bracket_depth -= 1;
                 }
+                bracket_depth -= 1;
             }
             b'[' => {
                 bracket_depth += 1;

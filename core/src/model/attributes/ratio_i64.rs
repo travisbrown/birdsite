@@ -5,8 +5,7 @@ pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Ratio<i
     let value = f64::deserialize(deserializer)?;
     let mut text = value.to_string();
     let decimal_point_index = text.find('.');
-    let decimal_places = decimal_point_index
-        .map_or(0, |index| text.len() - index - 1);
+    let decimal_places = decimal_point_index.map_or(0, |index| text.len() - index - 1);
 
     if let Some(index) = decimal_point_index {
         text.remove(index);

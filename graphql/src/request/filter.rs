@@ -1,9 +1,11 @@
 use super::name::RequestName;
 
+#[must_use]
 pub fn include_filter<const N: usize>(values: [RequestName; N]) -> RequestInclusions<N> {
     RequestInclusions(values)
 }
 
+#[must_use]
 pub fn exclude_filter<const N: usize>(values: [RequestName; N]) -> RequestExclusions<N> {
     RequestExclusions(values)
 }

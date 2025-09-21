@@ -17,6 +17,7 @@ static COOKIE_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)\-H 'Cookie: ([^']+)'").unwrap());
 
 impl Creds {
+    #[must_use]
     pub fn new(bearer_token: &str, csrf_token: &str, cookie: &str) -> Self {
         Self {
             bearer_token: bearer_token.to_string(),
