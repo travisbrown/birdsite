@@ -7,6 +7,7 @@ use crate::model::{
     media::{MediaType, MediaVariant},
     metrics::{MediaPublicMetrics, UserPublicMetrics},
 };
+use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
 use std::borrow::Cow;
 
@@ -20,7 +21,7 @@ pub enum FormatError {
     MissingUser(u64),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TweetSnapshot<'a> {
     #[serde(borrow)]
@@ -30,19 +31,6 @@ pub struct TweetSnapshot<'a> {
 }
 
 impl<'a> TweetSnapshot<'a> {
-    pub fn into_owned(self) -> TweetSnapshot<'static> {
-        TweetSnapshot {
-            data: self.data.into_owned(),
-            includes: self.includes.into_owned(),
-            errors: self.errors.map(|errors| {
-                errors
-                    .into_iter()
-                    .map(|tweet_error| tweet_error.into_owned())
-                    .collect()
-            }),
-        }
-    }
-
     pub fn lookup_user(&self, id: u64) -> Option<&User<'a>> {
         self.includes.users.iter().find(|user| user.id == id)
     }
@@ -82,7 +70,7 @@ impl<'a> TweetSnapshot<'a> {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 //#[serde(deny_unknown_fields)]
 pub struct Tweet<'a> {
     #[serde(borrow)]
@@ -117,30 +105,6 @@ pub struct Tweet<'a> {
 }
 
 impl Tweet<'_> {
-    pub fn into_owned(self) -> Tweet<'static> {
-        Tweet {
-            article: self.article.map(|article| article.into_owned()),
-            attachments: self.attachments,
-            id: self.id,
-            author_id: self.author_id,
-            context_annotations: self.context_annotations.map(|context_annotations| {
-                context_annotations
-                    .into_iter()
-                    .map(|context_annotation| context_annotation.into_owned())
-                    .collect()
-            }),
-            conversation_id: self.conversation_id,
-            created_at: self.created_at,
-            lang: self.lang,
-            possibly_sensitive: self.possibly_sensitive,
-            referenced_tweets: self.referenced_tweets,
-            reply_settings: self.reply_settings,
-            text: self.text.to_string().into(),
-            in_reply_to_user_id: self.in_reply_to_user_id,
-            withheld: self.withheld,
-        }
-    }
-
     pub fn retweeted_id(&self) -> Result<Option<u64>, FormatError> {
         self.referenced_tweet_id(ReferenceType::Retweeted)
     }
@@ -214,7 +178,7 @@ pub struct Attachments {
     pub poll_ids: Option<Vec<u64>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ContextAnnotation<'a> {
     #[serde(borrow)]
@@ -222,16 +186,7 @@ pub struct ContextAnnotation<'a> {
     pub entity: ContextEntity<'a>,
 }
 
-impl<'a> ContextAnnotation<'a> {
-    pub fn into_owned(self) -> ContextAnnotation<'static> {
-        ContextAnnotation {
-            domain: self.domain.into_owned(),
-            entity: self.entity.into_owned(),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ContextDomain<'a> {
     #[serde(with = "integer_str")]
@@ -240,19 +195,7 @@ pub struct ContextDomain<'a> {
     pub description: Option<Cow<'a, str>>,
 }
 
-impl<'a> ContextDomain<'a> {
-    pub fn into_owned(self) -> ContextDomain<'static> {
-        ContextDomain {
-            id: self.id,
-            name: self.name.to_string().into(),
-            description: self
-                .description
-                .map(|description| description.to_string().into()),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ContextEntity<'a> {
     #[serde(with = "integer_str")]
@@ -261,19 +204,7 @@ pub struct ContextEntity<'a> {
     pub description: Option<Cow<'a, str>>,
 }
 
-impl<'a> ContextEntity<'a> {
-    pub fn into_owned(self) -> ContextEntity<'static> {
-        ContextEntity {
-            id: self.id,
-            name: self.name.to_string().into(),
-            description: self
-                .description
-                .map(|description| description.to_string().into()),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TweetIncludes<'a> {
     #[serde(borrow)]
@@ -284,29 +215,7 @@ pub struct TweetIncludes<'a> {
     pub places: Option<Vec<Place>>,
 }
 
-impl<'a> TweetIncludes<'a> {
-    pub fn into_owned(self) -> TweetIncludes<'static> {
-        TweetIncludes {
-            users: self
-                .users
-                .into_iter()
-                .map(|user| user.into_owned())
-                .collect(),
-            tweets: self
-                .tweets
-                .map(|tweets| tweets.into_iter().map(|tweet| tweet.into_owned()).collect()),
-            media: self
-                .media
-                .map(|media| media.into_iter().map(|media| media.into_owned()).collect()),
-            polls: self
-                .polls
-                .map(|polls| polls.into_iter().map(|poll| poll.into_owned()).collect()),
-            places: self.places,
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Poll<'a> {
     #[serde(with = "integer_str")]
@@ -317,22 +226,6 @@ pub struct Poll<'a> {
     pub options: Vec<PollOption<'a>>,
 }
 
-impl<'a> Poll<'a> {
-    pub fn into_owned(self) -> Poll<'static> {
-        Poll {
-            id: self.id,
-            voting_status: self.voting_status,
-            duration_minutes: self.duration_minutes,
-            end_datetime: self.end_datetime,
-            options: self
-                .options
-                .into_iter()
-                .map(|option| option.into_owned())
-                .collect(),
-        }
-    }
-}
-
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum PollVotingStatus {
     #[serde(rename = "open")]
@@ -341,22 +234,12 @@ pub enum PollVotingStatus {
     Closed,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct PollOption<'a> {
     pub position: usize,
     pub label: Cow<'a, str>,
     pub votes: usize,
-}
-
-impl<'a> PollOption<'a> {
-    pub fn into_owned(self) -> PollOption<'static> {
-        PollOption {
-            position: self.position,
-            label: self.label.to_string().into(),
-            votes: self.votes,
-        }
-    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -389,15 +272,17 @@ pub enum Media<'a> {
     },
 }
 
-impl<'a> Media<'a> {
-    pub fn into_owned(self) -> Media<'static> {
+impl<'a> bounded_static::IntoBoundedStatic for Media<'a> {
+    type Static = Media<'static>;
+
+    fn into_static(self) -> Self::Static {
         match self {
             Self::Photo {
                 metadata,
                 url,
                 alt_text,
             } => Media::Photo {
-                metadata: metadata.into_owned(),
+                metadata: metadata.into_static(),
                 url: url.to_string().into(),
                 alt_text: alt_text.map(|alt_text| alt_text.to_string().into()),
             },
@@ -407,10 +292,10 @@ impl<'a> Media<'a> {
                 duration_ms,
                 preview_image_url,
             } => Media::Video {
-                metadata: metadata.into_owned(),
+                metadata: metadata.into_static(),
                 variants: variants
                     .into_iter()
-                    .map(|variant| variant.into_owned())
+                    .map(|variant| variant.into_static())
                     .collect(),
                 duration_ms,
                 preview_image_url: preview_image_url.to_string().into(),
@@ -420,16 +305,56 @@ impl<'a> Media<'a> {
                 variants,
                 preview_image_url,
             } => Media::AnimatedGif {
-                metadata: metadata.into_owned(),
+                metadata: metadata.into_static(),
                 variants: variants
                     .into_iter()
-                    .map(|variant| variant.into_owned())
+                    .map(|variant| variant.into_static())
                     .collect(),
                 preview_image_url: preview_image_url.to_string().into(),
             },
         }
     }
+}
 
+impl<'a> bounded_static::ToBoundedStatic for Media<'a> {
+    type Static = Media<'static>;
+
+    fn to_static(&self) -> Self::Static {
+        match self {
+            Self::Photo {
+                metadata,
+                url,
+                alt_text,
+            } => Media::Photo {
+                metadata: metadata.to_static(),
+                url: url.to_static(),
+                alt_text: alt_text.as_ref().map(|alt_text| alt_text.to_static()),
+            },
+            Self::Video {
+                metadata,
+                variants,
+                duration_ms,
+                preview_image_url,
+            } => Media::Video {
+                metadata: metadata.to_static(),
+                variants: variants.iter().map(|variant| variant.to_static()).collect(),
+                duration_ms: *duration_ms,
+                preview_image_url: preview_image_url.to_string().into(),
+            },
+            Self::AnimatedGif {
+                metadata,
+                variants,
+                preview_image_url,
+            } => Media::AnimatedGif {
+                metadata: metadata.to_static(),
+                variants: variants.iter().map(|variant| variant.to_static()).collect(),
+                preview_image_url: preview_image_url.to_string().into(),
+            },
+        }
+    }
+}
+
+impl<'a> Media<'a> {
     pub fn metadata(&self) -> &MediaMetadata<'a> {
         match self {
             Self::Photo { metadata, .. } => metadata,
@@ -455,24 +380,13 @@ impl<'a> Media<'a> {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MediaMetadata<'a> {
     pub media_key: Cow<'a, str>,
     pub public_metrics: Option<MediaPublicMetrics>,
     pub height: usize,
     pub width: usize,
-}
-
-impl<'a> MediaMetadata<'a> {
-    pub fn into_owned(self) -> MediaMetadata<'static> {
-        MediaMetadata {
-            media_key: self.media_key.to_string().into(),
-            public_metrics: self.public_metrics,
-            width: self.width,
-            height: self.height,
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -508,7 +422,7 @@ pub enum ReplySettings {
     Subscribers,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 //#[serde(deny_unknown_fields)]
 pub struct User<'a> {
     #[serde(with = "integer_str")]
@@ -531,26 +445,6 @@ pub struct User<'a> {
     pub withheld: Option<Withheld>,
 }
 
-impl<'a> User<'a> {
-    pub fn into_owned(self) -> User<'static> {
-        User {
-            id: self.id,
-            username: self.username.to_string().into(),
-            name: self.name.to_string().into(),
-            created_at: self.created_at,
-            description: self.description.to_string().into(),
-            location: self.location.map(|location| location.to_string().into()),
-            url: self.url.map(|url| url.to_string().into()),
-            profile_image_url: self.profile_image_url.to_string().into(),
-            pinned_tweet_id: self.pinned_tweet_id,
-            verified: self.verified,
-            protected: self.protected,
-            public_metrics: self.public_metrics,
-            withheld: self.withheld,
-        }
-    }
-}
-
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Withheld {
@@ -558,21 +452,13 @@ pub struct Withheld {
     pub country_codes: Vec<Country>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Article<'a> {
     pub title: Option<Cow<'a, str>>,
 }
 
-impl<'a> Article<'a> {
-    pub fn into_owned(self) -> Article<'static> {
-        Article {
-            title: self.title.map(|title| title.to_string().into()),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TweetError<'a> {
     pub resource_id: Cow<'a, str>,
@@ -584,21 +470,6 @@ pub struct TweetError<'a> {
     pub detail: Cow<'a, str>,
     #[serde(rename = "type")]
     pub error_type: TweetErrorType,
-}
-
-impl<'a> TweetError<'a> {
-    pub fn into_owned(self) -> TweetError<'static> {
-        TweetError {
-            resource_id: self.resource_id.to_string().into(),
-            parameter: self.parameter.to_string().into(),
-            resource_type: self.resource_type,
-            section: self.section,
-            title: self.title.to_string().into(),
-            value: self.value.to_string().into(),
-            detail: self.detail.to_string().into(),
-            error_type: self.error_type,
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]

@@ -1,3 +1,4 @@
+use bounded_static_derive_more::ToStatic;
 use std::borrow::Cow;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -18,7 +19,7 @@ pub enum MediaType {
     AnimatedGif,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MediaVariant<'a> {
     pub url: Cow<'a, str>,
@@ -26,14 +27,4 @@ pub struct MediaVariant<'a> {
     // Older snapshots (v1) tend to use the unhyphenated form.
     #[serde(alias = "bitrate")]
     pub bit_rate: Option<usize>,
-}
-
-impl<'a> MediaVariant<'a> {
-    pub fn into_owned(self) -> MediaVariant<'static> {
-        MediaVariant {
-            url: self.url.to_string().into(),
-            content_type: self.content_type,
-            bit_rate: self.bit_rate,
-        }
-    }
 }

@@ -1,7 +1,8 @@
+use bounded_static_derive_more::ToStatic;
 use std::borrow::Cow;
 use std::ops::Range;
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Url<'a> {
     pub expanded_url: Option<Cow<'a, str>>,
@@ -12,19 +13,6 @@ pub struct Url<'a> {
 }
 
 impl<'a> Url<'a> {
-    pub fn into_owned(self) -> Url<'static> {
-        Url {
-            expanded_url: self
-                .expanded_url
-                .map(|expanded_url| expanded_url.into_owned().into()),
-            url: self.url.into_owned().into(),
-            display_url: self
-                .display_url
-                .map(|display_url| display_url.into_owned().into()),
-            indices: self.indices,
-        }
-    }
-
     pub fn url(&self) -> Cow<'a, str> {
         self.expanded_url.clone().unwrap_or(self.url.clone())
     }
@@ -36,15 +24,32 @@ pub struct Entities<'a> {
     pub url: Option<Url<'a>>,
 }
 
-impl<'a> Entities<'a> {
-    pub fn into_owned(self) -> Entities<'static> {
+impl<'a> bounded_static::IntoBoundedStatic for Entities<'a> {
+    type Static = Entities<'static>;
+
+    fn into_static(self) -> Self::Static {
         Entities {
             description_urls: self
                 .description_urls
                 .iter()
-                .map(|description_url| description_url.clone().into_owned())
+                .map(|description_url| description_url.clone().into_static())
                 .collect(),
-            url: self.url.map(|url| url.into_owned()),
+            url: self.url.map(|url| url.into_static()),
+        }
+    }
+}
+
+impl<'a> bounded_static::ToBoundedStatic for Entities<'a> {
+    type Static = Entities<'static>;
+
+    fn to_static(&self) -> Self::Static {
+        Entities {
+            description_urls: self
+                .description_urls
+                .iter()
+                .map(|description_url| description_url.to_static())
+                .collect(),
+            url: self.url.as_ref().map(|url| url.to_static()),
         }
     }
 }

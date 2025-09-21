@@ -7,6 +7,8 @@ edition = { workspace = true }
 license = { workspace = true }
 
 [dependencies]
+bounded-static = { workspace = true }
+bounded-static-derive-more = { workspace = true }
 chrono = { workspace = true }
 num-rational = { workspace = true }
 serde = { workspace = true }

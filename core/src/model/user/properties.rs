@@ -1,3 +1,4 @@
+use bounded_static_derive_more::ToStatic;
 use std::borrow::Cow;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -57,7 +58,7 @@ pub enum ProfileInterstitialType {
     Timeout,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TipjarSettings<'a> {
     pub is_enabled: Option<bool>,
@@ -71,45 +72,11 @@ pub struct TipjarSettings<'a> {
     pub venmo_handle: Option<Cow<'a, str>>,
 }
 
-impl<'a> TipjarSettings<'a> {
-    pub fn into_owned(self) -> TipjarSettings<'static> {
-        TipjarSettings {
-            is_enabled: self.is_enabled,
-            bandcamp_handle: self
-                .bandcamp_handle
-                .map(|handle| handle.into_owned().into()),
-            bitcoin_handle: self.bitcoin_handle.map(|handle| handle.into_owned().into()),
-            cash_app_handle: self
-                .cash_app_handle
-                .map(|handle| handle.into_owned().into()),
-            ethereum_handle: self
-                .ethereum_handle
-                .map(|handle| handle.into_owned().into()),
-            gofundme_handle: self
-                .gofundme_handle
-                .map(|handle| handle.into_owned().into()),
-            patreon_handle: self.patreon_handle.map(|handle| handle.into_owned().into()),
-            pay_pal_handle: self.pay_pal_handle.map(|handle| handle.into_owned().into()),
-            venmo_handle: self.venmo_handle.map(|handle| handle.into_owned().into()),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic)]
 pub struct Professional<'a> {
     pub id: u64,
     pub professional_type: ProfessionalType,
     pub category: Option<ProfessionalCategory<'a>>,
-}
-
-impl<'a> Professional<'a> {
-    pub fn into_owned(self) -> Professional<'static> {
-        Professional {
-            id: self.id,
-            professional_type: self.professional_type,
-            category: self.category.map(|category| category.into_owned()),
-        }
-    }
 }
 
 impl<'a, 'de: 'a> serde::de::Deserialize<'de> for Professional<'a> {
@@ -155,23 +122,13 @@ pub enum ProfessionalCategoryIconName {
     IconBriefcaseStroke,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProfessionalCategory<'a> {
     pub id: u64,
     #[serde(borrow)]
     pub name: Cow<'a, str>,
     pub icon_name: ProfessionalCategoryIconName,
-}
-
-impl<'a> ProfessionalCategory<'a> {
-    pub fn into_owned(self) -> ProfessionalCategory<'static> {
-        ProfessionalCategory {
-            id: self.id,
-            name: self.name.into_owned().into(),
-            icon_name: self.icon_name,
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
