@@ -83,8 +83,9 @@ impl<'a, 'de: 'a> serde::de::Deserialize<'de> for Professional<'a> {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let internal_professional = internal::Professional::deserialize(deserializer)?;
 
-        let category = match internal_professional.category {
-            Some(mut category) => {
+        let category = internal_professional.category.map_or_else(
+            || Ok(None),
+            |mut category| {
                 // Have seen at least one non-error case where the category is repeated.
                 // In the non-exceptional case there's only one, so this is cheap.
                 category.dedup();
@@ -99,9 +100,8 @@ impl<'a, 'de: 'a> serde::de::Deserialize<'de> for Professional<'a> {
                         &"single unique category",
                     ))
                 }
-            }
-            None => Ok(None),
-        }?;
+            },
+        )?;
 
         Ok(Self {
             id: internal_professional.rest_id,

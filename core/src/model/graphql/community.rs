@@ -150,7 +150,7 @@ mod tests {
     #[test]
     fn deserialize_examples_2024_08_01() {
         for (i, line) in COMMUNITIES_2024_08_01.split('\n').enumerate() {
-            if let Err(error) = serde_json::from_str::<super::CommunityResult<User>>(line) {
+            if let Err(error) = serde_json::from_str::<super::CommunityResult<'_, User<'_>>>(line) {
                 panic!("Error at line {}: {:?}", i + 1, error);
             }
         }
@@ -159,7 +159,7 @@ mod tests {
     #[test]
     fn deserialize_examples_2025_06_01() {
         for (i, line) in COMMUNITIES_2025_06_01.split('\n').enumerate() {
-            if let Err(error) = serde_json::from_str::<super::CommunityResult<User>>(line) {
+            if let Err(error) = serde_json::from_str::<super::CommunityResult<'_, User<'_>>>(line) {
                 panic!("Error at line {}: {:?}", i + 1, error);
             }
         }

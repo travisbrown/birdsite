@@ -25,7 +25,7 @@ pub static LANG_CODES: LazyLock<Vec<&'static str>> = LazyLock::new(|| {
     codes.extend(LANGUAGE_CODES);
     codes.extend(SPECIAL_CODES);
 
-    codes.sort();
+    codes.sort_unstable();
 
     codes
 });
@@ -41,13 +41,13 @@ pub static LANG_VALUES: LazyLock<Vec<Lang>> = LazyLock::new(|| {
         values.push(Lang::Special(special));
     }
 
-    values.sort_by_key(|value| value.as_str());
+    values.sort_by_key(Lang::as_str);
 
     values
 });
 
 impl Lang {
-    pub fn as_str(&self) -> &'static str {
+    #[must_use] pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Language(language) => language.as_str(),
             Self::Special(special) => special.as_str(),
@@ -418,7 +418,7 @@ impl Language {
         }
     }
 
-    pub fn as_str(&self) -> &'static str {
+    #[must_use] pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Afrikaans => "af",
             Self::Albanian => "sq",
@@ -573,7 +573,7 @@ impl FromStr for Language {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Language::parse_str(s).ok_or_else(|| Error::InvalidLanguage(s.to_string()))
+        Self::parse_str(s).ok_or_else(|| Error::InvalidLanguage(s.to_string()))
     }
 }
 
@@ -622,7 +622,7 @@ pub enum Special {
 }
 
 impl Special {
-    pub fn as_str(&self) -> &'static str {
+    #[must_use] pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Art => "art",
             Self::Cashtags => "qct",
@@ -668,7 +668,7 @@ impl FromStr for Special {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Special::parse_str(s).ok_or_else(|| Error::InvalidSpecial(s.to_string()))
+        Self::parse_str(s).ok_or_else(|| Error::InvalidSpecial(s.to_string()))
     }
 }
 
@@ -680,7 +680,7 @@ impl From<&Special> for &'static str {
 
 impl Display for Special {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", <&Special as Into<&'static str>>::into(self))
+        write!(f, "{}", <&Self as Into<&'static str>>::into(self))
     }
 }
 

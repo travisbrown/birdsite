@@ -169,7 +169,7 @@ pub mod integer_str {
         impl<'de, T: FromStr> Visitor<'de> for IntegerStrVisitor<T> {
             type Value = T;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 formatter.write_str(EXPECTED)
             }
 
@@ -219,7 +219,7 @@ pub mod integer_str_opt {
         impl<'de, T: FromStr> Visitor<'de> for IntegerStrOptVisitor<T> {
             type Value = Option<T>;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 formatter.write_str(EXPECTED)
             }
 
@@ -274,7 +274,7 @@ pub mod integer_str_array {
         impl<'de, E: FromStr, T: FromIterator<E>> Visitor<'de> for IntegerStrArrayVisitor<E, T> {
             type Value = T;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 formatter.write_str(EXPECTED)
             }
 
@@ -293,10 +293,7 @@ pub mod integer_str_array {
 
                 let result = T::from_iter(wrapper);
 
-                match error.take() {
-                    Some(error) => Err(error),
-                    None => Ok(result),
-                }
+                error.take().map_or_else(|| Ok(result), |error| Err(error))
             }
         }
 
@@ -347,7 +344,7 @@ pub mod integer_str_array_opt {
         impl<'de, E: FromStr, T: FromIterator<E>> Visitor<'de> for IntegerStrArrayOptVisitor<E, T> {
             type Value = Option<T>;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 formatter.write_str(EXPECTED)
             }
 
@@ -406,8 +403,8 @@ struct IntegerStrArraySeqAccessIterator<'de, 'a, A: serde::de::SeqAccess<'de>, E
     source: IntegerStrArraySeqAccessWrapper<'de, 'a, A, E>,
 }
 
-impl<'de, 'a, A: serde::de::SeqAccess<'de>, E: std::str::FromStr> Iterator
-    for IntegerStrArraySeqAccessIterator<'de, 'a, A, E>
+impl<'de, A: serde::de::SeqAccess<'de>, E: std::str::FromStr> Iterator
+    for IntegerStrArraySeqAccessIterator<'de, '_, A, E>
 {
     type Item = E;
 
@@ -416,9 +413,10 @@ impl<'de, 'a, A: serde::de::SeqAccess<'de>, E: std::str::FromStr> Iterator
             None
         } else {
             match self.source.underlying.next_element::<&str>() {
-                Ok(Some(value)) => match value.parse() {
-                    Ok(value) => Some(value),
-                    Err(_) => {
+                Ok(Some(value)) => {
+                    if let Ok(value) = value.parse() {
+                        Some(value)
+                    } else {
                         // We've just checked whether the cell is initialized.
                         self.source
                             .error
@@ -429,7 +427,7 @@ impl<'de, 'a, A: serde::de::SeqAccess<'de>, E: std::str::FromStr> Iterator
                             .unwrap();
                         None
                     }
-                },
+                }
                 Ok(None) => None,
                 Err(error) => {
                     // We've just checked whether the cell is initialized.
@@ -455,10 +453,10 @@ pub mod usize_opt {
     ) -> Result<Option<usize>, D::Error> {
         struct UsizeOptVisitor;
 
-        impl<'de> Visitor<'de> for UsizeOptVisitor {
+        impl Visitor<'_> for UsizeOptVisitor {
             type Value = Option<usize>;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 formatter.write_str(EXPECTED)
             }
 

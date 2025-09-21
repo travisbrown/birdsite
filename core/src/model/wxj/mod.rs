@@ -8,22 +8,22 @@ pub enum TweetSnapshot<'a> {
     Flat(flat::TweetSnapshot<'a>),
 }
 
-impl<'a> TweetSnapshot<'a> {
-    pub fn id(&self) -> u64 {
+impl TweetSnapshot<'_> {
+    #[must_use] pub const fn id(&self) -> u64 {
         match self {
             Self::Data(snapshot) => snapshot.data.id,
             Self::Flat(snapshot) => snapshot.id,
         }
     }
 
-    pub fn user_id(&self) -> u64 {
+    #[must_use] pub const fn user_id(&self) -> u64 {
         match self {
             Self::Data(snapshot) => snapshot.data.author_id,
             Self::Flat(snapshot) => snapshot.user.id,
         }
     }
 
-    pub fn user_screen_name(&self) -> Option<&str> {
+    #[must_use] pub fn user_screen_name(&self) -> Option<&str> {
         match self {
             Self::Data(snapshot) => snapshot
                 .lookup_user(self.user_id())
@@ -32,7 +32,7 @@ impl<'a> TweetSnapshot<'a> {
         }
     }
 
-    pub fn canonical_url(&self, use_x: bool) -> Option<String> {
+    #[must_use] pub fn canonical_url(&self, use_x: bool) -> Option<String> {
         self.user_screen_name().map(|screen_name| {
             format!(
                 "https://{}.com/{}/status/{}",

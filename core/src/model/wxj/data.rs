@@ -31,10 +31,12 @@ pub struct TweetSnapshot<'a> {
 }
 
 impl<'a> TweetSnapshot<'a> {
+    #[must_use]
     pub fn lookup_user(&self, id: u64) -> Option<&User<'a>> {
         self.includes.users.iter().find(|user| user.id == id)
     }
 
+    #[must_use]
     pub fn lookup_tweet(&self, id: u64) -> Option<Tweet<'a>> {
         self.includes
             .tweets
@@ -133,14 +135,13 @@ impl Tweet<'_> {
                     }
                 });
 
-                ids.next().map(|id| match ids.next() {
-                    Some(multiple_id) => {
+                ids.next().map(|id| {
+                    ids.next().map_or(Ok(id), |multiple_id| {
                         let mut bad_ids = vec![id, multiple_id];
                         bad_ids.extend(ids);
 
                         Err(FormatError::MultipleReferencedIds(bad_ids))
-                    }
-                    None => Ok(id),
+                    })
                 })
             })
             .map_or(Ok(None), |v| v.map(Some))
@@ -272,7 +273,7 @@ pub enum Media<'a> {
     },
 }
 
-impl<'a> bounded_static::IntoBoundedStatic for Media<'a> {
+impl bounded_static::IntoBoundedStatic for Media<'_> {
     type Static = Media<'static>;
 
     fn into_static(self) -> Self::Static {
@@ -295,7 +296,7 @@ impl<'a> bounded_static::IntoBoundedStatic for Media<'a> {
                 metadata: metadata.into_static(),
                 variants: variants
                     .into_iter()
-                    .map(|variant| variant.into_static())
+                    .map(bounded_static::IntoBoundedStatic::into_static)
                     .collect(),
                 duration_ms,
                 preview_image_url: preview_image_url.to_string().into(),
@@ -308,7 +309,7 @@ impl<'a> bounded_static::IntoBoundedStatic for Media<'a> {
                 metadata: metadata.into_static(),
                 variants: variants
                     .into_iter()
-                    .map(|variant| variant.into_static())
+                    .map(bounded_static::IntoBoundedStatic::into_static)
                     .collect(),
                 preview_image_url: preview_image_url.to_string().into(),
             },
@@ -316,7 +317,7 @@ impl<'a> bounded_static::IntoBoundedStatic for Media<'a> {
     }
 }
 
-impl<'a> bounded_static::ToBoundedStatic for Media<'a> {
+impl bounded_static::ToBoundedStatic for Media<'_> {
     type Static = Media<'static>;
 
     fn to_static(&self) -> Self::Static {
@@ -328,7 +329,9 @@ impl<'a> bounded_static::ToBoundedStatic for Media<'a> {
             } => Media::Photo {
                 metadata: metadata.to_static(),
                 url: url.to_static(),
-                alt_text: alt_text.as_ref().map(|alt_text| alt_text.to_static()),
+                alt_text: alt_text
+                    .as_ref()
+                    .map(bounded_static::ToBoundedStatic::to_static),
             },
             Self::Video {
                 metadata,
@@ -337,7 +340,10 @@ impl<'a> bounded_static::ToBoundedStatic for Media<'a> {
                 preview_image_url,
             } => Media::Video {
                 metadata: metadata.to_static(),
-                variants: variants.iter().map(|variant| variant.to_static()).collect(),
+                variants: variants
+                    .iter()
+                    .map(bounded_static::ToBoundedStatic::to_static)
+                    .collect(),
                 duration_ms: *duration_ms,
                 preview_image_url: preview_image_url.to_string().into(),
             },
@@ -347,7 +353,10 @@ impl<'a> bounded_static::ToBoundedStatic for Media<'a> {
                 preview_image_url,
             } => Media::AnimatedGif {
                 metadata: metadata.to_static(),
-                variants: variants.iter().map(|variant| variant.to_static()).collect(),
+                variants: variants
+                    .iter()
+                    .map(bounded_static::ToBoundedStatic::to_static)
+                    .collect(),
                 preview_image_url: preview_image_url.to_string().into(),
             },
         }
@@ -355,15 +364,17 @@ impl<'a> bounded_static::ToBoundedStatic for Media<'a> {
 }
 
 impl<'a> Media<'a> {
-    pub fn metadata(&self) -> &MediaMetadata<'a> {
+    #[must_use]
+    pub const fn metadata(&self) -> &MediaMetadata<'a> {
         match self {
-            Self::Photo { metadata, .. } => metadata,
-            Self::Video { metadata, .. } => metadata,
-            Self::AnimatedGif { metadata, .. } => metadata,
+            Self::Photo { metadata, .. }
+            | Self::Video { metadata, .. }
+            | Self::AnimatedGif { metadata, .. } => metadata,
         }
     }
 
-    pub fn media_type(&self) -> MediaType {
+    #[must_use]
+    pub const fn media_type(&self) -> MediaType {
         match self {
             Self::Photo { .. } => MediaType::Photo,
             Self::Video { .. } => MediaType::Video,
@@ -371,11 +382,11 @@ impl<'a> Media<'a> {
         }
     }
 
+    #[must_use]
     pub fn url(&self) -> Option<&str> {
         match self {
             Self::Photo { url, .. } => Some(url),
-            Self::Video { .. } => None,
-            Self::AnimatedGif { .. } => None,
+            Self::Video { .. } | Self::AnimatedGif { .. } => None,
         }
     }
 }
@@ -503,7 +514,7 @@ mod tests {
             .filter(|line| !line.is_empty());
 
         for (i, line) in lines.enumerate() {
-            let result = serde_json::from_str::<super::Media>(line);
+            let result = serde_json::from_str::<super::Media<'_>>(line);
 
             if let Err(error) = &result {
                 println!(

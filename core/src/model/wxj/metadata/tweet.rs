@@ -8,7 +8,8 @@ pub struct UserMetadata {
 }
 
 impl UserMetadata {
-    pub fn new(id: u64, created_at: Option<DateTime<Utc>>) -> Self {
+    #[must_use]
+    pub const fn new(id: u64, created_at: Option<DateTime<Utc>>) -> Self {
         Self { id, created_at }
     }
 }
@@ -24,7 +25,8 @@ pub struct TweetMetadata {
 }
 
 impl TweetMetadata {
-    pub fn new(
+    #[must_use]
+    pub const fn new(
         id: u64,
         user: UserMetadata,
         created_at: DateTime<Utc>,
@@ -42,14 +44,17 @@ impl TweetMetadata {
         }
     }
 
-    pub fn from_tweet_snapshot(snapshot: &TweetSnapshot) -> Result<Vec<Self>, data::FormatError> {
+    pub fn from_tweet_snapshot(
+        snapshot: &TweetSnapshot<'_>,
+    ) -> Result<Vec<Self>, data::FormatError> {
         match snapshot {
             TweetSnapshot::Data(snapshot) => Self::from_data_tweet_snapshot(snapshot),
             TweetSnapshot::Flat(snapshot) => Ok(Self::from_flat_tweet_snapshot(snapshot)),
         }
     }
 
-    pub fn from_flat_tweet_snapshot(snapshot: &flat::TweetSnapshot) -> Vec<Self> {
+    #[must_use]
+    pub fn from_flat_tweet_snapshot(snapshot: &flat::TweetSnapshot<'_>) -> Vec<Self> {
         let mut results = Vec::with_capacity(1);
 
         Self::extract_flat_tweet(&mut results, snapshot);
@@ -58,7 +63,7 @@ impl TweetMetadata {
     }
 
     pub fn from_data_tweet_snapshot(
-        snapshot: &data::TweetSnapshot,
+        snapshot: &data::TweetSnapshot<'_>,
     ) -> Result<Vec<Self>, data::FormatError> {
         let mut tweets = vec![Self::extract_data_tweet(snapshot, &snapshot.data)?];
 
@@ -89,7 +94,7 @@ impl TweetMetadata {
         Ok(tweets)
     }
 
-    fn extract_flat_tweet(results: &mut Vec<Self>, snapshot: &flat::TweetSnapshot) {
+    fn extract_flat_tweet(results: &mut Vec<Self>, snapshot: &flat::TweetSnapshot<'_>) {
         let user = UserMetadata::new(snapshot.user.id, Some(snapshot.user.created_at));
 
         if let Some(status) = snapshot.quoted_status.as_ref() {
@@ -111,8 +116,8 @@ impl TweetMetadata {
     }
 
     fn extract_data_tweet(
-        snapshot: &data::TweetSnapshot,
-        data: &data::Tweet,
+        snapshot: &data::TweetSnapshot<'_>,
+        data: &data::Tweet<'_>,
     ) -> Result<Self, data::FormatError> {
         let user = UserMetadata::new(
             data.author_id,

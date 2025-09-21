@@ -13,8 +13,11 @@ pub struct Url<'a> {
 }
 
 impl<'a> Url<'a> {
+    #[must_use]
     pub fn url(&self) -> Cow<'a, str> {
-        self.expanded_url.clone().unwrap_or(self.url.clone())
+        self.expanded_url
+            .clone()
+            .unwrap_or_else(|| self.url.clone())
     }
 }
 
@@ -24,7 +27,7 @@ pub struct Entities<'a> {
     pub url: Option<Url<'a>>,
 }
 
-impl<'a> bounded_static::IntoBoundedStatic for Entities<'a> {
+impl bounded_static::IntoBoundedStatic for Entities<'_> {
     type Static = Entities<'static>;
 
     fn into_static(self) -> Self::Static {
@@ -34,12 +37,12 @@ impl<'a> bounded_static::IntoBoundedStatic for Entities<'a> {
                 .iter()
                 .map(|description_url| description_url.clone().into_static())
                 .collect(),
-            url: self.url.map(|url| url.into_static()),
+            url: self.url.map(bounded_static::IntoBoundedStatic::into_static),
         }
     }
 }
 
-impl<'a> bounded_static::ToBoundedStatic for Entities<'a> {
+impl bounded_static::ToBoundedStatic for Entities<'_> {
     type Static = Entities<'static>;
 
     fn to_static(&self) -> Self::Static {
@@ -47,9 +50,12 @@ impl<'a> bounded_static::ToBoundedStatic for Entities<'a> {
             description_urls: self
                 .description_urls
                 .iter()
-                .map(|description_url| description_url.to_static())
+                .map(bounded_static::ToBoundedStatic::to_static)
                 .collect(),
-            url: self.url.as_ref().map(|url| url.to_static()),
+            url: self
+                .url
+                .as_ref()
+                .map(bounded_static::ToBoundedStatic::to_static),
         }
     }
 }
@@ -65,7 +71,7 @@ impl<'a, 'de: 'a> serde::de::Deserialize<'de> for Entities<'a> {
     }
 }
 
-impl<'a> serde::ser::Serialize for Entities<'a> {
+impl serde::ser::Serialize for Entities<'_> {
     fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         internal::Entities::serialize(
             &internal::Entities {
@@ -114,7 +120,7 @@ mod tests {
     fn deserialize_full() {
         let doc = r#"{"description":{"urls":[{"display_url":"youtube.com/user/EnglishAt…","expanded_url":"http://www.youtube.com/user/EnglishAttitude","url":"http://t.co/7PueaqzO8K","indices":[133,155]}]},"url":{"urls":[{"display_url":"englishattitude.wordpress.com","expanded_url":"http://englishattitude.wordpress.com/","url":"http://t.co/y6Df74QgMj","indices":[0,22]}]}}"#;
 
-        let parsed: super::Entities = serde_json::from_str(doc).unwrap();
+        let parsed: super::Entities<'_> = serde_json::from_str(doc).unwrap();
 
         assert_eq!(parsed.description_urls.len(), 1);
         assert_eq!(
@@ -128,7 +134,7 @@ mod tests {
     fn deserialize_empty() {
         let doc = r#"{"description":{"urls":[]}}"#;
 
-        let parsed: super::Entities = serde_json::from_str(doc).unwrap();
+        let parsed: super::Entities<'_> = serde_json::from_str(doc).unwrap();
 
         assert!(parsed.description_urls.is_empty());
         assert!(parsed.url.is_none());

@@ -16,10 +16,10 @@ pub enum TrendImage<'a> {
 }
 
 impl<'a> TrendImage<'a> {
-    pub fn url(&self) -> &'a str {
+    #[must_use]
+    pub const fn url(&self) -> &'a str {
         match self {
-            Self::Object { url } => url,
-            Self::Direct(url) => url,
+            Self::Object { url } | Self::Direct(url) => url,
         }
     }
 }
@@ -28,7 +28,7 @@ impl<'a> TrendImage<'a> {
 mod tests {
     #[test]
     fn deserialize_direct_trend_image() {
-        let image = serde_json::from_str::<super::TrendImage>(
+        let image = serde_json::from_str::<super::TrendImage<'_>>(
             "\"https://pbs.twimg.com/media/Gk63rFLXgAAxd8-.jpg\"",
         )
         .unwrap();
@@ -41,7 +41,7 @@ mod tests {
 
     #[test]
     fn deserialize_object_trend_image() {
-        let image = serde_json::from_str::<super::TrendImage>(
+        let image = serde_json::from_str::<super::TrendImage<'_>>(
             "{\"url\":\"https://pbs.twimg.com/media/Gk63rFLXgAAxd8-.jpg\"}",
         )
         .unwrap();

@@ -65,16 +65,17 @@ pub enum Model {
 }
 
 impl Model {
-    pub fn version(&self) -> ModelVersion {
+    #[must_use]
+    pub const fn version(&self) -> ModelVersion {
         match self {
-            Self::InsufficientExplanation => ModelVersion::V1_0,
-            Self::MultiGroupModel01 => ModelVersion::V1_0,
-            Self::NmrDueToMinStableCrhTime => ModelVersion::V1_0,
-            Self::ScoringDriftGuard => ModelVersion::V1_0,
-            Self::TopicModel01 => ModelVersion::V1_0,
-            Self::TopicModel02 => ModelVersion::V1_0,
-            Self::TopicModel03 => ModelVersion::V1_0,
-            Self::TopicModel04 => ModelVersion::V1_0,
+            Self::InsufficientExplanation
+            | Self::MultiGroupModel01
+            | Self::NmrDueToMinStableCrhTime
+            | Self::ScoringDriftGuard
+            | Self::TopicModel01
+            | Self::TopicModel02
+            | Self::TopicModel03
+            | Self::TopicModel04 => ModelVersion::V1_0,
             _ => ModelVersion::V1_1,
         }
     }

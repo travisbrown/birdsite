@@ -76,7 +76,7 @@ impl Bundle {
 
         let segments = url
             .path_segments()
-            .map(|segments| segments.collect::<Vec<_>>())
+            .map(std::iter::Iterator::collect::<Vec<_>>)
             .unwrap_or_default();
 
         if segments.len() < 4 {

@@ -221,7 +221,7 @@ mod internal {
         pub(super) is_in_account_language: Option<bool>,
     }
 
-    impl<'a> Note<'a> {
+    impl Note<'_> {
         pub(super) fn is_empty(&self) -> bool {
             (self.data_v1.is_none() || self.created_at.is_none())
                 && (self.can_appeal == Some(false) || self.can_appeal.is_none())
@@ -278,7 +278,7 @@ mod tests {
                 .filter(|line| !line.is_empty());
 
         for (i, line) in lines.enumerate() {
-            let result = serde_json::from_str::<BirdwatchNote>(line);
+            let result = serde_json::from_str::<BirdwatchNote<'_>>(line);
 
             if let Err(error) = &result {
                 println!(

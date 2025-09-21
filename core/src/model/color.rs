@@ -22,16 +22,16 @@ impl FromStr for Color {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() != 6 {
-            Err(Self::Err::Invalid(s.to_string()))
-        } else {
+        if s.len() == 6 {
             u16::from_str_radix(&s[0..2], 16)
                 .and_then(|red| {
                     u16::from_str_radix(&s[2..4], 16).and_then(|green| {
-                        u16::from_str_radix(&s[4..6], 16).map(|blue| Color { red, green, blue })
+                        u16::from_str_radix(&s[4..6], 16).map(|blue| Self { red, green, blue })
                     })
                 })
                 .map_err(|_| Self::Err::Invalid(s.to_string()))
+        } else {
+            Err(Self::Err::Invalid(s.to_string()))
         }
     }
 }
@@ -49,7 +49,7 @@ impl<'de> Deserialize<'de> for Color {
         impl Visitor<'_> for ColorVisitor {
             type Value = Color;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 formatter.write_str("struct Color")
             }
 

@@ -37,7 +37,7 @@ impl<'a, 'de: 'a> serde::de::Deserialize<'de> for Entity<'a> {
     }
 }
 
-impl<'a> serde::ser::Serialize for Entity<'a> {
+impl serde::ser::Serialize for Entity<'_> {
     fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         internal::Entity::serialize(
             &internal::Entity {
@@ -67,7 +67,7 @@ impl<'a, 'de: 'a> serde::de::Deserialize<'de> for TypedEntity<'a> {
     }
 }
 
-impl<'a> serde::ser::Serialize for TypedEntity<'a> {
+impl serde::ser::Serialize for TypedEntity<'_> {
     fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         internal::TypedEntity::serialize(
             &internal::TypedEntity {
@@ -132,7 +132,7 @@ mod tests {
         };
 
         assert_eq!(
-            serde_json::from_str::<super::TypedEntity>(doc).unwrap(),
+            serde_json::from_str::<super::TypedEntity<'_>>(doc).unwrap(),
             expected
         );
     }
@@ -152,7 +152,7 @@ mod tests {
         let doc = serde_json::json!(entity).to_string();
 
         assert_eq!(
-            serde_json::from_str::<super::TypedEntity>(&doc).unwrap(),
+            serde_json::from_str::<super::TypedEntity<'_>>(&doc).unwrap(),
             entity
         );
     }
