@@ -19,7 +19,10 @@ impl Color {
     }
 
     fn interpolate_value(a: u8, b: u8, f: f64) -> u8 {
-        math::round::half_to_even(interpolate(f64::from(a), f64::from(b), f).clamp(0.0, 255.0), 0) as u8
+        math::round::half_to_even(
+            interpolate(f64::from(a), f64::from(b), f).clamp(0.0, 255.0),
+            0,
+        ) as u8
     }
 }
 
