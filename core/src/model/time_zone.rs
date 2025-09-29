@@ -154,6 +154,8 @@ pub enum TimeZone {
     AsiaKolkata,
     #[serde(rename = "Asia/Manila")]
     AsiaManila,
+    #[serde(rename = "Asia/Muscat")]
+    AsiaMuscat,
     #[serde(rename = "Asia/Riyadh")]
     AsiaRiyadh,
     #[serde(rename = "Asia/Seoul")]
