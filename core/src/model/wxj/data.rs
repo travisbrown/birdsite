@@ -1,6 +1,4 @@
 //! This data format appears for tweets in the Wayback Machine from around 9 December 2022 until into 2025.
-
-use crate::model::attributes::{integer_str, integer_str_array_opt, integer_str_opt};
 use crate::model::{
     country::Country,
     lang::Lang,
@@ -9,6 +7,7 @@ use crate::model::{
 };
 use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
+use serde_field_attributes::{integer_str, optional_integer_str, optional_integer_str_array};
 use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq, thiserror::Error)]
@@ -99,7 +98,7 @@ pub struct Tweet<'a> {
     pub referenced_tweets: Option<Vec<ReferencedTweet>>,
     pub reply_settings: ReplySettings,
     pub text: Cow<'a, str>,
-    #[serde(with = "integer_str_opt")]
+    #[serde(with = "optional_integer_str")]
     #[serde(default)]
     pub in_reply_to_user_id: Option<u64>,
     //pub source: Option<TweetSource>,
@@ -166,13 +165,13 @@ impl Tweet<'_> {
 pub struct Attachments {
     pub media_keys: Option<Vec<String>>,
     #[serde(
-        with = "integer_str_array_opt",
+        with = "optional_integer_str_array",
         default,
         skip_serializing_if = "Option::is_none"
     )]
     pub media_source_tweet_id: Option<Vec<u64>>,
     #[serde(
-        with = "integer_str_array_opt",
+        with = "optional_integer_str_array",
         default,
         skip_serializing_if = "Option::is_none"
     )]
@@ -446,8 +445,7 @@ pub struct User<'a> {
     pub location: Option<Cow<'a, str>>,
     pub url: Option<Cow<'a, str>>,
     pub profile_image_url: Cow<'a, str>,
-    #[serde(with = "integer_str_opt")]
-    #[serde(default)]
+    #[serde(with = "optional_integer_str", default)]
     pub pinned_tweet_id: Option<u64>,
     //pub entities: Option<UserEntities<'a>>,
     pub verified: bool,

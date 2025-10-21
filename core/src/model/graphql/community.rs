@@ -1,5 +1,6 @@
 use crate::model::graphql::ResultWrapper;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc, serde::ts_milliseconds};
+use serde_field_attributes::{integer_str, optional_integer_str};
 use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -15,11 +16,11 @@ pub enum CommunityResult<'a, U> {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Community<'a, U> {
-    #[serde(rename = "id_str", with = "crate::model::attributes::integer_str")]
+    #[serde(rename = "id_str", with = "integer_str")]
     pub id: u64,
     pub name: Cow<'a, str>,
     pub description: Option<Cow<'a, str>>,
-    #[serde(with = "crate::model::attributes::timestamp_msec")]
+    #[serde(with = "ts_milliseconds")]
     pub created_at: DateTime<Utc>,
     pub default_theme: Option<Theme>,
     pub custom_theme: Option<Theme>,
@@ -45,11 +46,7 @@ pub struct Community<'a, U> {
     pub join_requests_result: JoinRequestsResult,
     #[serde(rename = "id")]
     _internal_id: Option<Cow<'a, str>>,
-    #[serde(
-        rename = "rest_id",
-        with = "crate::model::attributes::integer_str_opt",
-        default
-    )]
+    #[serde(rename = "rest_id", with = "optional_integer_str", default)]
     _rest_id: Option<u64>,
 }
 
@@ -78,7 +75,7 @@ pub struct InvitesResult {}
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Topic<'a> {
-    #[serde(with = "crate::model::attributes::integer_str")]
+    #[serde(with = "integer_str")]
     pub topic_id: u64,
     pub topic_name: Cow<'a, str>,
 }
@@ -104,7 +101,7 @@ pub enum Role {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Rule<'a> {
-    #[serde(with = "crate::model::attributes::integer_str")]
+    #[serde(with = "integer_str")]
     pub rest_id: u64,
     pub name: Cow<'a, str>,
     pub description: Option<Cow<'a, str>>,

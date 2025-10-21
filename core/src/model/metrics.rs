@@ -1,3 +1,5 @@
+use serde_field_attributes::optional_usize;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TweetPublicMetrics {
@@ -23,7 +25,7 @@ pub struct UserPublicMetrics {
     // Generally has a value (one known case where it doesn't).
     pub following_count: Option<usize>,
     // Generally has a value (one known case where it doesn't).
-    #[serde(with = "crate::model::attributes::usize_opt")]
+    #[serde(with = "optional_usize")]
     pub tweet_count: Option<usize>,
     // Generally has a value (one known case where it doesn't).
     pub listed_count: Option<usize>,

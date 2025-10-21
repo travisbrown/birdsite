@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc, serde::ts_milliseconds};
 use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
@@ -12,7 +12,7 @@ pub struct Profile<'a> {
 pub struct RatingsCount {
     pub successful: HelpfulnessCount,
     pub unsuccessful: HelpfulnessCount,
-    #[serde(with = "crate::model::attributes::timestamp_msec")]
+    #[serde(with = "ts_milliseconds")]
     pub last_updated_at: DateTime<Utc>,
     pub rated_after_decision: Option<usize>,
     pub awaiting_more_ratings: Option<usize>,
@@ -34,6 +34,6 @@ pub struct NotesCount {
     pub currently_rated_helpful: Option<usize>,
     pub currently_rated_not_helpful: Option<usize>,
     pub awaiting_more_ratings: Option<usize>,
-    #[serde(with = "crate::model::attributes::timestamp_msec")]
+    #[serde(with = "ts_milliseconds")]
     pub last_updated_at: DateTime<Utc>,
 }

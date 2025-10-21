@@ -1,3 +1,4 @@
+use serde_field_attributes::integer_str;
 use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -17,7 +18,7 @@ pub enum UserResult<'a, U> {
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct User<'a> {
-    #[serde(with = "crate::model::attributes::integer_str")]
+    #[serde(with = "integer_str")]
     pub rest_id: u64,
     pub legacy: Legacy<'a>,
 }

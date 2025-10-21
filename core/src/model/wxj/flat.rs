@@ -1,12 +1,9 @@
 //! This data format appears for tweets in the Wayback Machine until at least 2020 (TODO: find more precise dates).
 use crate::model::{
-    attributes::{integer_str, integer_str_opt, text_timestamp, usize_opt},
-    color::Color,
-    country::Country,
-    lang::Lang,
-    time_zone::TimeZone,
+    attributes::text_timestamp, color::Color, country::Country, lang::Lang, time_zone::TimeZone,
 };
 use chrono::{DateTime, Utc};
+use serde_field_attributes::{integer_str, optional_integer_str, optional_usize};
 use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -21,10 +18,10 @@ pub struct TweetSnapshot<'a> {
     //pub source: Source,
     pub truncated: bool,
     pub in_reply_to_status_id: Option<u64>,
-    #[serde(with = "integer_str_opt")]
+    #[serde(with = "optional_integer_str")]
     in_reply_to_status_id_str: Option<u64>,
     pub in_reply_to_user_id: Option<u64>,
-    #[serde(with = "integer_str_opt")]
+    #[serde(with = "optional_integer_str")]
     in_reply_to_user_id_str: Option<u64>,
     pub user: User<'a>,
     pub in_reply_to_screen_name: Option<Cow<'a, str>>,
@@ -33,7 +30,7 @@ pub struct TweetSnapshot<'a> {
     //pub place: Option<Place<'a>>,
     contributors: Option<Vec<u64>>,
     pub quoted_status_id: Option<u64>,
-    #[serde(with = "integer_str_opt")]
+    #[serde(with = "optional_integer_str")]
     #[serde(default)]
     quoted_status_id_str: Option<u64>,
     pub quoted_status: Option<Box<TweetSnapshot<'a>>>,
@@ -91,14 +88,14 @@ pub struct User<'a> {
     pub translator_type: Option<TranslatorType>,
     pub protected: bool,
     pub verified: bool,
-    #[serde(with = "usize_opt")]
+    #[serde(with = "optional_usize")]
     pub followers_count: Option<usize>,
-    #[serde(with = "usize_opt")]
+    #[serde(with = "optional_usize")]
     pub friends_count: Option<usize>,
     pub listed_count: Option<usize>,
-    #[serde(with = "usize_opt")]
+    #[serde(with = "optional_usize")]
     pub favourites_count: Option<usize>,
-    #[serde(with = "usize_opt")]
+    #[serde(with = "optional_usize")]
     pub statuses_count: Option<usize>,
     #[serde(with = "text_timestamp")]
     pub created_at: DateTime<Utc>,

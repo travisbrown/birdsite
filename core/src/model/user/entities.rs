@@ -1,4 +1,5 @@
 use bounded_static_derive_more::ToStatic;
+use serde_field_attributes::range;
 use std::borrow::Cow;
 use std::ops::Range;
 
@@ -8,7 +9,7 @@ pub struct Url<'a> {
     pub expanded_url: Option<Cow<'a, str>>,
     pub url: Cow<'a, str>,
     pub display_url: Option<Cow<'a, str>>,
-    #[serde(with = "crate::model::attributes::range")]
+    #[serde(with = "range")]
     pub indices: Range<usize>,
 }
 

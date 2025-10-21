@@ -1,4 +1,5 @@
 use num_rational::Ratio;
+use serde_field_attributes::ratio_i64;
 use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -46,8 +47,8 @@ pub enum BoundingBoxType {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Coordinates(
-    #[serde(with = "crate::model::attributes::ratio_i64")] pub Ratio<i64>,
-    #[serde(with = "crate::model::attributes::ratio_i64")] pub Ratio<i64>,
+    #[serde(with = "ratio_i64")] pub Ratio<i64>,
+    #[serde(with = "ratio_i64")] pub Ratio<i64>,
 );
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

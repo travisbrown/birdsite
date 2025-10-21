@@ -193,12 +193,13 @@ pub enum AppealStatus {
 
 mod internal {
     use crate::model::graphql::text::Text;
-    use chrono::{DateTime, Utc};
+    use chrono::{DateTime, Utc, serde::ts_milliseconds_option};
+    use serde_field_attributes::{integer_str, optional_integer_str};
 
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub(super) struct Note<'a> {
-        #[serde(with = "crate::model::attributes::integer_str")]
+        #[serde(with = "integer_str")]
         pub(super) rest_id: u64,
         #[serde(borrow)]
         pub(super) data_v1: Option<DataV1<'a>>,
@@ -211,12 +212,12 @@ mod internal {
         pub(super) not_helpful_tags: Option<Vec<super::NotHelpfulTag>>,
         pub(super) tweet_results: Option<TweetResults>,
         pub(super) birdwatch_profile: Option<super::super::profile::Profile<'a>>,
-        #[serde(default, with = "crate::model::attributes::timestamp_msec_opt")]
+        #[serde(default, with = "ts_milliseconds_option")]
         pub(super) created_at: Option<DateTime<Utc>>,
         pub(super) can_appeal: Option<bool>,
         pub(super) appeal_status: Option<super::AppealStatus>,
         pub(super) is_media_note: Option<bool>,
-        #[serde(default, with = "crate::model::attributes::integer_str_opt")]
+        #[serde(default, with = "optional_integer_str")]
         pub(super) media_note_matches: Option<usize>,
         pub(super) is_in_account_language: Option<bool>,
     }
@@ -256,7 +257,7 @@ mod internal {
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub(super) struct TweetResultsResult {
-        #[serde(default, with = "crate::model::attributes::integer_str_opt")]
+        #[serde(with = "optional_integer_str", default)]
         pub(super) rest_id: Option<u64>,
         pub(super) media_note_category: Option<super::MediaNoteCategory>,
     }

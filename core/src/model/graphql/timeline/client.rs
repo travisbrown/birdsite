@@ -45,6 +45,7 @@ pub enum ConversationSection {
 }
 
 pub mod event {
+    use serde_field_attributes::{integer_str, optional_integer_str};
     use std::borrow::Cow;
 
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -111,21 +112,14 @@ pub mod event {
             #[serde(rename = "impressionId")]
             impression_id: &'a str,
             position: usize,
-            #[serde(
-                rename = "sourceId",
-                with = "crate::model::attributes::integer_str_opt",
-                default
-            )]
+            #[serde(rename = "sourceId", with = "optional_integer_str", default)]
             source_id: Option<u64>,
-            #[serde(rename = "eventId", with = "crate::model::attributes::integer_str")]
+            #[serde(rename = "eventId", with = "integer_str")]
             event_id: u64,
         },
         TimelineTrendUrtMetadata {
             /// This can be negative (for example, `-8530644708937920429`).
-            #[serde(
-                rename = "impressionId",
-                with = "crate::model::attributes::integer_str"
-            )]
+            #[serde(rename = "impressionId", with = "integer_str")]
             impression_id: i64,
             #[serde(rename = "impressionToken")]
             impression_token: &'a str,
@@ -134,17 +128,13 @@ pub mod event {
             trend_name: &'a str,
             #[serde(rename = "relatedTerms")]
             related_terms: Option<Cow<'a, [Cow<'a, str>]>>,
-            #[serde(
-                rename = "clusterId",
-                with = "crate::model::attributes::integer_str_opt",
-                default
-            )]
+            #[serde(rename = "clusterId", with = "optional_integer_str", default)]
             cluster_id: Option<u64>,
         },
         TimelineSemanticCoreInterest {
-            #[serde(rename = "domainId", with = "crate::model::attributes::integer_str")]
+            #[serde(rename = "domainId", with = "integer_str")]
             domain_id: u64,
-            #[serde(rename = "entityId", with = "crate::model::attributes::integer_str")]
+            #[serde(rename = "entityId", with = "integer_str")]
             entity_id: u64,
         },
     }
@@ -152,7 +142,7 @@ pub mod event {
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
     pub struct AiTrendDetails {
-        #[serde(with = "crate::model::attributes::integer_str")]
+        #[serde(with = "integer_str")]
         pub trend_id: u64,
     }
 }
