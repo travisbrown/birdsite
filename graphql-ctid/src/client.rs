@@ -1,3 +1,4 @@
+use crate::{Endpoint, SiteInfo, TransactionId, generator::Generator};
 use base64::prelude::*;
 use regex::Regex;
 use reqwest::StatusCode;
@@ -49,27 +50,57 @@ pub enum Error {
     ShortFrame { length: usize },
 }
 
-pub struct SiteInfo {
-    pub verification_key: Vec<u8>,
-    pub indices: Vec<usize>,
-    pub frame: Vec<i32>,
-}
-
+#[derive(Clone, Debug)]
 pub struct Client {
     underlying: reqwest::Client,
     user_agent: String,
+    generator: Generator,
 }
 
 impl Default for Client {
     fn default() -> Self {
-        Self {
-            underlying: reqwest::Client::default(),
-            user_agent: USER_AGENT.to_string(),
-        }
+        Self::new(
+            reqwest::Client::default(),
+            USER_AGENT.to_string(),
+            crate::generator::Generator::default(),
+        )
     }
 }
 
 impl Client {
+    const fn new(client: reqwest::Client, user_agent: String, generator: Generator) -> Self {
+        Self {
+            underlying: client,
+            user_agent,
+            generator,
+        }
+    }
+
+    /// Download site information and generate a transaction ID for the given endpoint.
+    pub async fn generate(
+        &self,
+        endpoint: &Endpoint<'_>,
+    ) -> Result<TransactionId, crate::client::Error> {
+        let site_info = self.get_site_info().await?;
+
+        Ok(self.generator.compute(&site_info, endpoint, None, None))
+    }
+
+    /// Download site information and generate transaction IDs for the given endpoints.
+    ///
+    /// This function only downloads the necessary files once.
+    pub async fn generate_batch(
+        &self,
+        endpoints: &[&Endpoint<'_>],
+    ) -> Result<Vec<TransactionId>, crate::client::Error> {
+        let site_info = self.get_site_info().await?;
+
+        Ok(endpoints
+            .iter()
+            .map(|endpoint| self.generator.compute(&site_info, endpoint, None, None))
+            .collect())
+    }
+
     pub async fn get_site_info(&self) -> Result<SiteInfo, Error> {
         let home = self.download_home().await?;
         let ondemand_url = home.ondemand_url()?;
