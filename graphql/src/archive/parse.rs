@@ -95,6 +95,7 @@ pub fn parse_exchange<
 fn find_request_open_brace(input_bytes: &[u8]) -> Option<usize> {
     let mut current = input_bytes.len() - 1;
     let mut brace_depth = 1;
+    let mut found = false;
 
     current -= 2;
 
@@ -102,6 +103,7 @@ fn find_request_open_brace(input_bytes: &[u8]) -> Option<usize> {
         match input_bytes[current] {
             b'{' => {
                 if brace_depth == 1 {
+                    found = true;
                     break;
                 }
                 brace_depth -= 1;
@@ -115,17 +117,19 @@ fn find_request_open_brace(input_bytes: &[u8]) -> Option<usize> {
         current -= 1;
     }
 
-    Some(current)
+    if found { Some(current) } else { None }
 }
 
 fn find_errors_closing_bracket(input_bytes: &[u8]) -> Option<usize> {
     let mut current = 13;
     let mut bracket_depth = 1;
+    let mut found = false;
 
     while current < input_bytes.len() {
         match input_bytes[current] {
             b']' => {
                 if bracket_depth == 1 {
+                    found = true;
                     break;
                 }
                 bracket_depth -= 1;
@@ -139,5 +143,5 @@ fn find_errors_closing_bracket(input_bytes: &[u8]) -> Option<usize> {
         current += 1;
     }
 
-    Some(current)
+    if found { Some(current) } else { None }
 }

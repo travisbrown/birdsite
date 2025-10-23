@@ -147,9 +147,11 @@ impl RateLimit {
 
         reset.map_or_else(
             || Err(Error::MissingHeader(reset_header_name.to_string())),
-            |reset| match remaining {
-                Some(remaining) => Ok(Self { reset, remaining }),
-                None => Err(Error::MissingHeader(remaining_header_name.to_string())),
+            |reset| {
+                remaining.map_or_else(
+                    || Err(Error::MissingHeader(remaining_header_name.to_string())),
+                    |remaining| Ok(Self { reset, remaining }),
+                )
             },
         )
     }
