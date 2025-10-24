@@ -41,6 +41,23 @@ impl Generator {
         random_byte: Option<u8>,
         timestamp_s: Option<i64>,
     ) -> TransactionId {
+        self.compute_for_path(
+            site_info,
+            &Self::path(&endpoint.name, &endpoint.version),
+            random_byte,
+            timestamp_s,
+        )
+    }
+
+    /// Generate an ID for a given endpoint using current site information.
+    #[must_use]
+    pub fn compute_for_path(
+        &self,
+        site_info: &SiteInfo,
+        path: &str,
+        random_byte: Option<u8>,
+        timestamp_s: Option<i64>,
+    ) -> TransactionId {
         let key_bytes_indices = &site_info.indices[1..];
 
         let frame_time = key_bytes_indices
@@ -69,11 +86,7 @@ impl Generator {
 
         let digest_input = format!(
             "{}!{}!{}{}{}",
-            DEFAULT_METHOD,
-            Self::path(&endpoint.name, &endpoint.version),
-            timestamp_s,
-            self.keyword,
-            animation_key
+            DEFAULT_METHOD, path, timestamp_s, self.keyword, animation_key
         );
 
         let digest = sha2::Sha256::digest(digest_input.as_bytes());

@@ -86,6 +86,18 @@ impl Client {
         Ok(self.generator.compute(&site_info, endpoint, None, None))
     }
 
+    /// Download site information and generate a transaction ID for the given endpoint.
+    pub async fn generate_for_path(
+        &self,
+        path: &str,
+    ) -> Result<TransactionId, crate::client::Error> {
+        let site_info = self.get_site_info().await?;
+
+        Ok(self
+            .generator
+            .compute_for_path(&site_info, path, None, None))
+    }
+
     /// Download site information and generate transaction IDs for the given endpoints.
     ///
     /// This function only downloads the necessary files once.
