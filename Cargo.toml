@@ -1,6 +1,13 @@
 [workspace]
 resolver = "2"
-members = ["core", "rate-limits", "graphql", "graphql-ctid", "graphql-creds"]
+members = [
+    "core",
+    "rate-limits",
+    "creds",
+    "graphql",
+    "graphql-ctid",
+    "graphql-creds",
+]
 
 [workspace.package]
 authors = ["Travis Brown <travisrobertbrown@gmail.com>"]
