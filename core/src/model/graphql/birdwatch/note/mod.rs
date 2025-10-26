@@ -34,6 +34,8 @@ pub struct NoteMetadata<'a> {
     pub appeal_status: Option<AppealStatus>,
     pub is_media_note: Option<bool>,
     pub media_note_matches: Option<usize>,
+    pub media_note_matches_v2: Option<MediaNoteMatchesV2>,
+    pub is_api_author: Option<bool>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -47,6 +49,7 @@ pub struct NoteData<'a> {
     pub media_note_category: Option<MediaNoteCategory>,
     pub profile: Option<super::profile::Profile<'a>>,
     pub is_in_account_language: Option<bool>,
+    pub show_matched_parent_note: Option<bool>,
 }
 
 impl<'de: 'a, 'a> Deserialize<'de> for Note<'a> {
@@ -70,6 +73,8 @@ impl<'de: 'a, 'a> Deserialize<'de> for Note<'a> {
                 appeal_status: note.appeal_status,
                 is_media_note: note.is_media_note,
                 media_note_matches: note.media_note_matches,
+                media_note_matches_v2: note.media_note_matches_v2,
+                is_api_author: note.is_api_author,
             };
 
             let data = note.data_v1.and_then(|data_v1| match data_v1 {
@@ -95,6 +100,7 @@ impl<'de: 'a, 'a> Deserialize<'de> for Note<'a> {
                             .and_then(|result| result.media_note_category),
                         profile: note.birdwatch_profile,
                         is_in_account_language: note.is_in_account_language,
+                        show_matched_parent_note: note.show_matched_parent_note,
                     })
                 }
                 internal::DataV1::Unavailable {} => None,
@@ -191,6 +197,12 @@ pub enum AppealStatus {
     NotAppealed,
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct MediaNoteMatchesV2 {
+    pub match_count: usize,
+    pub shoud_show_matches: bool,
+}
+
 mod internal {
     use crate::model::graphql::text::Text;
     use chrono::{DateTime, Utc, serde::ts_milliseconds_option};
@@ -219,7 +231,10 @@ mod internal {
         pub(super) is_media_note: Option<bool>,
         #[serde(default, with = "optional_integer_str")]
         pub(super) media_note_matches: Option<usize>,
+        pub(super) media_note_matches_v2: Option<super::MediaNoteMatchesV2>,
         pub(super) is_in_account_language: Option<bool>,
+        pub(super) is_api_author: Option<bool>,
+        pub(super) show_matched_parent_note: Option<bool>,
     }
 
     impl Note<'_> {
