@@ -67,6 +67,8 @@ pub mod event {
         #[serde(rename = "guideDetails")]
         pub guide_details: Option<GuideDetails<'a>>,
         pub ai_trend_details: Option<AiTrendDetails>,
+        // TODO: Fill this is.
+        pub live_event_details: Option<serde_json::Value>,
     }
 
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
