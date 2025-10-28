@@ -17,6 +17,7 @@ static CSRF_TOKEN_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)\-H 'x-csrf-token: ([\w]+)'").unwrap());
 static COOKIE_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)\-H 'Cookie: ([^']+)'").unwrap());
+static COOKIE_SHORT_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\-b '([^']+)'").unwrap());
 
 impl Creds {
     #[must_use]
@@ -44,7 +45,13 @@ impl Creds {
         let cookie = COOKIE_RE
             .captures(command)
             .and_then(|captures| captures.get(1))
-            .map(|capture_match| capture_match.as_str())?
+            .map(|capture_match| capture_match.as_str())
+            .or_else(|| {
+                COOKIE_SHORT_RE
+                    .captures(command)
+                    .and_then(|captures| captures.get(1))
+                    .map(|capture_match| capture_match.as_str())
+            })?
             .to_string();
 
         Some(Self {
