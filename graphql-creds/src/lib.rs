@@ -1,9 +1,11 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
 #![forbid(unsafe_code)]
 use birdsite_graphql_ctid::{Endpoint, TransactionId, client::Client};
+use chrono::Utc;
 use rusqlite::{Connection, OptionalExtension};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 mod types;
 
@@ -90,6 +92,36 @@ impl Store {
             }
         }
     }
+
+    pub async fn get_ctid_with_max_age(
+        &self,
+        endpoint: &Endpoint<'_>,
+        max_age: Duration,
+    ) -> Result<TransactionId, Error> {
+        match self.lookup_ctid(endpoint)? {
+            Some(transaction_id) => {
+                let age = Utc::now() - transaction_id.timestamp;
+
+                if age.to_std().map(|age| age <= max_age).unwrap_or(false) {
+                    Ok(transaction_id)
+                } else {
+                    let transaction_id = self.client.generate(endpoint).await?;
+
+                    self.add_ctid(endpoint, &transaction_id)?;
+
+                    Ok(transaction_id)
+                }
+            }
+            None => {
+                let transaction_id = self.client.generate(endpoint).await?;
+
+                self.add_ctid(endpoint, &transaction_id)?;
+
+                Ok(transaction_id)
+            }
+        }
+    }
+
     pub fn lookup_ctid(
         &self,
         endpoint: &Endpoint<'_>,
