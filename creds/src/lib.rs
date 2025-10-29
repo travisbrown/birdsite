@@ -12,12 +12,13 @@ pub struct Creds {
 }
 
 static BEARER_TOKEN_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?i)\-H 'authorization: Bearer ([\w%]+)'").unwrap());
+    LazyLock::new(|| Regex::new(r#"(?i)\-H ['"]authorization: Bearer ([\w%]+)['"]"#).unwrap());
 static CSRF_TOKEN_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?i)\-H 'x-csrf-token: ([\w]+)'").unwrap());
+    LazyLock::new(|| Regex::new(r#"(?i)\-H ['"]x-csrf-token: ([\w]+)['"]"#).unwrap());
 static COOKIE_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?i)\-H 'Cookie: ([^']+)'").unwrap());
-static COOKIE_SHORT_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\-b '([^']+)'").unwrap());
+    LazyLock::new(|| Regex::new(r#"(?i)\-H ['"]Cookie: ([^'\n]+)['"]\s"#).unwrap());
+static COOKIE_SHORT_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"\-b ['"]([^'\n]+)['"]\s"#).unwrap());
 
 impl Creds {
     #[must_use]
@@ -30,25 +31,27 @@ impl Creds {
     }
 
     pub fn parse_curl_command(command: &str) -> Option<Self> {
+        let command = command.replace('^', "");
+
         let bearer_token = BEARER_TOKEN_RE
-            .captures(command)
+            .captures(&command)
             .and_then(|captures| captures.get(1))
             .map(|capture_match| capture_match.as_str())?
             .to_string();
 
         let csrf_token = CSRF_TOKEN_RE
-            .captures(command)
+            .captures(&command)
             .and_then(|captures| captures.get(1))
             .map(|capture_match| capture_match.as_str())?
             .to_string();
 
         let cookie = COOKIE_RE
-            .captures(command)
+            .captures(&command)
             .and_then(|captures| captures.get(1))
             .map(|capture_match| capture_match.as_str())
             .or_else(|| {
                 COOKIE_SHORT_RE
-                    .captures(command)
+                    .captures(&command)
                     .and_then(|captures| captures.get(1))
                     .map(|capture_match| capture_match.as_str())
             })?
