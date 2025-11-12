@@ -62,6 +62,8 @@ pub enum Model {
     TopicModel04,
     #[serde(rename = "CoreWithTopicsModel (v1.1)")]
     CoreWithTopicsModel,
+    #[serde(rename = "GaussianModel (v1.0)")]
+    GaussianModel,
 }
 
 impl Model {
@@ -75,7 +77,8 @@ impl Model {
             | Self::TopicModel01
             | Self::TopicModel02
             | Self::TopicModel03
-            | Self::TopicModel04 => ModelVersion::V1_0,
+            | Self::TopicModel04
+            | Self::GaussianModel => ModelVersion::V1_0,
             _ => ModelVersion::V1_1,
         }
     }
