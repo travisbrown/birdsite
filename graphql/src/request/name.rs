@@ -10,6 +10,7 @@ pub enum Error {
     Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, serde::Deserialize, serde::Serialize,
 )]
 pub enum RequestName {
+    AboutAccountQuery,
     AccountSwitcherDelegateQuery,
     AiTrendByRestId,
     AudioSpaceById,
@@ -164,7 +165,8 @@ impl std::str::FromStr for RequestName {
     }
 }
 
-pub const REQUEST_NAME_VALUES: [RequestName; 111] = [
+pub const REQUEST_NAME_VALUES: [RequestName; 112] = [
+    RequestName::AboutAccountQuery,
     RequestName::AccountSwitcherDelegateQuery,
     RequestName::AiTrendByRestId,
     RequestName::AudioSpaceById,
