@@ -51,6 +51,7 @@ pub struct Bundle {
     pub ratings: FileSet,
     pub note_status_history: FileSet,
     pub user_enrollment: FileSet,
+    pub bat_signals: Option<FileSet>,
 }
 
 impl Bundle {
@@ -60,6 +61,10 @@ impl Bundle {
         result.extend(self.ratings.downloads(&base)?);
         result.extend(self.note_status_history.downloads(&base)?);
         result.extend(self.user_enrollment.downloads(&base)?);
+
+        if let Some(bat_signals) = &self.bat_signals {
+            result.extend(bat_signals.downloads(&base)?);
+        }
         Ok(result)
     }
 
