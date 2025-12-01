@@ -12,6 +12,7 @@ pub enum Status {
 }
 
 impl Status {
+    #[must_use]
     pub const fn is_helpful(self) -> Option<bool> {
         match self {
             Self::NeedsMoreRatings => None,

@@ -29,8 +29,7 @@ pub enum Error {
 }
 
 pub fn parse_exchange<
-    'a: 'de,
-    'de,
+    'a,
     V: super::request::Variables<'a> + 'a,
     R: super::response::ParseWithVariables<'a, V> + 'a,
     F: RequestFilter,
