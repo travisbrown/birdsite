@@ -10,6 +10,11 @@ pub enum Error {
         locations: Option<Vec<Location>>,
         path: Option<Vec<PathEntry>>,
     },
+    StructuredWithExtensions {
+        extensions: Extensions,
+        message: String,
+        path: Vec<PathEntry>,
+    },
     Message(String),
 }
 
@@ -42,4 +47,12 @@ pub enum Kind {
     ServiceLevel,
     Unknown,
     Validation,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct Extensions {
+    pub code: usize,
+    pub kind: Kind,
+    pub name: String,
+    pub source: Source,
 }
