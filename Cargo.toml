@@ -6,6 +6,7 @@ members = [
     "creds",
     "graphql",
     "graphql-ctid",
+    "graphql-xpff",
     "graphql-creds",
     "birdwatch",
 ]
@@ -25,10 +26,12 @@ bounded-static-derive-more = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
 num-rational = "0.4"
 quickcheck = "1"
+rand = "0.9"
 regex = "1"
 serde = { version = "1", features = ["derive"] }
 serde-field-attributes = "0.1"
 serde_json = { version = "1", features = ["preserve_order"] }
+sha2 = "0.10"
 tempfile = "3"
 thiserror = "2"
 url = "2"

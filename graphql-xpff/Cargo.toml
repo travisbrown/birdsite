@@ -1,5 +1,5 @@
 [package]
-name = "birdsite-graphql-ctid"
+name = "birdsite-graphql-xpff"
 authors = { workspace = true }
 repository = { workspace = true }
 version = { workspace = true }
@@ -7,15 +7,10 @@ edition = { workspace = true }
 license = { workspace = true }
 
 [dependencies]
-base64 = "0.22"
+aes-gcm = "0.10"
 chrono = { workspace = true }
-libmath = "0.2"
-rand = { workspace = true }
-regex = { workspace = true }
-reqwest = "0.12"
-scraper = "0.24"
+hex = "0.4"
+serde = { workspace = true }
+serde_json = { workspace = true }
 sha2 = { workspace = true }
 thiserror = { workspace = true }
-
-[dev-dependencies]
-tokio = { version = "1", features = ["macros"] }
