@@ -3,6 +3,7 @@ use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
 use std::borrow::Cow;
 
+pub mod about;
 pub mod entities;
 pub mod properties;
 
