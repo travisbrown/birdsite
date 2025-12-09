@@ -29,7 +29,7 @@ quickcheck = "1"
 rand = "0.9"
 regex = "1"
 serde = { version = "1", features = ["derive"] }
-serde-field-attributes = "0.1"
+serde-field-attributes = "0.2"
 serde_json = { version = "1", features = ["preserve_order"] }
 sha2 = "0.10"
 tempfile = "3"
