@@ -51,7 +51,7 @@ pub enum Kind {
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct Extensions {
-    pub code: usize,
+    pub code: Option<usize>,
     pub kind: Kind,
     pub name: String,
     pub source: Source,
