@@ -1,13 +1,24 @@
-//! This data format appears for tweets in the Wayback Machine until at least 2020 (TODO: find more precise dates).
+//! This data format appears for tweets in the Wayback Machine until at least 2022 (current last seen is 22 November 2022).
 use crate::model::{
-    attributes::text_timestamp, color::Color, country::Country, lang::Lang, time_zone::TimeZone,
+    attributes::text_timestamp,
+    color::Color,
+    country::Country,
+    lang::Lang,
+    place::{Place, TypedCoordinates},
+    source::SourceAnchor,
+    time_zone::TimeZone,
 };
+use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
-use serde_field_attributes::{integer_str, optional_integer_str, optional_usize};
+use serde_field_attributes::{integer_str, optional_integer_str, optional_range, optional_usize};
 use std::borrow::Cow;
+use std::ops::Range;
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-//#[serde(deny_unknown_fields)]
+pub mod entity;
+pub mod media;
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct TweetSnapshot<'a> {
     #[serde(with = "text_timestamp")]
     pub created_at: DateTime<Utc>,
@@ -15,26 +26,26 @@ pub struct TweetSnapshot<'a> {
     #[serde(with = "integer_str")]
     id_str: u64,
     pub text: Cow<'a, str>,
-    //pub source: Source,
+    pub source: SourceAnchor,
     pub truncated: bool,
     pub in_reply_to_status_id: Option<u64>,
     #[serde(with = "optional_integer_str")]
     in_reply_to_status_id_str: Option<u64>,
     pub in_reply_to_user_id: Option<u64>,
     #[serde(with = "optional_integer_str")]
-    in_reply_to_user_id_str: Option<u64>,
+    pub in_reply_to_user_id_str: Option<u64>,
     pub user: User<'a>,
     pub in_reply_to_screen_name: Option<Cow<'a, str>>,
-    //geo: Option<Geo>,
-    //coordinates: Option<Geo>,
-    //pub place: Option<Place<'a>>,
-    contributors: Option<Vec<u64>>,
+    pub geo: Option<TypedCoordinates>,
+    pub coordinates: Option<TypedCoordinates>,
+    pub place: Option<Place<'a>>,
+    pub contributors: Option<Vec<u64>>,
     pub quoted_status_id: Option<u64>,
     #[serde(with = "optional_integer_str")]
     #[serde(default)]
-    quoted_status_id_str: Option<u64>,
+    pub quoted_status_id_str: Option<u64>,
     pub quoted_status: Option<Box<TweetSnapshot<'a>>>,
-    //pub quoted_status_permalink: Option<Url<'a>>,
+    pub quoted_status_permalink: Option<Url<'a>>,
     pub retweeted_status: Option<Box<TweetSnapshot<'a>>>,
     pub is_quote_status: bool,
     // Missing for one known case (881014163392401408).
@@ -43,19 +54,28 @@ pub struct TweetSnapshot<'a> {
     pub reply_count: Option<usize>,
     pub retweet_count: usize,
     pub favorite_count: usize,
-    //pub entities: serde_json::Value,
+    pub entities: entity::TweetEntities<'a>,
     pub favorited: bool,
     pub retweeted: bool,
     pub possibly_sensitive: Option<bool>,
     pub filter_level: FilterLevel,
     pub lang: Lang,
     pub timestamp_ms: Option<String>,
-    pub display_text_range: Option<(usize, usize)>,
+    #[serde(with = "optional_range", default)]
+    pub display_text_range: Option<Range<usize>>,
     #[serde(borrow)]
     pub extended_tweet: Option<ExtendedTweet<'a>>,
-    //pub extended_entities: Option<ExtendedTweetExtendedEntities<'a>>,
+    pub extended_entities: Option<entity::ExtendedTweetExtendedEntities<'a>>,
     pub withheld_in_countries: Option<Vec<Country>>,
     pub scopes: Option<Scopes>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Url<'a> {
+    pub url: Cow<'a, str>,
+    pub expanded: Cow<'a, str>,
+    pub display: Cow<'a, str>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -64,17 +84,17 @@ pub struct Scopes {
     pub followers: bool,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-//#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct ExtendedTweet<'a> {
     #[serde(borrow)]
     pub full_text: Cow<'a, str>,
-    pub display_text_range: (usize, usize),
-    //pub entities: ExtendedTweetEntities<'a>,
-    //pub extended_entities: Option<ExtendedTweetExtendedEntities<'a>>,
+    pub display_text_range: Range<usize>,
+    pub entities: entity::TweetEntities<'a>,
+    pub extended_entities: Option<entity::ExtendedTweetExtendedEntities<'a>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct User<'a> {
     pub id: u64,
@@ -99,8 +119,8 @@ pub struct User<'a> {
     pub statuses_count: Option<usize>,
     #[serde(with = "text_timestamp")]
     pub created_at: DateTime<Utc>,
-    utc_offset: Option<isize>,
-    time_zone: Option<TimeZone>,
+    pub utc_offset: Option<isize>,
+    pub time_zone: Option<TimeZone>,
     pub geo_enabled: bool,
     pub lang: Option<Lang>,
     pub contributors_enabled: bool,
@@ -119,6 +139,7 @@ pub struct User<'a> {
     pub profile_banner_url: Option<Cow<'a, str>>,
     pub default_profile: bool,
     pub default_profile_image: bool,
+    // If the following three fields are present, they are always `null`.
     following: Option<()>,
     follow_request_sent: Option<()>,
     notifications: Option<()>,

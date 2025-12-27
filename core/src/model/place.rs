@@ -1,11 +1,12 @@
+use bounded_static_derive_more::ToStatic;
 use num_rational::Ratio;
 use serde_field_attributes::ratio_i64;
 use std::borrow::Cow;
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Place<'a> {
-    pub id: &'a str,
+    pub id: Cow<'a, str>,
     pub url: Cow<'a, str>,
     pub place_type: PlaceType,
     pub name: Cow<'a, str>,

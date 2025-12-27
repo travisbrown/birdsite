@@ -2,6 +2,7 @@ use bounded_static_derive_more::ToStatic;
 use std::borrow::Cow;
 
 pub mod attributes;
+pub mod cashtag;
 pub mod color;
 pub mod country;
 pub mod entity;
@@ -12,6 +13,7 @@ pub mod metrics;
 pub mod place;
 pub mod properties;
 pub mod snowflake;
+pub mod source;
 pub mod time_zone;
 pub mod timestamp;
 pub mod url;

@@ -9,7 +9,7 @@ license = { workspace = true }
 [dependencies]
 birdsite-graphql-ctid = { path = "../graphql-ctid/" }
 chrono = { workspace = true }
-rusqlite = "0.37"
+rusqlite = "0.38"
 thiserror = { workspace = true }
 
 [dev-dependencies]

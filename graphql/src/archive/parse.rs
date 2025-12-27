@@ -61,7 +61,7 @@ pub fn parse_exchange<
                     (errors_end + 9, errors_and_data_json_str.len()),
                     Some((9, errors_end + 1)),
                 )
-            } else if errors_and_data_json_str.chars().next_back() == Some(']') {
+            } else if errors_and_data_json_str.ends_with(']') {
                 // In some recent (1 December 2025) cases, the `errors` field may appear after the `data` field.
                 // The `errors` field will always be an array, and `data` will be an object.
                 // We do not currently handle the possibility that `errors` fields appear both before and after `data`.
