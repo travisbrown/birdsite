@@ -20,6 +20,7 @@ pub enum Error {
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 struct Payload<'a> {
     navigator_properties: NavigatorProperties<'a>,
     #[serde(with = "chrono::serde::ts_milliseconds")]
@@ -27,6 +28,7 @@ struct Payload<'a> {
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 struct NavigatorProperties<'a> {
     #[serde(rename = "hasBeenActive")]
     has_been_active: BooleanString,

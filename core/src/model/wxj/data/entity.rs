@@ -4,10 +4,45 @@ use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
+pub struct UserEntities<'a> {
+    #[serde(borrow)]
+    pub description: Option<DescriptionEntities<'a>>,
+    pub url: Option<Urls<'a>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DescriptionEntities<'a> {
+    #[serde(borrow)]
+    pub urls: Option<Vec<UrlDetails<'a>>>,
+    pub mentions: Option<Vec<UserMention<'a>>>,
+    pub hashtags: Option<Vec<Hashtag<'a>>>,
+    pub cashtags: Option<Vec<Cashtag>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Urls<'a> {
+    #[serde(borrow)]
+    pub urls: Vec<UrlDetails<'a>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct UrlDetails<'a> {
+    pub url: Cow<'a, str>,
+    pub display_url: Option<Cow<'a, str>>,
+    pub expanded_url: Option<Cow<'a, str>>,
+    pub start: usize,
+    pub end: usize,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct TweetEntities<'a> {
     #[serde(borrow)]
     pub annotations: Option<Vec<Annotation<'a>>>,
-    pub mentions: Option<Vec<Mention<'a>>>,
+    pub mentions: Option<Vec<TweetMention<'a>>>,
     pub urls: Option<Vec<Url<'a>>>,
     pub hashtags: Option<Vec<Hashtag<'a>>>,
     pub cashtags: Option<Vec<Cashtag>>,
@@ -38,7 +73,15 @@ pub enum AnnotationType {
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct Mention<'a> {
+pub struct UserMention<'a> {
+    pub start: usize,
+    pub end: usize,
+    pub username: Cow<'a, str>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct TweetMention<'a> {
     pub start: usize,
     pub end: usize,
     pub username: Cow<'a, str>,

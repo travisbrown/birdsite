@@ -34,6 +34,7 @@ pub enum ParodyCommentaryFanLabel {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct HighlightsInfo {
     pub can_highlight_tweets: bool,
     #[serde(with = "integer_str")]
@@ -41,6 +42,7 @@ pub struct HighlightsInfo {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct BusinessAccount {
     pub affiliates_count: Option<usize>,
 }

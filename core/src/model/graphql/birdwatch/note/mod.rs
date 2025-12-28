@@ -198,6 +198,7 @@ pub enum AppealStatus {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct MediaNoteMatchesV2 {
     pub match_count: usize,
     pub shoud_show_matches: bool,

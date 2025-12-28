@@ -21,6 +21,7 @@ pub enum Error {
 #[derive(
     Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, serde::Deserialize, serde::Serialize,
 )]
+#[serde(deny_unknown_fields)]
 pub struct Location {
     pub line: usize,
     pub column: usize,
@@ -50,6 +51,7 @@ pub enum Kind {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Extensions {
     pub code: Option<usize>,
     pub kind: Kind,

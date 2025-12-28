@@ -17,6 +17,7 @@ pub enum UserResult<'a, U> {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+//#[serde(deny_unknown_fields)]
 pub struct User<'a> {
     #[serde(with = "integer_str")]
     pub rest_id: u64,
@@ -24,6 +25,7 @@ pub struct User<'a> {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+//#[serde(deny_unknown_fields)]
 pub struct Legacy<'a> {
     pub screen_name: Cow<'a, str>,
     pub name: Cow<'a, str>,

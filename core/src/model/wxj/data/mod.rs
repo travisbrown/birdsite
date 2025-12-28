@@ -278,7 +278,7 @@ pub enum ReplySettings {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
-//#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields)]
 pub struct User<'a> {
     #[serde(with = "integer_str")]
     pub id: u64,
@@ -292,7 +292,7 @@ pub struct User<'a> {
     pub profile_image_url: Cow<'a, str>,
     #[serde(with = "optional_integer_str", default)]
     pub pinned_tweet_id: Option<u64>,
-    //pub entities: Option<UserEntities<'a>>,
+    pub entities: Option<entity::UserEntities<'a>>,
     pub verified: bool,
     pub protected: bool,
     pub public_metrics: UserPublicMetrics,

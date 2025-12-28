@@ -54,12 +54,14 @@ pub struct Tweet<'a, T, U> {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct TweetHighlights {
     #[serde(rename = "textHighlights")]
     pub text_highlights: Vec<TextHighlight>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct TextHighlight {
     #[serde(rename = "startIndex")]
     pub start_index: usize,
@@ -68,6 +70,7 @@ pub struct TextHighlight {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct TweetContext<'a> {
     /// Should always be `"TimelineTweetContext"`.
     #[serde(rename = "type")]
