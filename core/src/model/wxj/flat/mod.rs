@@ -44,8 +44,11 @@ pub struct TweetSnapshot<'a> {
     #[serde(with = "optional_integer_str")]
     #[serde(default)]
     pub quoted_status_id_str: Option<u64>,
+    // We have to write out the type here and below because of an apparent bug in the `ToStatic` macro.
+    #[allow(clippy::use_self)]
     pub quoted_status: Option<Box<TweetSnapshot<'a>>>,
     pub quoted_status_permalink: Option<Url<'a>>,
+    #[allow(clippy::use_self)]
     pub retweeted_status: Option<Box<TweetSnapshot<'a>>>,
     pub is_quote_status: bool,
     // Missing for one known case (881014163392401408).
