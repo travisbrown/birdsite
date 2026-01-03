@@ -15,6 +15,10 @@ pub enum Error {
         message: String,
         path: Vec<PathEntry>,
     },
+    StructuredWithPath {
+        message: String,
+        path: Vec<PathEntry>,
+    },
     Message(String),
 }
 
