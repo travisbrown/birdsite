@@ -12,7 +12,7 @@ chrono = { workspace = true }
 libmath = "0.2"
 rand = { workspace = true }
 regex = { workspace = true }
-reqwest = "0.12"
+reqwest = { workspace = true }
 scraper = "0.25"
 sha2 = { workspace = true }
 thiserror = { workspace = true }
