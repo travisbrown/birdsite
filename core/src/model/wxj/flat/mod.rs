@@ -73,6 +73,28 @@ pub struct TweetSnapshot<'a> {
     pub scopes: Option<Scopes>,
 }
 
+impl<'a> TweetSnapshot<'a> {
+    pub fn users(&self) -> Vec<User<'a>> {
+        let mut users = Vec::with_capacity(1);
+
+        self.add_users(&mut users);
+
+        users
+    }
+
+    fn add_users(&self, acc: &mut Vec<User<'a>>) {
+        acc.push(self.user.clone());
+
+        if let Some(quoted_status) = &self.quoted_status {
+            quoted_status.add_users(acc);
+        }
+
+        if let Some(retweeted_status) = &self.retweeted_status {
+            retweeted_status.add_users(acc);
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Url<'a> {
