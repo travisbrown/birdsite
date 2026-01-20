@@ -108,16 +108,16 @@ impl serde::Serialize for Lang {
     }
 }
 
-const LANGUAGE_CODES: [&str; 129] = [
+const LANGUAGE_CODES: [&str; 130] = [
     "af", "am", "ar", "az", "be", "bg", "bn", "bo", "bs", "ca", "ceb", "ckb", "co", "cs", "cy",
     "da", "de", "dv", "el", "en", "en-AU", "en-GB", "en-IN", "en-gb", "eo", "es", "es-MX", "et",
-    "eu", "fa", "fi", "fil", "fil-ph", "fr", "fy", "ga", "gd", "gl", "gu", "ha", "haw", "he", "hi",
-    "hmn", "hr", "ht", "hu", "hy", "id", "ig", "in", "is", "it", "iw", "ja", "jw", "ka", "kk",
-    "km", "kn", "ko", "ku", "ky", "la", "lb", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn", "mr",
-    "ms", "msa", "mt", "my", "nb", "ne", "nl", "no", "ny", "or", "pa", "pl", "ps", "pt", "ro",
-    "ru", "rw", "sd", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "sr-cyrl", "sr-latn", "st",
-    "su", "sv", "sw", "ta", "te", "tg", "th", "tk", "tl", "tr", "tt", "ug", "uk", "ur", "uz", "vi",
-    "xh", "yi", "yo", "zh", "zh-CN", "zh-Hans", "zh-TW", "zh-cn", "zh-tw", "zu",
+    "eu", "fa", "fi", "fil", "fil-ph", "fr", "fr-CA", "fy", "ga", "gd", "gl", "gu", "ha", "haw",
+    "he", "hi", "hmn", "hr", "ht", "hu", "hy", "id", "ig", "in", "is", "it", "iw", "ja", "jw",
+    "ka", "kk", "km", "kn", "ko", "ku", "ky", "la", "lb", "lo", "lt", "lv", "mg", "mi", "mk", "ml",
+    "mn", "mr", "ms", "msa", "mt", "my", "nb", "ne", "nl", "no", "ny", "or", "pa", "pl", "ps",
+    "pt", "ro", "ru", "rw", "sd", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "sr-cyrl",
+    "sr-latn", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "tk", "tl", "tr", "tt", "ug", "uk",
+    "ur", "uz", "vi", "xh", "yi", "yo", "zh", "zh-CN", "zh-Hans", "zh-TW", "zh-cn", "zh-tw", "zu",
 ];
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -151,7 +151,7 @@ pub enum Language {
     Estonian,
     Filipino(Option<FilipinoLocale>),
     Finnish,
-    French,
+    French(Option<FrenchLocale>),
     Gaelic,
     Galician,
     Georgian,
@@ -263,6 +263,11 @@ pub enum SerbianScript {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum FrenchLocale {
+    Canada,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum SpanishLocale {
     Mexico,
 }
@@ -307,7 +312,8 @@ impl Language {
             "fi" => Some(Self::Finnish),
             "fil" => Some(Self::Filipino(None)),
             "fil-ph" => Some(Self::Filipino(Some(FilipinoLocale::Philippines))),
-            "fr" => Some(Self::French),
+            "fr" => Some(Self::French(None)),
+            "fr-CA" => Some(Self::French(Some(FrenchLocale::Canada))),
             "fy" => Some(Self::WesternFrisian),
             "ga" => Some(Self::Irish),
             "gd" => Some(Self::Gaelic),
@@ -461,7 +467,8 @@ impl Language {
             Self::Filipino(None) => "fil",
             Self::Filipino(Some(FilipinoLocale::Philippines)) => "fil-ph",
             Self::Finnish => "fi",
-            Self::French => "fr",
+            Self::French(None) => "fr",
+            Self::French(Some(FrenchLocale::Canada)) => "fr-CA",
             Self::Gaelic => "gd",
             Self::Galician => "gl",
             Self::Georgian => "ka",
@@ -701,7 +708,7 @@ impl serde::Serialize for Special {
     }
 }
 
-const LANGUAGE_VALUES: [Language; 129] = [
+const LANGUAGE_VALUES: [Language; 130] = [
     Language::Afrikaans,
     Language::Amharic,
     Language::Arabic,
@@ -735,7 +742,8 @@ const LANGUAGE_VALUES: [Language; 129] = [
     Language::Finnish,
     Language::Filipino(None),
     Language::Filipino(Some(FilipinoLocale::Philippines)),
-    Language::French,
+    Language::French(None),
+    Language::French(Some(FrenchLocale::Canada)),
     Language::WesternFrisian,
     Language::Irish,
     Language::Gaelic,

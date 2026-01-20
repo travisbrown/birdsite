@@ -149,6 +149,7 @@ const RAW_DATA: &[(&str, usize)] = &[
     ("ceb", 0),
     ("dv", 0),
     ("fil-ph", 0),
+    ("fr-CA", 0),
     ("fy", 0),
     ("hmn", 0),
     ("jw", 0),
