@@ -70,6 +70,7 @@ pub struct TweetSnapshot<'a> {
     pub extended_tweet: Option<ExtendedTweet<'a>>,
     pub extended_entities: Option<entity::ExtendedTweetExtendedEntities<'a>>,
     pub withheld_in_countries: Option<Vec<Country>>,
+    pub withheld_copyright: Option<bool>,
     pub scopes: Option<Scopes>,
 }
 
