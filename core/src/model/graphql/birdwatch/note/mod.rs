@@ -36,6 +36,7 @@ pub struct NoteMetadata<'a> {
     pub media_note_matches: Option<usize>,
     pub media_note_matches_v2: Option<MediaNoteMatchesV2>,
     pub is_api_author: Option<bool>,
+    pub language: Option<crate::model::lang::Lang>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -75,6 +76,7 @@ impl<'de: 'a, 'a> Deserialize<'de> for Note<'a> {
                 media_note_matches: note.media_note_matches,
                 media_note_matches_v2: note.media_note_matches_v2,
                 is_api_author: note.is_api_author,
+                language: note.language,
             };
 
             let data = note.data_v1.and_then(|data_v1| match data_v1 {
@@ -236,6 +238,7 @@ mod internal {
         pub(super) is_in_account_language: Option<bool>,
         pub(super) is_api_author: Option<bool>,
         pub(super) show_matched_parent_note: Option<bool>,
+        pub(super) language: Option<crate::model::lang::Lang>,
     }
 
     impl Note<'_> {
