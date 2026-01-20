@@ -14,8 +14,14 @@ pub enum TimeZone {
     Est,
     #[serde(rename = "GMT")]
     Gmt,
+    #[serde(rename = "GMT+1")]
+    Gmt1,
+    #[serde(rename = "GMT+7")]
+    Gmt7,
     #[serde(rename = "GMT+8")]
     Gmt8,
+    #[serde(rename = "HST")]
+    Hst,
     #[serde(rename = "JST")]
     Jst,
     #[serde(rename = "MDT")]
@@ -40,10 +46,14 @@ pub enum TimeZone {
     IndianaEast,
     #[serde(rename = "Atlantic Time (Canada)")]
     AtlanticCanada,
+    #[serde(rename = "Africa/Accra")]
+    AfricaAccra,
     #[serde(rename = "Africa/Algiers")]
     AfricaAlgiers,
     #[serde(rename = "Africa/Bangui")]
     AfricaBangui,
+    #[serde(rename = "Africa/Blantyre")]
+    AfricaBlantyre,
     #[serde(rename = "Africa/Cairo")]
     AfricaCairo,
     #[serde(rename = "Africa/Casablanca")]
@@ -60,16 +70,26 @@ pub enum TimeZone {
     AfricaNairobi,
     #[serde(rename = "Africa/Nouakchott")]
     AfricaNouakchott,
+    #[serde(rename = "Africa/Windhoek")]
+    AfricaWindhoek,
     #[serde(rename = "America/Anchorage")]
     AmericaAnchorage,
+    #[serde(rename = "America/Anguilla")]
+    AmericaAnguilla,
     #[serde(rename = "America/Antigua")]
     AmericaAntigua,
     #[serde(rename = "America/Argentina/Buenos_Aires")]
     AmericaArgentinaBuenosAires,
-    #[serde(rename = "America/Bahia_Banderas")]
-    AmericaAsuncion,
+    #[serde(rename = "America/Aruba")]
+    AmericaAruba,
     #[serde(rename = "America/Asuncion")]
+    AmericaAsuncion,
+    #[serde(rename = "America/Atikokan")]
+    AmericaAtikokan,
+    #[serde(rename = "America/Bahia_Banderas")]
     AmericaBahiaBanderas,
+    #[serde(rename = "America/Barbados")]
+    AmericaBarbados,
     #[serde(rename = "America/Belem")]
     AmericaBelem,
     #[serde(rename = "America/Bogota")]
@@ -100,6 +120,8 @@ pub enum TimeZone {
     AmericaHalifax,
     #[serde(rename = "America/Indiana/Indianapolis")]
     AmericaIndianaIndianapolis,
+    #[serde(rename = "America/Indiana/Vincennes")]
+    AmericaIndianaVincennes,
     #[serde(rename = "America/La_Paz")]
     AmericaLaPaz,
     #[serde(rename = "America/Lima")]
@@ -114,6 +136,10 @@ pub enum TimeZone {
     AmericaMontevideo,
     #[serde(rename = "America/New_York")]
     AmericaNewYork,
+    #[serde(rename = "America/Noronha")]
+    AmericaNoronha,
+    #[serde(rename = "America/Panama")]
+    AmericaPanama,
     #[serde(rename = "America/Phoenix")]
     AmericaPhoenix,
     #[serde(rename = "America/Puerto_Rico")]
@@ -128,10 +154,14 @@ pub enum TimeZone {
     AmericaSantiago,
     #[serde(rename = "America/Sao_Paulo")]
     AmericaSaoPaulo,
+    #[serde(rename = "America/Tijuana")]
+    AmericaTijuana,
     #[serde(rename = "America/Toronto")]
     AmericaToronto,
     #[serde(rename = "America/Vancouver")]
     AmericaVancouver,
+    #[serde(rename = "America/Winnipeg")]
+    AmericaWinnipeg,
     #[serde(rename = "Asia/Amman")]
     AsiaAmman,
     #[serde(rename = "Asia/Baghdad")]
@@ -152,6 +182,8 @@ pub enum TimeZone {
     AsiaKarachi,
     #[serde(rename = "Asia/Kolkata")]
     AsiaKolkata,
+    #[serde(rename = "Asia/Makassar")]
+    AsiaMakassar,
     #[serde(rename = "Asia/Manila")]
     AsiaManila,
     #[serde(rename = "Asia/Muscat")]
@@ -168,6 +200,10 @@ pub enum TimeZone {
     AsiaTokyo,
     #[serde(rename = "Atlantic/Madeira")]
     AtlanticMadeira,
+    #[serde(rename = "Australia/Brisbane")]
+    AustraliaBrisbane,
+    #[serde(rename = "Australia/Darwin")]
+    AustraliaDarwin,
     #[serde(rename = "Australia/Hobart")]
     AustraliaHobart,
     #[serde(rename = "Australia/Perth")]
@@ -208,6 +244,8 @@ pub enum TimeZone {
     EuropeOslo,
     #[serde(rename = "Europe/Paris")]
     EuropeParis,
+    #[serde(rename = "Europe/Prague")]
+    EuropePrague,
     #[serde(rename = "Europe/Rome")]
     EuropeRome,
     #[serde(rename = "Europe/Skopje")]
@@ -216,6 +254,8 @@ pub enum TimeZone {
     EuropeStockholm,
     #[serde(rename = "Europe/Vienna")]
     EuropeVienna,
+    #[serde(rename = "Europe/Vilnius")]
+    EuropeVilnius,
     #[serde(rename = "Europe/Warsaw")]
     EuropeWarsaw,
     #[serde(rename = "Europe/Zurich")]
