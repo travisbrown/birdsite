@@ -45,7 +45,7 @@ pub struct NoteData<'a> {
     pub summary: Summary<'a>,
     pub misleading_tags: Option<Vec<MisleadingTag>>,
     pub not_misleading_tags: Option<Vec<NotMisleadingTag>>,
-    pub trustworthy_sources: bool,
+    pub trustworthy_sources: Option<bool>,
     pub tweet_id: Option<u64>,
     pub media_note_category: Option<MediaNoteCategory>,
     pub profile: Option<super::profile::Profile<'a>>,
@@ -262,7 +262,7 @@ mod internal {
             summary: super::Summary<'a>,
             misleading_tags: Option<Vec<super::MisleadingTag>>,
             not_misleading_tags: Option<Vec<super::NotMisleadingTag>>,
-            trustworthy_sources: bool,
+            trustworthy_sources: Option<bool>,
         },
         Unavailable {},
     }
