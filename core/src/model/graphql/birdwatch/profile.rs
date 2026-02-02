@@ -7,8 +7,9 @@ pub struct Profile<'a> {
     pub alias: Option<Cow<'a, str>>,
     pub ratings_count: Option<RatingsCount>,
     pub notes_count: Option<NotesCount>,
-    pub has_notes: Option<bool>,
     pub deleted_notes_count: Option<usize>,
+    pub has_notes: Option<bool>,
+    pub is_top_writer: Option<bool>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize)]
