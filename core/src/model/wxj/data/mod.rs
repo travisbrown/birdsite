@@ -297,6 +297,24 @@ pub struct User<'a> {
     pub protected: bool,
     pub public_metrics: UserPublicMetrics,
     pub withheld: Option<Withheld>,
+    pub derived: Option<Derived<'a>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Derived<'a> {
+    pub locations: Vec<Location<'a>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Location<'a> {
+    pub full_name: Cow<'a, str>,
+    pub country_code: Country,
+    pub region: Option<Cow<'a, str>>,
+    pub sub_region: Option<Cow<'a, str>>,
+    pub locality: Option<Cow<'a, str>>,
+    pub geo: TypedCoordinates,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
