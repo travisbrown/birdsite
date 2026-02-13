@@ -1,7 +1,7 @@
 use crate::{Endpoint, SiteInfo, TransactionId};
 use base64::prelude::*;
 use chrono::Utc;
-use rand::Rng;
+use rand::RngExt;
 use sha2::Digest;
 
 mod color;
