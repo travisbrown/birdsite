@@ -413,6 +413,8 @@ pub enum Country {
     Somalia,
     #[serde(rename = "SR")]
     Suriname,
+    #[serde(rename = "SS")]
+    SouthSudan,
     #[serde(rename = "ST")]
     SaoTomeAndPrincipe,
     #[serde(rename = "SV")]
@@ -501,7 +503,7 @@ pub enum Country {
     Zimbabwe,
 }
 
-pub const COUNTRY_VALUES: [Country; 243] = [
+pub const COUNTRY_VALUES: [Country; 244] = [
     Country::Andorra,
     Country::UnitedArabEmirates,
     Country::Afghanistan,
@@ -702,6 +704,7 @@ pub const COUNTRY_VALUES: [Country; 243] = [
     Country::Senegal,
     Country::Somalia,
     Country::Suriname,
+    Country::SouthSudan,
     Country::SaoTomeAndPrincipe,
     Country::ElSalvador,
     Country::SintMaarten,
