@@ -120,6 +120,8 @@ pub enum TimeZone {
     AmericaElSalvador,
     #[serde(rename = "America/Guatemala")]
     AmericaGuatemala,
+    #[serde(rename = "America/Guyana")]
+    AmericaGuyana,
     #[serde(rename = "America/Halifax")]
     AmericaHalifax,
     #[serde(rename = "America/Indiana/Indianapolis")]
@@ -172,6 +174,8 @@ pub enum TimeZone {
     AsiaAmman,
     #[serde(rename = "Asia/Baghdad")]
     AsiaBaghdad,
+    #[serde(rename = "Asia/Bahrain")]
+    AsiaBahrain,
     #[serde(rename = "Asia/Bangkok")]
     AsiaBangkok,
     #[serde(rename = "Asia/Calcutta")]
@@ -180,16 +184,22 @@ pub enum TimeZone {
     AsiaDhaka,
     #[serde(rename = "Asia/Dubai")]
     AsiaDubai,
+    #[serde(rename = "Asia/Jakarta")]
+    AsiaJakarta,
     #[serde(rename = "Asia/Jerusalem")]
     AsiaJerusalem,
     #[serde(rename = "Asia/Kabul")]
     AsiaKabul,
     #[serde(rename = "Asia/Karachi")]
     AsiaKarachi,
+    #[serde(rename = "Asia/Katmandu")]
+    AsiaKatmandu,
     #[serde(rename = "Asia/Kolkata")]
     AsiaKolkata,
     #[serde(rename = "Asia/Kuala_Lumpur")]
     AsiaKualaLumpur,
+    #[serde(rename = "Asia/Kuwait")]
+    AsiaKuwait,
     #[serde(rename = "Asia/Makassar")]
     AsiaMakassar,
     #[serde(rename = "Asia/Manila")]
@@ -206,6 +216,8 @@ pub enum TimeZone {
     AsiaSingapore,
     #[serde(rename = "Asia/Tokyo")]
     AsiaTokyo,
+    #[serde(rename = "Asia/Yerevan")]
+    AsiaYerevan,
     #[serde(rename = "Atlantic/Madeira")]
     AtlanticMadeira,
     #[serde(rename = "Australia/Brisbane")]
@@ -232,6 +244,8 @@ pub enum TimeZone {
     EuropeBrussels,
     #[serde(rename = "Europe/Budapest")]
     EuropeBudapest,
+    #[serde(rename = "Europe/Chisinau")]
+    EuropeChisinau,
     #[serde(rename = "Europe/Dublin")]
     EuropeDublin,
     #[serde(rename = "Europe/Helsinki")]
@@ -270,6 +284,8 @@ pub enum TimeZone {
     EuropeWarsaw,
     #[serde(rename = "Europe/Zurich")]
     EuropeZurich,
+    #[serde(rename = "Indian/Maldives")]
+    IndianMaldives,
     #[serde(rename = "Pacific/Auckland")]
     PacificAuckland,
     #[serde(rename = "Pacific/Honolulu")]
