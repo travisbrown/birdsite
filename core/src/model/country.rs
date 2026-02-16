@@ -367,6 +367,8 @@ pub enum Country {
     Poland,
     #[serde(rename = "PR")]
     PuertoRico,
+    #[serde(rename = "PS")]
+    Palestine,
     #[serde(rename = "PT")]
     Portugal,
     #[serde(rename = "PW")]
@@ -503,7 +505,7 @@ pub enum Country {
     Zimbabwe,
 }
 
-pub const COUNTRY_VALUES: [Country; 244] = [
+pub const COUNTRY_VALUES: [Country; 245] = [
     Country::Andorra,
     Country::UnitedArabEmirates,
     Country::Afghanistan,
@@ -681,6 +683,7 @@ pub const COUNTRY_VALUES: [Country; 244] = [
     Country::Pakistan,
     Country::Poland,
     Country::PuertoRico,
+    Country::Palestine,
     Country::Portugal,
     Country::Palau,
     Country::Paraguay,
