@@ -20,6 +20,24 @@ impl<F: Fn(RequestName) -> bool> RequestFilter for F {
     }
 }
 
+impl<const N: usize> RequestFilter for [RequestName; N] {
+    fn include(&self, name: RequestName) -> bool {
+        self.contains(&name)
+    }
+}
+
+impl RequestFilter for &[RequestName] {
+    fn include(&self, name: RequestName) -> bool {
+        self.contains(&name)
+    }
+}
+
+impl RequestFilter for Vec<RequestName> {
+    fn include(&self, name: RequestName) -> bool {
+        self.contains(&name)
+    }
+}
+
 pub struct RequestInclusions<const N: usize>([RequestName; N]);
 
 impl<const N: usize> RequestFilter for RequestInclusions<N> {

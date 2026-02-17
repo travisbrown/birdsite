@@ -89,9 +89,9 @@ pub fn parse_exchange<
         let data = if data_start < data_end {
             let data_json_str = &errors_and_data_json_str[data_start..data_end];
 
-            Some(
-                super::response::ParseWithVariables::parse(data_json_str, &request.variables)
-                    .map_err(|error| match error {
+            request.variables.as_ref().map(|variables| {
+                super::response::ParseWithVariables::parse(data_json_str, variables).map_err(
+                    |error| match error {
                         super::response::Error::InvalidResultLength { expected, returned } => {
                             Error::InvalidResultLength { expected, returned }
                         }
@@ -101,12 +101,15 @@ pub fn parse_exchange<
                             request_name: request.name,
                             request_timestamp: request.timestamp.timestamp_millis(),
                         },
-                    })?,
-            )
+                    },
+                )
+            })
+            //.map_or_else(|| , |result| result.map(Some))
         } else {
             // The case where there is no `data` field at all.
             None
-        };
+        }
+        .map_or_else(|| Ok(None), |result| result.map(Some))?;
 
         Ok(Ok(Exchange {
             request,
@@ -210,11 +213,11 @@ mod tests {
         fn parse_with_name<'de: 'a, A: serde::de::MapAccess<'de>>(
             _name: crate::request::name::RequestName,
             map: &mut A,
-        ) -> Result<Self, A::Error>
+        ) -> Option<Result<Self, A::Error>>
         where
             Self: Sized,
         {
-            Ok(Self(map.next_value()?))
+            Some(map.next_value().map(Self))
         }
     }
 
@@ -244,7 +247,7 @@ mod tests {
                 .unwrap()
                 .unwrap();
 
-        assert!(exchange.request.variables.0.is_object());
+        assert!(exchange.request.variables.unwrap().0.is_object());
         assert_eq!(exchange.errors.len(), 3);
 
         let data_field = exchange.data.unwrap();
@@ -265,7 +268,7 @@ mod tests {
                 .unwrap()
                 .unwrap();
 
-        assert!(exchange.request.variables.0.is_object());
+        assert!(exchange.request.variables.unwrap().0.is_object());
         assert_eq!(exchange.errors.len(), 24);
 
         let data_field = exchange.data.unwrap();
@@ -285,7 +288,7 @@ mod tests {
                 .unwrap()
                 .unwrap();
 
-        assert!(exchange.request.variables.0.is_object());
+        assert!(exchange.request.variables.unwrap().0.is_object());
         assert_eq!(exchange.errors.len(), 0);
 
         let data_field = exchange.data.unwrap();
@@ -308,7 +311,7 @@ mod tests {
                 .unwrap()
                 .unwrap();
 
-        assert!(exchange.request.variables.0.is_object());
+        assert!(exchange.request.variables.unwrap().0.is_object());
         assert_eq!(exchange.errors.len(), 1);
 
         assert!(exchange.data.is_none());

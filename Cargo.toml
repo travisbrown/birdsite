@@ -30,9 +30,10 @@ rand = "0.10"
 regex = "1"
 reqwest = "0.13"
 serde = { version = "1", features = ["derive"] }
-serde-field-attributes = "0.2"
+serde-field-attributes = "0.3"
 serde_json = { version = "1", features = ["preserve_order"] }
 sha2 = "0.10"
 tempfile = "3"
 thiserror = "2"
 url = { version = "2", features = ["serde"] }
+zstd = "0.13"

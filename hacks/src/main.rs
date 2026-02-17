@@ -14,6 +14,33 @@ async fn main() -> Result<(), Error> {
     opts.verbose.init_logging()?;
 
     match opts.command {
+        Command::GraphQl { input, command } => {
+            use birdsite_graphql::request::{name::RequestName, variables::Variables};
+
+            let filter = [RequestName::TweetResultsByRestIds];
+
+            match command {
+                GraphQlCommand::Extract => {
+                    let exchanges = birdsite_graphql::archive::io::parse_exchanges_zst::<
+                        Variables,
+                        birdsite_graphql::archive::response::JsonResponse,
+                        _,
+                        _,
+                    >(input, filter)?;
+
+                    for result in exchanges {
+                        match result? {
+                            Ok(exchange) => {
+                                println!("{:?}", exchange.request);
+                            }
+                            Err(skipped) => {
+                                log::info!("Skipped: {}", skipped);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         Command::TweetsDb { db, command } => match command {
             TweetsDbCommand::AddPairs => {
                 let db = db::tweets::Database::open(db)?;
@@ -168,6 +195,8 @@ pub enum Error {
     },
     #[error("TweetsDB error")]
     TweetsDb(#[from] db::tweets::Error),
+    #[error("GraphQL error")]
+    GraphQl(#[from] birdsite_graphql::archive::io::Error),
 }
 
 #[derive(Debug, Parser)]
@@ -181,6 +210,12 @@ struct Opts {
 
 #[derive(Debug, Parser)]
 enum Command {
+    GraphQl {
+        #[clap(long)]
+        input: PathBuf,
+        #[clap(subcommand)]
+        command: GraphQlCommand,
+    },
     TweetsDb {
         #[clap(long)]
         db: PathBuf,
@@ -191,6 +226,11 @@ enum Command {
         #[clap(subcommand)]
         command: WxjCommand,
     },
+}
+
+#[derive(Debug, Parser)]
+enum GraphQlCommand {
+    Extract,
 }
 
 #[derive(Debug, Parser)]
