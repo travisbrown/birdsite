@@ -1,5 +1,12 @@
 use crate::request::name::RequestName;
-use serde_field_attributes::integer_or_integer_str_array;
+use serde_field_attributes::{integer_or_integer_str, integer_or_integer_str_array};
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BirdwatchFetchOneNote {
+    #[serde(with = "integer_or_integer_str")]
+    pub note_id: u64,
+}
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -18,6 +25,7 @@ pub struct TweetResultsByRestIds {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Variables {
+    BirdwatchFetchOneNote(BirdwatchFetchOneNote),
     TweetResultsByRestIds(TweetResultsByRestIds),
 }
 
@@ -30,6 +38,9 @@ impl<'a> crate::archive::request::Variables<'a> for Variables {
         Self: Sized,
     {
         match name {
+            RequestName::BirdwatchFetchOneNote => {
+                Some(map.next_value().map(Variables::BirdwatchFetchOneNote))
+            }
             RequestName::TweetResultsByRestIds => {
                 Some(map.next_value().map(Variables::TweetResultsByRestIds))
             }

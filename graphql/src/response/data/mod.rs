@@ -7,6 +7,7 @@ mod user;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Data {
+    BirdwatchFetchOneNote(birdsite::model::graphql::birdwatch::note::Note<'static>),
     TweetResultsByRestIds(Vec<TweetResult<'static>>),
 }
 
@@ -24,6 +25,12 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
         Self: Sized + 'a,
     {
         match variables {
+            Variables::BirdwatchFetchOneNote(_) => {
+                let note = serde_json::from_str::<birdwatch_fetch_one_note::Top<'_>>(input)?
+                    .birdwatch_note_by_rest_id;
+
+                Ok(Data::BirdwatchFetchOneNote(note.into_static()))
+            }
             Variables::TweetResultsByRestIds(variables) => {
                 let tweet_results =
                     serde_json::from_str::<tweet_results_by_rest_ids::Top<'_>>(input)?.tweet_result;
@@ -50,6 +57,15 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                 }
             }
         }
+    }
+}
+
+mod birdwatch_fetch_one_note {
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct Top<'a> {
+        #[serde(borrow)]
+        pub birdwatch_note_by_rest_id: birdsite::model::graphql::birdwatch::note::Note<'a>,
     }
 }
 

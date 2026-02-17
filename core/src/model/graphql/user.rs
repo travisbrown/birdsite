@@ -1,5 +1,4 @@
 use crate::model::graphql::unavailable::UserUnavailableReason;
-use serde_field_attributes::integer_str;
 use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq)]

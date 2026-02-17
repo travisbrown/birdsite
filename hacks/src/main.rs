@@ -17,7 +17,10 @@ async fn main() -> Result<(), Error> {
         Command::GraphQl { input, command } => {
             use birdsite_graphql::request::{name::RequestName, variables::Variables};
 
-            let filter = [RequestName::TweetResultsByRestIds];
+            let filter = [
+                RequestName::BirdwatchFetchOneNote,
+                RequestName::TweetResultsByRestIds,
+            ];
 
             match command {
                 GraphQlCommand::Extract => {
@@ -30,18 +33,25 @@ async fn main() -> Result<(), Error> {
 
                     for result in exchanges {
                         match result? {
-                            Ok(exchange) => {
-                                if let Some(
+                            Ok(exchange) => match exchange.data {
+                                Some(
                                     birdsite_graphql::response::data::Data::TweetResultsByRestIds(
                                         tweets,
                                     ),
-                                ) = exchange.data
-                                {
+                                ) => {
                                     for tweet in tweets {
                                         println!("{:?}", tweet);
                                     }
                                 }
-                            }
+                                Some(
+                                    birdsite_graphql::response::data::Data::BirdwatchFetchOneNote(
+                                        note,
+                                    ),
+                                ) => {
+                                    println!("{:?}", note);
+                                }
+                                _ => {}
+                            },
                             Err(skipped) => {
                                 log::info!("Skipped: {}", skipped);
                             }

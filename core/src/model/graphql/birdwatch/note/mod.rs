@@ -19,7 +19,24 @@ pub enum Note<'a> {
     },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+impl<'a> bounded_static::IntoBoundedStatic for Note<'a> {
+    type Static = Note<'static>;
+
+    fn into_static(self) -> Self::Static {
+        match self {
+            Self::Available { metadata, data } => Self::Static::Available {
+                metadata: metadata.into_static(),
+                data: data.into_static(),
+            },
+            Self::Unavailable { metadata } => Self::Static::Unavailable {
+                metadata: metadata.into_static(),
+            },
+            Self::Empty { id } => Self::Static::Empty { id },
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, bounded_static_derive_more::ToStatic)]
 pub struct NoteMetadata<'a> {
     pub id: u64,
     pub decided_by: Option<model::Model>,
@@ -39,7 +56,7 @@ pub struct NoteMetadata<'a> {
     pub language: Option<crate::model::lang::Lang>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, bounded_static_derive_more::ToStatic)]
 pub struct NoteData<'a> {
     pub classification: Classification,
     pub summary: Summary<'a>,
@@ -119,7 +136,7 @@ impl<'de: 'a, 'a> Deserialize<'de> for Note<'a> {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, bounded_static_derive_more::ToStatic, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Summary<'a> {
     pub text: Cow<'a, str>,
