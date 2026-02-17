@@ -52,8 +52,9 @@ pub struct NoteEntry<'a> {
     pub participant_id: Cow<'a, str>,
     #[serde(rename = "createdAtMillis", with = "ts_milliseconds")]
     pub created_at: DateTime<Utc>,
+    // TODO: Investigate cases where this is `-1`.
     #[serde(rename = "tweetId")]
-    pub tweet_id: u64,
+    pub tweet_id: i64,
     #[serde(rename = "classification")]
     pub classification: Classification,
 }
