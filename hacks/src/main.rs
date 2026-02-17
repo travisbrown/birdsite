@@ -23,7 +23,7 @@ async fn main() -> Result<(), Error> {
                 GraphQlCommand::Extract => {
                     let exchanges = birdsite_graphql::archive::io::parse_exchanges_zst::<
                         Variables,
-                        birdsite_graphql::archive::response::JsonResponse,
+                        birdsite_graphql::response::data::Data,
                         _,
                         _,
                     >(input, filter)?;
@@ -31,7 +31,16 @@ async fn main() -> Result<(), Error> {
                     for result in exchanges {
                         match result? {
                             Ok(exchange) => {
-                                println!("{:?}", exchange.request);
+                                if let Some(
+                                    birdsite_graphql::response::data::Data::TweetResultsByRestIds(
+                                        tweets,
+                                    ),
+                                ) = exchange.data
+                                {
+                                    for tweet in tweets {
+                                        println!("{:?}", tweet);
+                                    }
+                                }
                             }
                             Err(skipped) => {
                                 log::info!("Skipped: {}", skipped);

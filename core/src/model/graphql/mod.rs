@@ -7,6 +7,7 @@ pub mod shapes;
 pub mod text;
 pub mod timeline;
 pub mod trends;
+pub mod tweet;
 pub mod unavailable;
 pub mod user;
 
