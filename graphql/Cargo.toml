@@ -7,8 +7,12 @@ edition = { workspace = true }
 license = { workspace = true }
 
 [dependencies]
+birdsite = { path = "../core/" }
 bounded-static = { workspace = true }
+bounded-static-derive-more = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }
+serde-field-attributes = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+zstd = { workspace = true }

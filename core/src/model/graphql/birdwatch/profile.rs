@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc, serde::ts_milliseconds};
 use std::borrow::Cow;
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, bounded_static_derive_more::ToStatic, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Profile<'a> {
     pub alias: Option<Cow<'a, str>>,

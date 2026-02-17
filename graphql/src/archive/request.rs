@@ -3,19 +3,19 @@ use chrono::{DateTime, Utc};
 use std::borrow::Cow;
 use std::marker::PhantomData;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, bounded_static_derive_more::ToStatic)]
 pub struct Request<'a, V> {
     pub name: RequestName,
     pub version: Option<Cow<'a, str>>,
     pub timestamp: DateTime<Utc>,
-    pub variables: V,
+    pub variables: Option<V>,
 }
 
 pub trait Variables<'a> {
     fn parse_with_name<'de: 'a, A: serde::de::MapAccess<'de>>(
         name: RequestName,
         map: &mut A,
-    ) -> Result<Self, A::Error>
+    ) -> Option<Result<Self, A::Error>>
     where
         Self: Sized;
 }
@@ -69,7 +69,8 @@ impl<'a, 'de: 'a, V: Variables<'a> + 'a> serde::de::Deserialize<'de> for Request
 
                 RequestField::Variables.map_key(&mut map)?;
 
-                let variables = V::parse_with_name(name, &mut map)?;
+                let variables = V::parse_with_name(name, &mut map)
+                    .map_or_else(|| Ok(None), |result| result.map(Some))?;
 
                 Ok(Self::Value {
                     name,

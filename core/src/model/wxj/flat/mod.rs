@@ -75,6 +75,7 @@ pub struct TweetSnapshot<'a> {
 }
 
 impl<'a> TweetSnapshot<'a> {
+    #[must_use]
     pub fn users(&self) -> Vec<User<'a>> {
         let mut users = Vec::with_capacity(1);
 

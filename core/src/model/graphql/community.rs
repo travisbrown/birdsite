@@ -137,7 +137,7 @@ pub struct JoinRequestsResult {}
 
 #[cfg(test)]
 mod tests {
-    use crate::model::graphql::user::User;
+    use crate::model::graphql::user::repr::User;
 
     const COMMUNITIES_2024_08_01: &str =
         include_str!("../../../../examples/graphql/communities-2024-08-01.ndjson");

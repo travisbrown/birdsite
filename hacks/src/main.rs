@@ -1,6 +1,7 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
 #![allow(clippy::missing_errors_doc)]
 #![forbid(unsafe_code)]
+use birdsite_graphql::response::data::CommunityMembersResponse;
 use cli_helpers::prelude::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -14,6 +15,81 @@ async fn main() -> Result<(), Error> {
     opts.verbose.init_logging()?;
 
     match opts.command {
+        Command::GraphQl { input, command } => {
+            use birdsite_graphql::request::{name::RequestName, variables::Variables};
+
+            let filter = [
+                RequestName::AboutAccountQuery,
+                RequestName::BirdwatchFetchOneNote,
+                RequestName::BirdwatchFetchPublicData,
+                RequestName::MembersSliceTimelineQuery,
+                RequestName::TweetResultsByRestIds,
+                RequestName::UserByRestId,
+                RequestName::UserByScreenName,
+                RequestName::UsersByRestIds,
+            ];
+
+            match command {
+                GraphQlCommand::Extract => {
+                    use birdsite_graphql::response::data::Data;
+
+                    let exchanges = birdsite_graphql::archive::io::parse_exchanges_zst::<
+                        Variables,
+                        birdsite_graphql::response::data::Data,
+                        _,
+                        _,
+                    >(input, filter)?;
+
+                    for result in exchanges {
+                        match result? {
+                            Ok(exchange) => match exchange.data {
+                                Some(data) => match data {
+                                    Data::AboutAccountQuery(user_result) => {
+                                        log::warn!("AboutAccountQuery: {user_result:?}");
+                                    }
+                                    Data::BirdwatchFetchOneNote(note) => {
+                                        log::warn!("BirdwatchFetchOneNote: {note:?}");
+                                    }
+                                    Data::BirdwatchFetchPublicData(bundle) => {
+                                        log::warn!("BirdwatchFetchPublicData: {bundle:?}");
+                                    }
+                                    Data::MembersSliceTimelineQuery(response) => {
+                                        if let CommunityMembersResponse::Available {
+                                            members, ..
+                                        } = response
+                                        {
+                                            for user in members {
+                                                log::warn!("MembersSliceTimelineQuery: {user:?}");
+                                            }
+                                        }
+                                    }
+                                    Data::TweetResultsByRestIds(tweets) => {
+                                        for tweet in tweets {
+                                            log::warn!("TweetResultsByRestIds: {tweet:?}");
+                                        }
+                                    }
+                                    Data::UserByScreenName(user_result) => {
+                                        log::warn!("UserByScreenName: {user_result:?}");
+                                    }
+                                    Data::UserResultByRestId(user_result) => {
+                                        log::warn!("UserResultByRestId: {user_result:?}");
+                                    }
+                                    Data::UsersByRestIds(user_results) => {
+                                        for user_result in user_results {
+                                            log::warn!("UsersByRestIds: {user_result:?}");
+                                        }
+                                    }
+                                },
+                                _ => {}
+                            },
+                            Err(skipped) => {
+                                log::info!("Skipped: {skipped}");
+                            }
+                        }
+                    }
+                }
+            }
+        }
         Command::TweetsDb { db, command } => match command {
             TweetsDbCommand::AddPairs => {
                 let db = db::tweets::Database::open(db)?;
@@ -94,7 +170,7 @@ async fn main() -> Result<(), Error> {
 
                 log::info!("Loaded {} paths", paths.len());
 
-                for (i, path) in paths.iter().enumerate() {
+                for (_i, path) in paths.iter().enumerate() {
                     match std::fs::read_to_string(path) {
                         Ok(contents) => {
                             if let Ok(snapshot) = serde_json::from_str::<
@@ -127,7 +203,7 @@ async fn main() -> Result<(), Error> {
                                                 .unwrap_or_default(),
                                             in_reply_to_info
                                                 .as_ref()
-                                                .map(|(screen_name, _)| screen_name.to_string())
+                                                .map(|(screen_name, _)| screen_name.clone())
                                                 .unwrap_or_default(),
                                             in_reply_to_info
                                                 .as_ref()
@@ -168,6 +244,8 @@ pub enum Error {
     },
     #[error("TweetsDB error")]
     TweetsDb(#[from] db::tweets::Error),
+    #[error("GraphQL error")]
+    GraphQl(#[from] birdsite_graphql::archive::io::Error),
 }
 
 #[derive(Debug, Parser)]
@@ -181,6 +259,12 @@ struct Opts {
 
 #[derive(Debug, Parser)]
 enum Command {
+    GraphQl {
+        #[clap(long)]
+        input: PathBuf,
+        #[clap(subcommand)]
+        command: GraphQlCommand,
+    },
     TweetsDb {
         #[clap(long)]
         db: PathBuf,
@@ -191,6 +275,11 @@ enum Command {
         #[clap(subcommand)]
         command: WxjCommand,
     },
+}
+
+#[derive(Debug, Parser)]
+enum GraphQlCommand {
+    Extract,
 }
 
 #[derive(Debug, Parser)]

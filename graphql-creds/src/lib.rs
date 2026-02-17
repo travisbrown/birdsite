@@ -81,15 +81,14 @@ impl Store {
     }
 
     pub async fn get_ctid(&self, endpoint: &Endpoint<'_>) -> Result<TransactionId, Error> {
-        match self.lookup_ctid(endpoint)? {
-            Some(transaction_id) => Ok(transaction_id),
-            None => {
-                let transaction_id = self.client.generate(endpoint).await?;
+        if let Some(transaction_id) = self.lookup_ctid(endpoint)? {
+            Ok(transaction_id)
+        } else {
+            let transaction_id = self.client.generate(endpoint).await?;
 
-                self.add_ctid(endpoint, &transaction_id)?;
+            self.add_ctid(endpoint, &transaction_id)?;
 
-                Ok(transaction_id)
-            }
+            Ok(transaction_id)
         }
     }
 
@@ -98,27 +97,24 @@ impl Store {
         endpoint: &Endpoint<'_>,
         max_age: Duration,
     ) -> Result<TransactionId, Error> {
-        match self.lookup_ctid(endpoint)? {
-            Some(transaction_id) => {
-                let age = Utc::now() - transaction_id.timestamp;
+        if let Some(transaction_id) = self.lookup_ctid(endpoint)? {
+            let age = Utc::now() - transaction_id.timestamp;
 
-                if age.to_std().map(|age| age <= max_age).unwrap_or(false) {
-                    Ok(transaction_id)
-                } else {
-                    let transaction_id = self.client.generate(endpoint).await?;
-
-                    self.add_ctid(endpoint, &transaction_id)?;
-
-                    Ok(transaction_id)
-                }
-            }
-            None => {
+            if age.to_std().map(|age| age <= max_age).unwrap_or(false) {
+                Ok(transaction_id)
+            } else {
                 let transaction_id = self.client.generate(endpoint).await?;
 
                 self.add_ctid(endpoint, &transaction_id)?;
 
                 Ok(transaction_id)
             }
+        } else {
+            let transaction_id = self.client.generate(endpoint).await?;
+
+            self.add_ctid(endpoint, &transaction_id)?;
+
+            Ok(transaction_id)
         }
     }
 
