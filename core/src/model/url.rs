@@ -7,7 +7,15 @@ pub enum UrlType {
     UrtEndpoint,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    bounded_static_derive_more::ToStatic,
+    serde::Deserialize,
+    serde::Serialize,
+)]
 #[serde(deny_unknown_fields)]
 pub struct Url<'a> {
     #[serde(rename = "urlType")]
@@ -18,7 +26,15 @@ pub struct Url<'a> {
 }
 
 /// TODO: Determine whether the URT pieces are GraphQL-specific.
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    bounded_static_derive_more::ToStatic,
+    serde::Deserialize,
+    serde::Serialize,
+)]
 #[serde(deny_unknown_fields)]
 pub struct UrtEndpointOptions<'a> {
     #[serde(rename = "requestParams")]

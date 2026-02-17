@@ -3,6 +3,7 @@ use birdsite::model::graphql::{tweet::TweetResult, unavailable::TweetUnavailable
 use bounded_static::IntoBoundedStatic;
 
 mod tweet;
+mod user;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Data {

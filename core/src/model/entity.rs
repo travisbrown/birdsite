@@ -1,4 +1,5 @@
 use crate::model::url::{Url, UrlType};
+use bounded_static::{IntoBoundedStatic, ToBoundedStatic};
 use std::borrow::Cow;
 use std::ops::Range;
 
@@ -50,7 +51,7 @@ impl serde::ser::Serialize for Entity<'_> {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, bounded_static_derive_more::ToStatic)]
 pub struct TypedEntity<'a> {
     pub indices: Range<usize>,
     pub reference: TypedEntityReference<'a>,
@@ -93,6 +94,50 @@ pub enum TypedEntityReference<'a> {
     TimelineRichTextCashtag {
         text: Cow<'a, str>,
     },
+}
+
+impl<'a> IntoBoundedStatic for TypedEntityReference<'a> {
+    type Static = TypedEntityReference<'static>;
+
+    fn into_static(self) -> Self::Static {
+        match self {
+            Self::TimelineUrl { url } => TypedEntityReference::TimelineUrl {
+                url: url.into_static(),
+            },
+            Self::TimelineRichTextHashtag { text } => {
+                TypedEntityReference::TimelineRichTextHashtag {
+                    text: text.into_static(),
+                }
+            }
+            Self::TimelineRichTextCashtag { text } => {
+                TypedEntityReference::TimelineRichTextCashtag {
+                    text: text.into_static(),
+                }
+            }
+        }
+    }
+}
+
+impl<'a> ToBoundedStatic for TypedEntityReference<'a> {
+    type Static = TypedEntityReference<'static>;
+
+    fn to_static(&self) -> Self::Static {
+        match self {
+            Self::TimelineUrl { url } => TypedEntityReference::TimelineUrl {
+                url: url.to_static(),
+            },
+            Self::TimelineRichTextHashtag { text } => {
+                TypedEntityReference::TimelineRichTextHashtag {
+                    text: text.to_static(),
+                }
+            }
+            Self::TimelineRichTextCashtag { text } => {
+                TypedEntityReference::TimelineRichTextCashtag {
+                    text: text.to_static(),
+                }
+            }
+        }
+    }
 }
 
 mod internal {

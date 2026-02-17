@@ -6,7 +6,7 @@ use crate::model::graphql::{
         display::{DisplayTreatment, TweetDisplayType, UserDisplayType},
     },
     timeline::context::{ForwardPivot, SocialContext},
-    user::UserResult,
+    user::repr::UserResult,
 };
 use std::borrow::Cow;
 

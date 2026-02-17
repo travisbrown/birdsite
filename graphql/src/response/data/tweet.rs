@@ -39,21 +39,9 @@ pub enum TweetResult<'a> {
 impl<'a> TweetResult<'a> {
     pub fn complete(self, id: u64) -> birdsite::model::graphql::tweet::TweetResult<'a> {
         match self {
-            Self::Tweet { tweet } => birdsite::model::graphql::tweet::TweetResult::Available(
-                birdsite::model::graphql::tweet::Tweet {
-                    id: tweet.rest_id,
-                    full_text: tweet.legacy.full_text,
-                },
-            ),
-            Self::TweetWithVisibilityResults { tweet, .. } => {
-                birdsite::model::graphql::tweet::TweetResult::Available(
-                    birdsite::model::graphql::tweet::Tweet {
-                        id: tweet.rest_id,
-                        full_text: tweet.legacy.full_text,
-                    },
-                )
-            }
-            TweetResult::TweetUnavailable { reason } => {
+            Self::Tweet { tweet } => tweet.into_tweet_result(),
+            Self::TweetWithVisibilityResults { tweet, .. } => tweet.into_tweet_result(),
+            Self::TweetUnavailable { reason } => {
                 birdsite::model::graphql::tweet::TweetResult::Unavailable { id, reason }
             }
         }
@@ -65,7 +53,31 @@ impl<'a> TweetResult<'a> {
 pub struct Tweet<'a> {
     #[serde(with = "integer_str")]
     pub rest_id: u64,
-    pub legacy: Legacy<'a>,
+    #[serde(borrow)]
+    core: Option<UserCore<'a>>,
+    legacy: Option<Legacy<'a>>,
+}
+
+impl<'a> Tweet<'a> {
+    fn into_tweet_result(self) -> birdsite::model::graphql::tweet::TweetResult<'a> {
+        match self
+            .legacy
+            .zip(self.core.and_then(|core| core.user_results.result))
+            .and_then(|(legacy, user_result)| {
+                user_result
+                    .into_user_result(legacy.user_id)
+                    .map(|user_result| (legacy, user_result))
+            }) {
+            Some((legacy, user_result)) => birdsite::model::graphql::tweet::TweetResult::Available(
+                birdsite::model::graphql::tweet::Tweet {
+                    id: self.rest_id,
+                    user: user_result,
+                    full_text: legacy.full_text,
+                },
+            ),
+            None => birdsite::model::graphql::tweet::TweetResult::Incomplete { id: self.rest_id },
+        }
+    }
 }
 
 #[derive(Clone, Debug, serde::Deserialize)]
@@ -74,4 +86,18 @@ struct Legacy<'a> {
     #[serde(rename = "id_str", with = "integer_str")]
     pub id: u64,
     pub full_text: Cow<'a, str>,
+    #[serde(rename = "user_id_str", with = "integer_str")]
+    pub user_id: u64,
+}
+
+#[derive(serde::Deserialize)]
+struct UserCore<'a> {
+    #[serde(borrow)]
+    user_results: UserResults<'a>,
+}
+
+#[derive(serde::Deserialize)]
+struct UserResults<'a> {
+    #[serde(borrow)]
+    result: Option<crate::response::data::user::UserResult<'a>>,
 }
