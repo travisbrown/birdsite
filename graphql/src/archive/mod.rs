@@ -12,7 +12,7 @@ pub struct Exchange<'a, V, D> {
     pub errors: Vec<crate::response::error::Error>,
 }
 
-impl<'a, V: IntoBoundedStatic, D: IntoBoundedStatic> IntoBoundedStatic for Exchange<'a, V, D> {
+impl<V: IntoBoundedStatic, D: IntoBoundedStatic> IntoBoundedStatic for Exchange<'_, V, D> {
     type Static = Exchange<'static, V::Static, D::Static>;
 
     fn into_static(self) -> Self::Static {
@@ -24,7 +24,7 @@ impl<'a, V: IntoBoundedStatic, D: IntoBoundedStatic> IntoBoundedStatic for Excha
     }
 }
 
-impl<'a, V: ToBoundedStatic, D: ToBoundedStatic> ToBoundedStatic for Exchange<'a, V, D> {
+impl<V: ToBoundedStatic, D: ToBoundedStatic> ToBoundedStatic for Exchange<'_, V, D> {
     type Static = Exchange<'static, V::Static, D::Static>;
 
     fn to_static(&self) -> Self::Static {

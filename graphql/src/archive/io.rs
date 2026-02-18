@@ -87,7 +87,7 @@ where
         self.lines.next().map(|(i, result)| match result {
             Ok(line) => {
                 crate::archive::parse::parse_exchange::<V, D, F>(&line, i + 1, &self.filter)
-                    .map(|result| result.into_static())
+                    .map(bounded_static::IntoBoundedStatic::into_static)
                     .map_err(Error::from)
             }
             Err(error) => Err(error.into()),

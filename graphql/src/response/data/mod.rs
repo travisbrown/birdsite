@@ -1,4 +1,4 @@
-use crate::request::variables::{self, Variables};
+use crate::request::variables::Variables;
 use birdsite::model::graphql::{tweet::TweetResult, unavailable::TweetUnavailableReason};
 use bounded_static::IntoBoundedStatic;
 
@@ -31,7 +31,7 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                     .user_result_by_screen_name
                     .map(|user_result_by_screen_name| user_result_by_screen_name.result);
 
-                Ok(Data::AboutAccountQuery(user_result.map(|user_result| {
+                Ok(Self::AboutAccountQuery(user_result.map(|user_result| {
                     user_result
                         .complete(variables.screen_name.clone())
                         .into_static()
@@ -41,31 +41,33 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                 let note = serde_json::from_str::<birdwatch_fetch_one_note::Top<'_>>(input)?
                     .birdwatch_note_by_rest_id;
 
-                Ok(Data::BirdwatchFetchOneNote(note.into_static()))
+                Ok(Self::BirdwatchFetchOneNote(note.into_static()))
             }
             Variables::TweetResultsByRestIds(variables) => {
                 let tweet_results =
                     serde_json::from_str::<tweet_results_by_rest_ids::Top<'_>>(input)?.tweet_result;
 
-                if tweet_results.len() != variables.tweet_ids.len() {
+                if tweet_results.len() == variables.tweet_ids.len() {
+                    let tweet_results = tweet_results
+                        .into_iter()
+                        .zip(variables.tweet_ids.iter())
+                        .map(|(tweet_result, tweet_id)| {
+                            tweet_result.result.map_or(
+                                TweetResult::Unavailable {
+                                    id: *tweet_id,
+                                    reason: Some(TweetUnavailableReason::Missing),
+                                },
+                                |tweet_result| tweet_result.complete(*tweet_id).into_static(),
+                            )
+                        })
+                        .collect::<Vec<_>>();
+
+                    Ok(Self::TweetResultsByRestIds(tweet_results))
+                } else {
                     Err(crate::archive::response::Error::InvalidResultLength {
                         expected: variables.tweet_ids.len(),
                         returned: tweet_results.len(),
                     })
-                } else {
-                    let tweet_results = tweet_results
-                        .into_iter()
-                        .zip(variables.tweet_ids.iter())
-                        .map(|(tweet_result, tweet_id)| match tweet_result.result {
-                            Some(tweet_result) => tweet_result.complete(*tweet_id).into_static(),
-                            None => TweetResult::Unavailable {
-                                id: *tweet_id,
-                                reason: Some(TweetUnavailableReason::Missing),
-                            },
-                        })
-                        .collect::<Vec<_>>();
-
-                    Ok(Data::TweetResultsByRestIds(tweet_results))
                 }
             }
         }
