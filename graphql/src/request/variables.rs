@@ -1,5 +1,13 @@
 use crate::request::name::RequestName;
 use serde_field_attributes::{integer_or_integer_str, integer_or_integer_str_array};
+use std::borrow::Cow;
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AboutAccountQuery<'a> {
+    #[serde(rename = "screenName")]
+    pub screen_name: Cow<'a, str>,
+}
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -25,6 +33,7 @@ pub struct TweetResultsByRestIds {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Variables {
+    AboutAccountQuery(AboutAccountQuery<'static>),
     BirdwatchFetchOneNote(BirdwatchFetchOneNote),
     TweetResultsByRestIds(TweetResultsByRestIds),
 }
@@ -38,6 +47,9 @@ impl<'a> crate::archive::request::Variables<'a> for Variables {
         Self: Sized,
     {
         match name {
+            RequestName::AboutAccountQuery => {
+                Some(map.next_value().map(Variables::AboutAccountQuery))
+            }
             RequestName::BirdwatchFetchOneNote => {
                 Some(map.next_value().map(Variables::BirdwatchFetchOneNote))
             }

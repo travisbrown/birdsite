@@ -25,6 +25,9 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
         Self: Sized + 'a,
     {
         match variables {
+            Variables::AboutAccountQuery(_) => {
+                todo![]
+            }
             Variables::BirdwatchFetchOneNote(_) => {
                 let note = serde_json::from_str::<birdwatch_fetch_one_note::Top<'_>>(input)?
                     .birdwatch_note_by_rest_id;
@@ -59,6 +62,8 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
         }
     }
 }
+
+mod about_account_query {}
 
 mod birdwatch_fetch_one_note {
     #[derive(serde::Deserialize)]
