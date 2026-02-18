@@ -42,8 +42,12 @@ pub struct Affiliation<'a> {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AffiliationStatus {
-    Automated { id: Option<u64> },
-    AutomatedUnavailable { reason: UserUnavailableReason },
+    Automated {
+        id: Option<u64>,
+    },
+    AutomatedUnavailable {
+        reason: Option<UserUnavailableReason>,
+    },
     Business,
 }
 
@@ -62,7 +66,7 @@ impl<'a> Affiliation<'a> {
         Self {
             screen_name: screen_name.into(),
             state: AffiliationStatus::AutomatedUnavailable {
-                reason: unavailable_reason,
+                reason: Some(unavailable_reason),
             },
         }
     }
@@ -175,23 +179,28 @@ mod internal {
     #[serde(deny_unknown_fields)]
     pub struct BusinessLabel<'a> {
         pub url: Url<'a>,
-        pub description: Cow<'a, str>,
-        badge: Badge<'a>,
+        #[serde(rename = "description")]
+        _description: Cow<'a, str>,
+        #[serde(rename = "badge")]
+        _badge: Badge<'a>,
         #[serde(rename = "userLabelDisplayType")]
-        user_label_display_type: business::BusinessLabelDisplayType,
+        _user_label_display_type: business::BusinessLabelDisplayType,
         // TODO: Confirm that this never contains useful information.
-        pub auxiliary_user_labels: Option<serde::de::IgnoredAny>,
+        #[serde(rename = "auxiliary_user_labels")]
+        _auxiliary_user_labels: Option<serde::de::IgnoredAny>,
     }
 
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub struct AutomatedLabel<'a> {
-        /// This will generally be `"Automated"`, but may be localized.
         #[serde(borrow)]
-        pub description: Cow<'a, str>,
         //#[serde(rename = "longDescription")]
         pub long_description: Option<automated::AutomatedLabelLongDescription<'a>>,
-        badge: Badge<'a>,
+        /// This will generally be `"Automated"`, but may be localized.
+        #[serde(rename = "description")]
+        _description: Cow<'a, str>,
+        #[serde(rename = "badge")]
+        _badge: Badge<'a>,
     }
 
     mod business {
@@ -208,7 +217,8 @@ mod internal {
         #[derive(serde::Deserialize)]
         #[serde(deny_unknown_fields)]
         pub struct AutomatedLabelLongDescription<'a> {
-            pub text: Cow<'a, str>,
+            #[serde(rename = "text")]
+            _text: Cow<'a, str>,
             #[serde(borrow)]
             pub entities: AutomatedLabelEntities<'a>,
         }
@@ -221,9 +231,9 @@ mod internal {
         #[serde(deny_unknown_fields)]
         pub struct AutomatedLabelEntity<'a> {
             //#[serde(rename = "fromIndex")]
-            pub from_index: usize,
+            from_index: usize,
             //#[serde(rename = "toIndex")]
-            pub to_index: usize,
+            to_index: usize,
             #[serde(rename = "ref", borrow)]
             pub reference: AutomatedLabelRef<'a>,
         }
@@ -273,7 +283,7 @@ mod internal {
                 _id: Option<Cow<'a, str>>,
             },
             UserUnavailable {
-                reason: crate::model::graphql::unavailable::UserUnavailableReason,
+                reason: Option<crate::model::graphql::unavailable::UserUnavailableReason>,
                 #[serde(rename = "message")]
                 _message: Option<Cow<'a, str>>,
             },

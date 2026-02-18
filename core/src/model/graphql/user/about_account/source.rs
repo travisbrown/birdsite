@@ -1,6 +1,7 @@
 #[derive(
     Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, serde::Deserialize, serde::Serialize,
 )]
+#[serde(deny_unknown_fields)]
 pub enum Source {
     #[serde(rename = "Africa Android App")]
     AfricaAndroidApp,

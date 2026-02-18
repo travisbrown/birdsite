@@ -8,7 +8,7 @@ mod user;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Data {
     AboutAccountQuery(Option<birdsite::model::graphql::user::about_account::UserResult<'static>>),
-    BirdwatchFetchOneNote(birdsite::model::graphql::birdwatch::note::Note<'static>),
+    BirdwatchFetchOneNote(Option<birdsite::model::graphql::birdwatch::note::Note<'static>>),
     TweetResultsByRestIds(Vec<TweetResult<'static>>),
 }
 
@@ -98,7 +98,7 @@ mod birdwatch_fetch_one_note {
     #[serde(deny_unknown_fields)]
     pub struct Top<'a> {
         #[serde(borrow)]
-        pub birdwatch_note_by_rest_id: birdsite::model::graphql::birdwatch::note::Note<'a>,
+        pub birdwatch_note_by_rest_id: Option<birdsite::model::graphql::birdwatch::note::Note<'a>>,
     }
 }
 

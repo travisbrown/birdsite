@@ -8,7 +8,7 @@ use serde_field_attributes::{integer_str, optional_timestamp_millis_str};
 use std::borrow::Cow;
 
 #[derive(serde::Deserialize)]
-#[serde(tag = "__typename")]
+#[serde(tag = "__typename", deny_unknown_fields)]
 pub enum UserResult<'a> {
     User {
         #[serde(flatten, borrow)]
@@ -51,7 +51,7 @@ impl<'a> UserResult<'a> {
 #[derive(serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct User<'a> {
-    about_profile: Option<super::AboutProfile>,
+    about_profile: Option<super::AboutProfile<'a>>,
     #[serde(borrow)]
     affiliates_highlighted_label: AffiliationResult<'a>,
     avatar: Avatar<'a>,

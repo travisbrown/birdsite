@@ -43,7 +43,7 @@ pub struct User<'a> {
     pub screen_name: Cow<'a, str>,
     pub name: Option<Cow<'a, str>>,
     pub created_at: DateTime<Utc>,
-    pub about_profile: Option<AboutProfile>,
+    pub about_profile: Option<AboutProfile<'a>>,
     pub affiliation: Option<Affiliation<'a>>,
     pub identity_affiliation: Option<Affiliation<'a>>,
     pub protected: bool,
@@ -54,16 +54,27 @@ pub struct User<'a> {
     pub profile_image_shape: ProfileImageShape,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-pub struct AboutProfile {
+#[derive(
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    bounded_static_derive_more::ToStatic,
+    serde::Deserialize,
+    serde::Serialize,
+)]
+#[serde(deny_unknown_fields)]
+pub struct AboutProfile<'a> {
     pub account_based_in: Option<location::Location>,
     pub learn_more_url: LearnMoreUrl,
     pub location_accurate: Option<bool>,
-    pub source: source::Source,
+    pub source: Option<source::Source>,
     pub username_changes: UsernameChanges,
+    pub affiliate_username: Option<Cow<'a, str>>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum LearnMoreUrl {
     #[serde(
         rename = "https://help.twitter.com/managing-your-account/about-twitter-verified-accounts"
@@ -74,6 +85,7 @@ pub enum LearnMoreUrl {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct UsernameChanges {
     #[serde(with = "integer_str")]
     pub count: usize,
