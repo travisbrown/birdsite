@@ -18,8 +18,9 @@ pub enum UserResult<'a> {
     },
 }
 
-impl<'a> UserResult<'a> {
-    pub fn id(&self) -> u64 {
+impl UserResult<'_> {
+    #[must_use]
+    pub const fn id(&self) -> u64 {
         match self {
             Self::Available(tweet) => tweet.id,
             Self::Unavailable { id, .. } => *id,
@@ -28,7 +29,7 @@ impl<'a> UserResult<'a> {
     }
 }
 
-impl<'a> bounded_static::IntoBoundedStatic for UserResult<'a> {
+impl bounded_static::IntoBoundedStatic for UserResult<'_> {
     type Static = UserResult<'static>;
 
     fn into_static(self) -> Self::Static {
@@ -40,7 +41,7 @@ impl<'a> bounded_static::IntoBoundedStatic for UserResult<'a> {
     }
 }
 
-impl<'a> bounded_static::ToBoundedStatic for UserResult<'a> {
+impl bounded_static::ToBoundedStatic for UserResult<'_> {
     type Static = UserResult<'static>;
 
     fn to_static(&self) -> Self::Static {

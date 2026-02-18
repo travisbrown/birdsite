@@ -20,7 +20,7 @@ pub enum UserResult<'a> {
     },
 }
 
-impl<'a> IntoBoundedStatic for UserResult<'a> {
+impl IntoBoundedStatic for UserResult<'_> {
     type Static = UserResult<'static>;
 
     fn into_static(self) -> Self::Static {

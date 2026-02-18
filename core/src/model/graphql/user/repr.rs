@@ -17,9 +17,7 @@ pub enum UserResult<'a, U> {
     },
 }
 
-impl<'a, U: bounded_static::IntoBoundedStatic> bounded_static::IntoBoundedStatic
-    for UserResult<'a, U>
-{
+impl<U: bounded_static::IntoBoundedStatic> bounded_static::IntoBoundedStatic for UserResult<'_, U> {
     type Static = UserResult<'static, U::Static>;
 
     fn into_static(self) -> Self::Static {
@@ -40,7 +38,7 @@ impl<'a, U: bounded_static::IntoBoundedStatic> bounded_static::IntoBoundedStatic
     }
 }
 
-impl<'a, U: bounded_static::ToBoundedStatic> bounded_static::ToBoundedStatic for UserResult<'a, U> {
+impl<U: bounded_static::ToBoundedStatic> bounded_static::ToBoundedStatic for UserResult<'_, U> {
     type Static = UserResult<'static, U::Static>;
 
     fn to_static(&self) -> Self::Static {

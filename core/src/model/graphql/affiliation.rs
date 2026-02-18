@@ -17,7 +17,8 @@ pub enum AffiliationResult<'a> {
 }
 
 impl<'a> AffiliationResult<'a> {
-    pub fn affilation(&self) -> Option<&Affiliation<'a>> {
+    #[must_use]
+    pub const fn affilation(&self) -> Option<&Affiliation<'a>> {
         match self {
             Self::Active(affiliation) => Some(affiliation),
             Self::Automated | Self::Empty => None,
@@ -52,6 +53,7 @@ pub enum AffiliationStatus {
 }
 
 impl<'a> Affiliation<'a> {
+    #[must_use]
     pub fn automated(screen_name: &'a str, id: u64) -> Self {
         Self {
             screen_name: screen_name.into(),
@@ -59,6 +61,7 @@ impl<'a> Affiliation<'a> {
         }
     }
 
+    #[must_use]
     pub fn automated_unavailable(
         screen_name: &'a str,
         unavailable_reason: UserUnavailableReason,
@@ -71,6 +74,7 @@ impl<'a> Affiliation<'a> {
         }
     }
 
+    #[must_use]
     pub fn business(screen_name: &'a str) -> Self {
         Self {
             screen_name: screen_name.into(),

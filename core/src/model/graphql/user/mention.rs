@@ -8,6 +8,7 @@ pub enum MentionResult<'a> {
 }
 
 impl<'a> MentionResult<'a> {
+    #[must_use]
     pub fn mention(&self) -> Option<Mention<'a>> {
         match self {
             Self::Full(mention) => Some(mention.clone()),
@@ -49,7 +50,7 @@ impl<'de: 'a, 'a> Deserialize<'de> for MentionResult<'a> {
     }
 }
 
-impl<'a> bounded_static::IntoBoundedStatic for MentionResult<'a> {
+impl bounded_static::IntoBoundedStatic for MentionResult<'_> {
     type Static = MentionResult<'static>;
 
     fn into_static(self) -> Self::Static {
@@ -60,7 +61,7 @@ impl<'a> bounded_static::IntoBoundedStatic for MentionResult<'a> {
     }
 }
 
-impl<'a> bounded_static::ToBoundedStatic for MentionResult<'a> {
+impl bounded_static::ToBoundedStatic for MentionResult<'_> {
     type Static = MentionResult<'static>;
 
     fn to_static(&self) -> Self::Static {

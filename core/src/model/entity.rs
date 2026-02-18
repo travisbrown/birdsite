@@ -96,7 +96,7 @@ pub enum TypedEntityReference<'a> {
     },
 }
 
-impl<'a> IntoBoundedStatic for TypedEntityReference<'a> {
+impl IntoBoundedStatic for TypedEntityReference<'_> {
     type Static = TypedEntityReference<'static>;
 
     fn into_static(self) -> Self::Static {
@@ -118,7 +118,7 @@ impl<'a> IntoBoundedStatic for TypedEntityReference<'a> {
     }
 }
 
-impl<'a> ToBoundedStatic for TypedEntityReference<'a> {
+impl ToBoundedStatic for TypedEntityReference<'_> {
     type Static = TypedEntityReference<'static>;
 
     fn to_static(&self) -> Self::Static {

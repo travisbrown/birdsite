@@ -18,8 +18,9 @@ pub enum TweetResult<'a> {
     },
 }
 
-impl<'a> TweetResult<'a> {
-    pub fn id(&self) -> u64 {
+impl TweetResult<'_> {
+    #[must_use]
+    pub const fn id(&self) -> u64 {
         match self {
             Self::Full(tweet) => tweet.id,
             Self::Preview(tweet) => tweet.id,
@@ -29,7 +30,7 @@ impl<'a> TweetResult<'a> {
     }
 }
 
-impl<'a> bounded_static::IntoBoundedStatic for TweetResult<'a> {
+impl bounded_static::IntoBoundedStatic for TweetResult<'_> {
     type Static = TweetResult<'static>;
 
     fn into_static(self) -> Self::Static {

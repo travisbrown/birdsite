@@ -20,6 +20,7 @@ pub enum UserResult<'a> {
 }
 
 impl<'a> UserResult<'a> {
+    #[must_use]
     pub fn complete(self, screen_name: Cow<'a, str>) -> super::UserResult<'a> {
         match self {
             Self::User { user } => super::UserResult::Available(super::User {
@@ -30,7 +31,7 @@ impl<'a> UserResult<'a> {
                 about_profile: user.about_profile,
                 affiliation: user
                     .affiliates_highlighted_label
-                    .and_then(|affiliates_highlighted_label| affiliates_highlighted_label.into()),
+                    .and_then(std::convert::Into::into),
                 identity_affiliation: user.identity_profile_labels_highlighted_label.and_then(
                     |identity_profile_labels_highlighted_label| {
                         identity_profile_labels_highlighted_label.into()

@@ -15,6 +15,7 @@ pub enum UserResult<'a> {
 }
 
 impl<'a> UserResult<'a> {
+    #[must_use]
     pub fn complete(self, id: u64) -> super::UserResult<'a> {
         match self {
             Self::User { user } => user.legacy.map_or_else(

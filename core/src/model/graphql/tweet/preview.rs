@@ -36,7 +36,7 @@ impl<'de: 'a, 'a> Deserialize<'de> for TweetPreview<'a> {
     }
 }
 
-impl<'a> bounded_static::IntoBoundedStatic for TweetPreview<'a> {
+impl bounded_static::IntoBoundedStatic for TweetPreview<'_> {
     type Static = TweetPreview<'static>;
 
     fn into_static(self) -> Self::Static {

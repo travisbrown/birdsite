@@ -35,6 +35,7 @@ pub enum TweetResult<'a> {
 }
 
 impl<'a> TweetResult<'a> {
+    #[must_use]
     pub fn complete(self, id: u64) -> crate::model::graphql::tweet::TweetResult<'a> {
         match self {
             Self::Tweet { tweet } => tweet.into_tweet_result(),

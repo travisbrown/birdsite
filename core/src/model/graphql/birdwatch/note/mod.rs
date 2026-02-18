@@ -19,7 +19,7 @@ pub enum Note<'a> {
     },
 }
 
-impl<'a> bounded_static::IntoBoundedStatic for Note<'a> {
+impl bounded_static::IntoBoundedStatic for Note<'_> {
     type Static = Note<'static>;
 
     fn into_static(self) -> Self::Static {
