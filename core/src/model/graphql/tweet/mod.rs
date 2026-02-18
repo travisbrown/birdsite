@@ -2,13 +2,16 @@ use crate::model::graphql::{unavailable::TweetUnavailableReason, user::UserResul
 use std::borrow::Cow;
 
 pub mod partial;
+pub mod preview;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TweetResult<'a> {
-    Available(Tweet<'a>),
+    Full(Tweet<'a>),
+    Preview(preview::TweetPreview<'a>),
     Unavailable {
         id: u64,
-        reason: TweetUnavailableReason,
+        /// May be empty in the case where we have a tombstone with no explanation.
+        reason: Option<TweetUnavailableReason>,
     },
     Incomplete {
         id: u64,
@@ -18,7 +21,8 @@ pub enum TweetResult<'a> {
 impl<'a> TweetResult<'a> {
     pub fn id(&self) -> u64 {
         match self {
-            Self::Available(tweet) => tweet.id,
+            Self::Full(tweet) => tweet.id,
+            Self::Preview(tweet) => tweet.id,
             Self::Unavailable { id, .. } => *id,
             Self::Incomplete { id } => *id,
         }
@@ -30,7 +34,8 @@ impl<'a> bounded_static::IntoBoundedStatic for TweetResult<'a> {
 
     fn into_static(self) -> Self::Static {
         match self {
-            Self::Available(tweet) => Self::Static::Available(tweet.into_static()),
+            Self::Full(tweet) => Self::Static::Full(tweet.into_static()),
+            Self::Preview(tweet) => Self::Static::Preview(tweet.into_static()),
             Self::Unavailable { id, reason } => Self::Static::Unavailable { id, reason },
             Self::Incomplete { id } => Self::Static::Incomplete { id },
         }

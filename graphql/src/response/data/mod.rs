@@ -60,7 +60,7 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                             Some(tweet_result) => tweet_result.complete(*tweet_id).into_static(),
                             None => TweetResult::Unavailable {
                                 id: *tweet_id,
-                                reason: TweetUnavailableReason::Missing,
+                                reason: Some(TweetUnavailableReason::Missing),
                             },
                         })
                         .collect::<Vec<_>>();

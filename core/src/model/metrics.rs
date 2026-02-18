@@ -5,7 +5,9 @@ use serde_field_attributes::optional_usize;
 pub struct TweetPublicMetrics {
     pub retweet_count: usize,
     pub reply_count: usize,
-    pub like_count: usize,
+    // Older responses use `like_count`.
+    #[serde(alias = "like_count")]
+    pub favorite_count: usize,
     pub quote_count: usize,
     pub bookmark_count: Option<usize>,
     pub impression_count: Option<usize>,

@@ -41,15 +41,16 @@ impl<'a> IntoBoundedStatic for UserResult<'a> {
 pub struct User<'a> {
     pub id: u64,
     pub screen_name: Cow<'a, str>,
-    pub name: Cow<'a, str>,
+    pub name: Option<Cow<'a, str>>,
     pub created_at: DateTime<Utc>,
     pub about_profile: Option<AboutProfile>,
     pub affiliation: Option<Affiliation<'a>>,
+    pub identity_affiliation: Option<Affiliation<'a>>,
     pub protected: bool,
     pub is_blue_verified: bool,
     pub verification: Verification,
     pub verified_since: Option<DateTime<Utc>>,
-    pub profile_image_url: Cow<'a, str>,
+    pub profile_image_url: Option<Cow<'a, str>>,
     pub profile_image_shape: ProfileImageShape,
 }
 
@@ -78,8 +79,8 @@ pub struct UsernameChanges {
     pub count: usize,
     #[serde(
         rename = "last_changed_at_msec",
-        default,
-        with = "optional_timestamp_millis_str"
+        with = "optional_timestamp_millis_str",
+        default
     )]
     pub last_changed_at: Option<DateTime<Utc>>,
 }

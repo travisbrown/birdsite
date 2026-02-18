@@ -30,6 +30,22 @@ impl<'a> UserResult<'a> {
             Self::UserUnavailable { reason } => super::UserResult::Unavailable { id, reason },
         }
     }
+
+    pub fn into_result(self) -> Result<super::User<'a>, Option<UserUnavailableReason>> {
+        match self {
+            Self::User { user } => user.legacy.map_or_else(
+                || Err(None),
+                |legacy| {
+                    Ok(super::User {
+                        id: user.rest_id,
+                        screen_name: legacy.screen_name,
+                        name: legacy.name,
+                    })
+                },
+            ),
+            Self::UserUnavailable { reason } => Err(Some(reason)),
+        }
+    }
 }
 
 #[derive(serde::Deserialize)]
@@ -37,7 +53,6 @@ impl<'a> UserResult<'a> {
 pub struct User<'a> {
     #[serde(with = "integer_str")]
     pub rest_id: u64,
-    //#[serde(borrow)]
     legacy: Option<Legacy<'a>>,
 }
 

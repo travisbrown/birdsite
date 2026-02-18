@@ -22,18 +22,16 @@ pub enum TweetResult<'a> {
         #[serde(rename = "mediaVisibilityResults")]
         media_visibility_results: Option<serde::de::IgnoredAny>,
     },
+    TweetPreviewDisplay {
+        #[serde(borrow)]
+        tweet: super::preview::TweetPreview<'a>,
+        limited_action_results: serde::de::IgnoredAny,
+        cta: serde::de::IgnoredAny,
+    },
     TweetUnavailable {
         reason: TweetUnavailableReason,
     },
-    /*TweetPreviewDisplay {
-        #[serde(borrow)]
-        tweet: Box<Option<super::super::TweetPreview<'a>>>,
-        limited_action_results: Option<serde::de::IgnoredAny>,
-        cta: Option<serde::de::IgnoredAny>,
-    },
-    TweetTombstone {
-        tombstone: Option<TweetTombstone<'a>>,
-    },*/
+    TweetTombstone {},
 }
 
 impl<'a> TweetResult<'a> {
@@ -41,8 +39,17 @@ impl<'a> TweetResult<'a> {
         match self {
             Self::Tweet { tweet } => tweet.into_tweet_result(),
             Self::TweetWithVisibilityResults { tweet, .. } => tweet.into_tweet_result(),
+            Self::TweetPreviewDisplay { tweet, .. } => {
+                crate::model::graphql::tweet::TweetResult::Preview(tweet)
+            }
             Self::TweetUnavailable { reason } => {
-                crate::model::graphql::tweet::TweetResult::Unavailable { id, reason }
+                crate::model::graphql::tweet::TweetResult::Unavailable {
+                    id,
+                    reason: Some(reason),
+                }
+            }
+            Self::TweetTombstone {} => {
+                crate::model::graphql::tweet::TweetResult::Unavailable { id, reason: None }
             }
         }
     }
@@ -64,7 +71,7 @@ impl<'a> Tweet<'a> {
             .legacy
             .zip(self.core.and_then(|core| core.user_results.result))
         {
-            Some((legacy, user_result)) => crate::model::graphql::tweet::TweetResult::Available(
+            Some((legacy, user_result)) => crate::model::graphql::tweet::TweetResult::Full(
                 crate::model::graphql::tweet::Tweet {
                     id: self.rest_id,
                     user: user_result.complete(legacy.user_id),

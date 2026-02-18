@@ -40,7 +40,7 @@ async fn main() -> Result<(), Error> {
                                         user_result,
                                     ),
                                 ) => {
-                                    println!("{:?}", user_result);
+                                    log::warn!("{:?}", user_result);
                                 }
                                 Some(
                                     birdsite_graphql::response::data::Data::TweetResultsByRestIds(
@@ -48,7 +48,7 @@ async fn main() -> Result<(), Error> {
                                     ),
                                 ) => {
                                     for tweet in tweets {
-                                        println!("{:?}", tweet);
+                                        log::warn!("{:?}", tweet);
                                     }
                                 }
                                 Some(
@@ -56,7 +56,7 @@ async fn main() -> Result<(), Error> {
                                         note,
                                     ),
                                 ) => {
-                                    println!("{:?}", note);
+                                    log::warn!("{:?}", note);
                                 }
                                 _ => {}
                             },
