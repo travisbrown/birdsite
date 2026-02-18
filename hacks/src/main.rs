@@ -40,7 +40,7 @@ async fn main() -> Result<(), Error> {
                                         user_result,
                                     ),
                                 ) => {
-                                    log::warn!("{:?}", user_result);
+                                    log::warn!("{user_result:?}");
                                 }
                                 Some(
                                     birdsite_graphql::response::data::Data::TweetResultsByRestIds(
@@ -48,7 +48,7 @@ async fn main() -> Result<(), Error> {
                                     ),
                                 ) => {
                                     for tweet in tweets {
-                                        log::warn!("{:?}", tweet);
+                                        log::warn!("{tweet:?}");
                                     }
                                 }
                                 Some(
@@ -56,12 +56,12 @@ async fn main() -> Result<(), Error> {
                                         note,
                                     ),
                                 ) => {
-                                    log::warn!("{:?}", note);
+                                    log::warn!("{note:?}");
                                 }
                                 _ => {}
                             },
                             Err(skipped) => {
-                                log::info!("Skipped: {}", skipped);
+                                log::info!("Skipped: {skipped}");
                             }
                         }
                     }
@@ -148,7 +148,7 @@ async fn main() -> Result<(), Error> {
 
                 log::info!("Loaded {} paths", paths.len());
 
-                for (i, path) in paths.iter().enumerate() {
+                for (_i, path) in paths.iter().enumerate() {
                     match std::fs::read_to_string(path) {
                         Ok(contents) => {
                             if let Ok(snapshot) = serde_json::from_str::<
@@ -181,7 +181,7 @@ async fn main() -> Result<(), Error> {
                                                 .unwrap_or_default(),
                                             in_reply_to_info
                                                 .as_ref()
-                                                .map(|(screen_name, _)| screen_name.to_string())
+                                                .map(|(screen_name, _)| screen_name.clone())
                                                 .unwrap_or_default(),
                                             in_reply_to_info
                                                 .as_ref()
