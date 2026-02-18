@@ -50,8 +50,9 @@ pub struct User<'a> {
     pub is_blue_verified: bool,
     pub verification: Verification,
     pub verified_since: Option<DateTime<Utc>>,
+    pub override_verified_year: Option<i32>,
     pub profile_image_url: Option<Cow<'a, str>>,
-    pub profile_image_shape: ProfileImageShape,
+    pub profile_image_shape: Option<ProfileImageShape>,
 }
 
 #[derive(

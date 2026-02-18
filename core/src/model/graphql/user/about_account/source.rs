@@ -29,6 +29,8 @@ pub enum Source {
     ArgentinaAndroidApp,
     #[serde(rename = "Argentina App Store")]
     ArgentinaAppStore,
+    #[serde(rename = "Armenia Android App")]
+    ArmeniaAndroidApp,
     #[serde(rename = "Armenia App Store")]
     ArmeniaAppStore,
     #[serde(rename = "Australasia Android App")]
@@ -95,6 +97,8 @@ pub enum Source {
     BritishVirginIslandsAppStore,
     #[serde(rename = "Brunei Darussalam Android App")]
     BruneiDarussalamAndroidApp,
+    #[serde(rename = "Brunei Darussalam App Store")]
+    BruneiDarussalamAppStore,
     #[serde(rename = "Bulgaria Android App")]
     BulgariaAndroidApp,
     #[serde(rename = "Bulgaria App Store")]
@@ -125,10 +129,16 @@ pub enum Source {
     CaribbeanAppStore,
     #[serde(rename = "Cayman Islands Android App")]
     CaymanIslandsAndroidApp,
+    #[serde(rename = "Cayman Islands App Store")]
+    CaymanIslandsAppStore,
     #[serde(rename = "Central African Republic Android App")]
     CentralAfricanRepublicAndroidApp,
+    #[serde(rename = "Central Asia Android App")]
+    CentralAsiaAndroidApp,
     #[serde(rename = "Chad Android App")]
     ChadAndroidApp,
+    #[serde(rename = "Chad App Store")]
+    ChadAppStore,
     #[serde(rename = "Chile Android App")]
     ChileAndroidApp,
     #[serde(rename = "Chile App Store")]
@@ -201,6 +211,8 @@ pub enum Source {
     ElSalvadorAndroidApp,
     #[serde(rename = "El Salvador App Store")]
     ElSalvadorAppStore,
+    #[serde(rename = "Equatorial Guinea Android App")]
+    EquatorialGuineaAndroidApp,
     #[serde(rename = "Eritrea Android App")]
     EritreaAndroidApp,
     #[serde(rename = "Estonia Android App")]
@@ -213,6 +225,8 @@ pub enum Source {
     EuropeAndroidApp,
     #[serde(rename = "Europe App Store")]
     EuropeAppStore,
+    #[serde(rename = "Falkland Islands (Malvinas) Android App")]
+    FalklandIslandsMalvinasAndroidApp,
     #[serde(rename = "Fiji Android App")]
     FijiAndroidApp,
     #[serde(rename = "Fiji App Store")]
@@ -225,6 +239,8 @@ pub enum Source {
     FranceAndroidApp,
     #[serde(rename = "France App Store")]
     FranceAppStore,
+    #[serde(rename = "French Polynesia Android App")]
+    FrenchPolynesiaAndroidApp,
     #[serde(rename = "Gabon Android App")]
     GabonAndroidApp,
     #[serde(rename = "Gabon App Store")]
@@ -261,6 +277,8 @@ pub enum Source {
     GuineaAndroidApp,
     #[serde(rename = "Guinea-Bissau App Store")]
     GuineaBissauAppStore,
+    #[serde(rename = "Guyana App Store")]
+    GuyanaAppStore,
     #[serde(rename = "Haiti Android App")]
     HaitiAndroidApp,
     #[serde(rename = "Honduras Android App")]
@@ -341,6 +359,8 @@ pub enum Source {
     KuwaitAndroidApp,
     #[serde(rename = "Kuwait App Store")]
     KuwaitAppStore,
+    #[serde(rename = "Kyrgyzstan Android App")]
+    KyrgyzstanAndroidApp,
     #[serde(rename = "Kyrgyzstan App Store")]
     KyrgyzstanAppStore,
     #[serde(rename = "Lao People's Democratic Republic Android App")]
@@ -365,6 +385,8 @@ pub enum Source {
     LibyaAndroidApp,
     #[serde(rename = "Libya App Store")]
     LibyaAppStore,
+    #[serde(rename = "Liechtenstein Android App")]
+    LiechtensteinAndroidApp,
     #[serde(rename = "Lithuania Android App")]
     LithuaniaAndroidApp,
     #[serde(rename = "Lithuania App Store")]
@@ -373,6 +395,8 @@ pub enum Source {
     LuxembourgAndroidApp,
     #[serde(rename = "Luxembourg App Store")]
     LuxembourgAppStore,
+    #[serde(rename = "Macao Android App")]
+    MacaoAndroidApp,
     #[serde(rename = "Macao App Store")]
     MacaoAppStore,
     #[serde(rename = "Macedonia Android App")]
@@ -381,6 +405,8 @@ pub enum Source {
     MacedoniaAppStore,
     #[serde(rename = "Madagascar Android App")]
     MadagascarAndroidApp,
+    #[serde(rename = "Madagascar App Store")]
+    MadagascarAppStore,
     #[serde(rename = "Malawi Android App")]
     MalawiAndroidApp,
     #[serde(rename = "Malaysia Android App")]
@@ -405,6 +431,8 @@ pub enum Source {
     MauritaniaAppStore,
     #[serde(rename = "Mauritius Android App")]
     MauritiusAndroidApp,
+    #[serde(rename = "Mauritius App Store")]
+    MauritiusAppStore,
     #[serde(rename = "Mexico Android App")]
     MexicoAndroidApp,
     #[serde(rename = "Mexico App Store")]
@@ -413,6 +441,8 @@ pub enum Source {
     MoldovaAndroidApp,
     #[serde(rename = "Moldova App Store")]
     MoldovaAppStore,
+    #[serde(rename = "Monaco Android App")]
+    MonacoAndroidApp,
     #[serde(rename = "Mongolia Android App")]
     MongoliaAndroidApp,
     #[serde(rename = "Mongolia App Store")]
@@ -475,6 +505,8 @@ pub enum Source {
     NorwayAndroidApp,
     #[serde(rename = "Norway App Store")]
     NorwayAppStore,
+    #[serde(rename = "Oceania App Store")]
+    OceaniaAppStore,
     #[serde(rename = "Oman Android App")]
     OmanAndroidApp,
     #[serde(rename = "Oman App Store")]
@@ -601,6 +633,8 @@ pub enum Source {
     SurinameAppStore,
     #[serde(rename = "Swaziland Android App")]
     SwazilandAndroidApp,
+    #[serde(rename = "Swaziland App Store")]
+    SwazilandAppStore,
     #[serde(rename = "Sweden Android App")]
     SwedenAndroidApp,
     #[serde(rename = "Sweden App Store")]
@@ -623,6 +657,8 @@ pub enum Source {
     ThailandAndroidApp,
     #[serde(rename = "Thailand App Store")]
     ThailandAppStore,
+    #[serde(rename = "Timor-Leste Android App")]
+    TimorLesteAndroidApp,
     #[serde(rename = "Togo Android App")]
     TogoAndroidApp,
     #[serde(rename = "Trinidad and Tobago Android App")]
@@ -641,6 +677,8 @@ pub enum Source {
     TurkmenistanAndroidApp,
     #[serde(rename = "Turkmenistan App Store")]
     TurkmenistanAppStore,
+    #[serde(rename = "Turks and Caicos Islands Android App")]
+    TurksAndCaicosIslandsAndroidApp,
     #[serde(rename = "Turks and Caicos Islands App Store")]
     TurksAndCaicosIslandsAppStore,
     #[serde(rename = "Uganda Android App")]

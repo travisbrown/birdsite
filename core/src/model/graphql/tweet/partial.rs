@@ -87,7 +87,7 @@ impl<'a> Tweet<'a> {
 //#[serde(deny_unknown_fields)]
 struct Legacy<'a> {
     #[serde(rename = "id_str", with = "integer_str")]
-    pub id: u64,
+    _id: u64,
     pub full_text: Cow<'a, str>,
     #[serde(rename = "user_id_str", with = "integer_str")]
     pub user_id: u64,

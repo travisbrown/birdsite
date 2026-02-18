@@ -29,7 +29,7 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
             Variables::AboutAccountQuery(variables) => {
                 let user_result = serde_json::from_str::<about_account_query::Top<'_>>(input)?
                     .user_result_by_screen_name
-                    .map(|user_result_by_screen_name| user_result_by_screen_name.result);
+                    .and_then(|user_result_by_screen_name| user_result_by_screen_name.result);
 
                 Ok(Self::AboutAccountQuery(user_result.map(|user_result| {
                     user_result
@@ -91,7 +91,7 @@ mod about_account_query {
         #[serde(rename = "id")]
         _id: Cow<'a, str>,
         #[serde(borrow)]
-        pub result: UserResult<'a>,
+        pub result: Option<UserResult<'a>>,
     }
 }
 

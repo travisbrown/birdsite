@@ -28,10 +28,13 @@ pub enum Location {
     Bermuda,
     Bhutan,
     Bolivia,
+    Bonaire,
     #[serde(rename = "Bosnia and Herzegovina")]
     BosniaAndHerzegovina,
     Botswana,
     Brazil,
+    #[serde(rename = "British Virgin Islands")]
+    BritishVirginIslands,
     #[serde(rename = "Brunei Darussalam")]
     BruneiDarussalam,
     Bulgaria,
@@ -84,6 +87,8 @@ pub enum Location {
     Estonia,
     Ethiopia,
     Europe,
+    #[serde(rename = "Faroe Islands")]
+    FaroeIslands,
     Fiji,
     Finland,
     France,
@@ -99,6 +104,7 @@ pub enum Location {
     Gibraltar,
     Greece,
     Greenland,
+    Grenada,
     Guadeloupe,
     Guam,
     Guatemala,
@@ -106,6 +112,7 @@ pub enum Location {
     Guinea,
     #[serde(rename = "Guinea-Bissau")]
     GuineaBissau,
+    Guyana,
     Haiti,
     Honduras,
     #[serde(rename = "Hong Kong")]
@@ -129,6 +136,7 @@ pub enum Location {
     Kenya,
     Kiribati,
     Korea,
+    Kosovo,
     Kuwait,
     Kyrgyzstan,
     #[serde(rename = "Lao People's Democratic Republic")]
@@ -175,6 +183,8 @@ pub enum Location {
     NorthAfrica,
     #[serde(rename = "North America")]
     NorthAmerica,
+    #[serde(rename = "Northern Mariana Islands")]
+    NorthernMarianaIslands,
     Norway,
     Oman,
     Pakistan,
@@ -196,6 +206,8 @@ pub enum Location {
     #[serde(rename = "Russian Federation")]
     RussianFederation,
     Rwanda,
+    #[serde(rename = "Saint Kitts and Nevis")]
+    SaintKittsAndNevis,
     #[serde(rename = "Saint Lucia")]
     SaintLucia,
     #[serde(rename = "Saint Vincent and the Grenadines")]
@@ -235,14 +247,19 @@ pub enum Location {
     #[serde(rename = "Syrian Arab Republic")]
     SyrianArabRepublic,
     Taiwan,
+    Tajikistan,
     Tanzania,
     Thailand,
+    #[serde(rename = "Timor-Leste")]
+    TimorLeste,
     Togo,
     Tonga,
     #[serde(rename = "Trinidad and Tobago")]
     TrinidadAndTobago,
     Tunisia,
     Turkey,
+    #[serde(rename = "Türkiye")]
+    Turkiye,
     #[serde(rename = "Turks and Caicos Islands")]
     TurksAndCaicosIslands,
     Uganda,
@@ -266,4 +283,33 @@ pub enum Location {
     Yemen,
     Zambia,
     Zimbabwe,
+    // Country codes appear briefly in November 2025 (e.g. 2025-11-26).
+    #[serde(rename = "AU")]
+    Au,
+    #[serde(rename = "CA")]
+    Ca,
+    #[serde(rename = "CH")]
+    Ch,
+    #[serde(rename = "ES")]
+    Es,
+    #[serde(rename = "FI")]
+    Fi,
+    #[serde(rename = "FR")]
+    Fr,
+    #[serde(rename = "GB", alias = "gb")]
+    Gb,
+    #[serde(rename = "IN")]
+    In,
+    #[serde(rename = "LB")]
+    Lb,
+    #[serde(rename = "LT")]
+    Lt,
+    #[serde(rename = "NO")]
+    No,
+    #[serde(rename = "rs")]
+    Rs,
+    #[serde(rename = "SE", alias = "se")]
+    Se,
+    #[serde(rename = "US", alias = "us")]
+    Us,
 }

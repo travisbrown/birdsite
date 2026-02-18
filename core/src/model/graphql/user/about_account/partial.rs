@@ -28,15 +28,26 @@ impl<'a> UserResult<'a> {
                 name: user.core.name,
                 created_at: user.core.created_at,
                 about_profile: user.about_profile,
-                affiliation: user.affiliates_highlighted_label.into(),
-                identity_affiliation: user.identity_profile_labels_highlighted_label.into(),
+                affiliation: user
+                    .affiliates_highlighted_label
+                    .and_then(|affiliates_highlighted_label| affiliates_highlighted_label.into()),
+                identity_affiliation: user.identity_profile_labels_highlighted_label.and_then(
+                    |identity_profile_labels_highlighted_label| {
+                        identity_profile_labels_highlighted_label.into()
+                    },
+                ),
                 protected: user.privacy.protected,
                 is_blue_verified: user.is_blue_verified,
                 verification: user.verification,
                 verified_since: user
                     .verification_info
-                    .reason
+                    .as_ref()
+                    .and_then(|verification_info| verification_info.reason.as_ref())
                     .and_then(|reason| reason.verified_since_msec),
+                override_verified_year: user
+                    .verification_info
+                    .and_then(|verification_info| verification_info.reason)
+                    .and_then(|reason| reason.override_verified_year),
                 profile_image_url: user.avatar.image_url,
                 profile_image_shape: user.profile_image_shape,
             }),
@@ -53,19 +64,19 @@ impl<'a> UserResult<'a> {
 pub struct User<'a> {
     about_profile: Option<super::AboutProfile<'a>>,
     #[serde(borrow)]
-    affiliates_highlighted_label: AffiliationResult<'a>,
+    affiliates_highlighted_label: Option<AffiliationResult<'a>>,
     avatar: Avatar<'a>,
     core: Core<'a>,
     #[serde(rename = "id")]
     _id: Cow<'a, str>,
-    identity_profile_labels_highlighted_label: AffiliationResult<'a>,
+    identity_profile_labels_highlighted_label: Option<AffiliationResult<'a>>,
     is_blue_verified: bool,
     privacy: Privacy,
-    profile_image_shape: ProfileImageShape,
+    profile_image_shape: Option<ProfileImageShape>,
     #[serde(with = "integer_str")]
     rest_id: u64,
     verification: super::Verification,
-    verification_info: VerificationInfo<'a>,
+    verification_info: Option<VerificationInfo<'a>>,
 }
 
 #[derive(serde::Deserialize)]
@@ -102,4 +113,5 @@ struct VerificationInfo<'a> {
 struct VerificationReason {
     #[serde(with = "optional_timestamp_millis_str", default)]
     verified_since_msec: Option<DateTime<Utc>>,
+    override_verified_year: Option<i32>,
 }
