@@ -18,6 +18,7 @@ async fn main() -> Result<(), Error> {
             use birdsite_graphql::request::{name::RequestName, variables::Variables};
 
             let filter = [
+                RequestName::AboutAccountQuery,
                 RequestName::BirdwatchFetchOneNote,
                 RequestName::TweetResultsByRestIds,
             ];
@@ -34,6 +35,13 @@ async fn main() -> Result<(), Error> {
                     for result in exchanges {
                         match result? {
                             Ok(exchange) => match exchange.data {
+                                Some(
+                                    birdsite_graphql::response::data::Data::AboutAccountQuery(
+                                        user_result,
+                                    ),
+                                ) => {
+                                    println!("{:?}", user_result);
+                                }
                                 Some(
                                     birdsite_graphql::response::data::Data::TweetResultsByRestIds(
                                         tweets,

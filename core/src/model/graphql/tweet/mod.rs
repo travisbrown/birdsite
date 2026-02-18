@@ -1,6 +1,8 @@
 use crate::model::graphql::{unavailable::TweetUnavailableReason, user::UserResult};
 use std::borrow::Cow;
 
+pub mod partial;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TweetResult<'a> {
     Available(Tweet<'a>),

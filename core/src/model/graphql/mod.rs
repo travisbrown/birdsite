@@ -1,5 +1,5 @@
-pub mod about_account;
 pub mod ads;
+pub mod affiliation;
 pub mod birdwatch;
 pub mod community;
 pub mod image;
