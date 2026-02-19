@@ -16,6 +16,10 @@ pub struct BirdwatchFetchOneNote {
     pub note_id: u64,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Empty {}
+
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TweetResultsByRestIds {
@@ -44,6 +48,7 @@ pub struct UserByRestId {
 pub enum Variables {
     AboutAccountQuery(AboutAccountQuery<'static>),
     BirdwatchFetchOneNote(BirdwatchFetchOneNote),
+    BirdwatchFetchPublicData(Empty),
     TweetResultsByRestIds(TweetResultsByRestIds),
     UserByRestId(UserByRestId),
 }
@@ -62,6 +67,9 @@ impl<'a> crate::archive::request::Variables<'a> for Variables {
             }
             RequestName::BirdwatchFetchOneNote => {
                 Some(map.next_value().map(Variables::BirdwatchFetchOneNote))
+            }
+            RequestName::BirdwatchFetchPublicData => {
+                Some(map.next_value().map(Variables::BirdwatchFetchPublicData))
             }
             RequestName::TweetResultsByRestIds => {
                 Some(map.next_value().map(Variables::TweetResultsByRestIds))

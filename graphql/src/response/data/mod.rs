@@ -1,4 +1,4 @@
-use crate::request::variables::{self, Variables};
+use crate::request::variables::Variables;
 use birdsite::model::graphql::{
     tweet::TweetResult,
     unavailable::{TweetUnavailableReason, UserUnavailableReason},
@@ -15,6 +15,7 @@ pub enum Data {
     BirdwatchFetchOneNote(Option<birdsite::model::graphql::birdwatch::note::Note<'static>>),
     TweetResultsByRestIds(Vec<TweetResult<'static>>),
     UserResultByRestId(birdsite::model::graphql::user::UserResult<'static>),
+    BirdwatchFetchPublicData(birdsite::model::graphql::birdwatch::manifest::Bundle),
 }
 
 impl bounded_static::IntoBoundedStatic for Data {
@@ -44,6 +45,12 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                     .birdwatch_note_by_rest_id;
 
                 Ok(Self::BirdwatchFetchOneNote(note.into_static()))
+            }
+            Variables::BirdwatchFetchPublicData(_) => {
+                let bundle = serde_json::from_str::<birdwatch_fetch_public_data::Data>(input)?
+                    .birdwatch_latest_public_data_file_bundle;
+
+                Ok(Self::BirdwatchFetchPublicData(bundle))
             }
             Variables::TweetResultsByRestIds(variables) => {
                 let tweet_results =
@@ -130,6 +137,15 @@ mod birdwatch_fetch_one_note {
     pub struct Data<'a> {
         #[serde(borrow)]
         pub birdwatch_note_by_rest_id: Option<birdsite::model::graphql::birdwatch::note::Note<'a>>,
+    }
+}
+
+mod birdwatch_fetch_public_data {
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct Data {
+        pub birdwatch_latest_public_data_file_bundle:
+            birdsite::model::graphql::birdwatch::manifest::Bundle,
     }
 }
 

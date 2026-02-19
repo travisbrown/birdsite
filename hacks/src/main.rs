@@ -20,12 +20,15 @@ async fn main() -> Result<(), Error> {
             let filter = [
                 RequestName::AboutAccountQuery,
                 RequestName::BirdwatchFetchOneNote,
+                RequestName::BirdwatchFetchPublicData,
                 RequestName::TweetResultsByRestIds,
                 RequestName::UserByRestId,
             ];
 
             match command {
                 GraphQlCommand::Extract => {
+                    use birdsite_graphql::response::data::Data;
+
                     let exchanges = birdsite_graphql::archive::io::parse_exchanges_zst::<
                         Variables,
                         birdsite_graphql::response::data::Data,
@@ -36,36 +39,25 @@ async fn main() -> Result<(), Error> {
                     for result in exchanges {
                         match result? {
                             Ok(exchange) => match exchange.data {
-                                Some(
-                                    birdsite_graphql::response::data::Data::AboutAccountQuery(
-                                        user_result,
-                                    ),
-                                ) => {
-                                    log::warn!("{user_result:?}");
-                                }
-                                Some(
-                                    birdsite_graphql::response::data::Data::TweetResultsByRestIds(
-                                        tweets,
-                                    ),
-                                ) => {
-                                    for tweet in tweets {
-                                        log::warn!("{tweet:?}");
+                                Some(data) => match data {
+                                    Data::AboutAccountQuery(user_result) => {
+                                        log::warn!("AboutAccountQuery: {user_result:?}");
                                     }
-                                }
-                                Some(
-                                    birdsite_graphql::response::data::Data::BirdwatchFetchOneNote(
-                                        note,
-                                    ),
-                                ) => {
-                                    log::warn!("{note:?}");
-                                }
-                                Some(
-                                    birdsite_graphql::response::data::Data::UserResultByRestId(
-                                        user_result,
-                                    ),
-                                ) => {
-                                    log::warn!("{user_result:?}");
-                                }
+                                    Data::BirdwatchFetchOneNote(note) => {
+                                        log::warn!("BirdwatchFetchOneNote: {note:?}");
+                                    }
+                                    Data::BirdwatchFetchPublicData(bundle) => {
+                                        log::warn!("BirdwatchFetchPublicData: {bundle:?}");
+                                    }
+                                    Data::TweetResultsByRestIds(tweets) => {
+                                        for tweet in tweets {
+                                            log::warn!("TweetResultsByRestIds: {tweet:?}");
+                                        }
+                                    }
+                                    Data::UserResultByRestId(user_result) => {
+                                        log::warn!("UserResultByRestId: {user_result:?}");
+                                    }
+                                },
                                 _ => {}
                             },
                             Err(skipped) => {
