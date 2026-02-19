@@ -2,7 +2,7 @@ use crate::request::variables::Variables;
 use birdsite::model::graphql::{
     tweet::TweetResult,
     unavailable::{TweetUnavailableReason, UserUnavailableReason},
-    user::UserResult,
+    user::{User, UserResult},
 };
 use bounded_static::{IntoBoundedStatic, ToBoundedStatic};
 use std::borrow::Cow;
@@ -11,18 +11,31 @@ mod tweet;
 mod user;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CommunityResponse<'a> {
+pub struct CommunityMembersResponse<'a> {
     pub members: Vec<birdsite::model::graphql::user::community::CommunityUser<'static>>,
     pub cursor: Option<Cow<'a, str>>,
+}
+
+// Note that we can't use `UserResult` because we do not have the user ID.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum UserByScreenNameResponse<'a> {
+    Available(User<'a>),
+    Suspended,
+    /// Indicates either deactivation or a screen name change.
+    NotFound,
+    Incomplete,
+    /// Another reason is given for unavailabilty (we do not expect to see this).
+    OtherUnavailable(UserUnavailableReason),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Data {
     AboutAccountQuery(Option<birdsite::model::graphql::user::about_account::UserResult<'static>>),
     BirdwatchFetchOneNote(Option<birdsite::model::graphql::birdwatch::note::Note<'static>>),
-    MembersSliceTimelineQuery(Option<CommunityResponse<'static>>),
+    /// An empty value may indicate either suspension or deactivation.
+    MembersSliceTimelineQuery(Option<CommunityMembersResponse<'static>>),
     TweetResultsByRestIds(Vec<TweetResult<'static>>),
-    UserByScreenName(Option<UserResult<'static>>),
+    UserByScreenName(UserByScreenNameResponse<'static>),
     UserResultByRestId(UserResult<'static>),
     UsersByRestIds(Vec<UserResult<'static>>),
     BirdwatchFetchPublicData(birdsite::model::graphql::birdwatch::manifest::Bundle),
@@ -63,31 +76,11 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                 Ok(Self::BirdwatchFetchPublicData(bundle))
             }
             Variables::MembersSliceTimelineQuery(_) => {
-                let response =
-                    match serde_json::from_str::<members_slice_timeline_query::Data<'_>>(input)?
-                        .community_results
-                        .result
-                    {
-                        members_slice_timeline_query::Community::Community {
-                            members_slice,
-                            ..
-                        } => {
-                            let cursor = members_slice
-                                .slice_info
-                                .next_cursor
-                                .map(|s| Cow::Owned(s.to_string()));
-                            let members = members_slice
-                                .items_results
-                                .into_iter()
-                                .filter_map(|item| item.result)
-                                .map(IntoBoundedStatic::into_static)
-                                .collect::<Vec<_>>();
-                            Some(CommunityResponse { members, cursor })
-                        }
-                        members_slice_timeline_query::Community::CommunityUnavailable => None,
-                    };
+                let data = serde_json::from_str::<members_slice_timeline_query::Data<'_>>(input)?;
 
-                Ok(Self::MembersSliceTimelineQuery(response))
+                Ok(Self::MembersSliceTimelineQuery(
+                    data.into_community_response(),
+                ))
             }
             Variables::TweetResultsByRestIds(variables) => {
                 let tweet_results =
@@ -145,22 +138,23 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                 }
             }
             Variables::UserByScreenName(_) => {
-                let result = serde_json::from_str::<user_by_rest_id::Data<'_>>(input)?
+                let user_result = serde_json::from_str::<user_by_screen_name::Data<'_>>(input)?
                     .user
-                    .result;
+                    .map(|user| user.result);
 
-                Ok(Self::UserByScreenName(result.map(|user_result| {
-                    // Extract the ID from the response itself since it is not in the variables.
-                    let id = match &user_result {
-                        birdsite::model::graphql::user::partial::UserResult::User { user } => {
-                            user.rest_id
+                let response = match user_result {
+                    Some(user_result) => match user_result.into_result() {
+                        Ok(user) => UserByScreenNameResponse::Available(user.into_static()),
+                        Err(None) => UserByScreenNameResponse::Incomplete,
+                        Err(Some(UserUnavailableReason::Suspended)) => {
+                            UserByScreenNameResponse::Suspended
                         }
-                        birdsite::model::graphql::user::partial::UserResult::UserUnavailable {
-                            ..
-                        } => 0,
-                    };
-                    user_result.complete(id).to_static()
-                })))
+                        Err(Some(other)) => UserByScreenNameResponse::OtherUnavailable(other),
+                    },
+                    None => UserByScreenNameResponse::NotFound,
+                };
+
+                Ok(Self::UserByScreenName(response))
             }
             Variables::UserByRestId(variables) => {
                 let user_result = serde_json::from_str::<user_by_rest_id::Data<'_>>(input)?
@@ -248,29 +242,50 @@ mod tweet_results_by_rest_ids {
 }
 
 mod members_slice_timeline_query {
+    use super::CommunityMembersResponse;
     use birdsite::model::graphql::user::community::CommunityUser;
+    use std::borrow::Cow;
 
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub struct Data<'a> {
         #[serde(borrow, rename = "communityResults")]
-        pub community_results: CommunityResults<'a>,
+        community_results: CommunityResults<'a>,
+    }
+
+    impl<'a> Data<'a> {
+        pub fn into_community_response(self) -> Option<CommunityMembersResponse<'static>> {
+            match self.community_results.result {
+                Community::Community { members_slice, .. } => {
+                    let cursor = members_slice
+                        .slice_info
+                        .next_cursor
+                        .map(|s| Cow::Owned(s.to_string()));
+                    let members = members_slice
+                        .items_results
+                        .into_iter()
+                        .filter_map(|item| item.result)
+                        .map(bounded_static::IntoBoundedStatic::into_static)
+                        .collect::<Vec<_>>();
+                    Some(CommunityMembersResponse { members, cursor })
+                }
+                Community::CommunityUnavailable => None,
+            }
+        }
     }
 
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
-    pub struct CommunityResults<'a> {
+    struct CommunityResults<'a> {
         id: &'a str,
-        #[serde(borrow)]
-        pub result: Community<'a>,
+        result: Community<'a>,
     }
 
     #[derive(serde::Deserialize)]
     #[serde(tag = "__typename")]
-    pub enum Community<'a> {
+    enum Community<'a> {
         Community {
             id: &'a str,
-            #[serde(borrow)]
             members_slice: MembersSlice<'a>,
         },
         CommunityUnavailable,
@@ -278,24 +293,24 @@ mod members_slice_timeline_query {
 
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
-    pub struct MembersSlice<'a> {
+    struct MembersSlice<'a> {
         #[serde(borrow)]
-        pub items_results: Vec<ItemResult<'a>>,
-        pub slice_info: SliceInfo<'a>,
+        items_results: Vec<ItemResult<'a>>,
+        slice_info: SliceInfo<'a>,
     }
 
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
-    pub struct ItemResult<'a> {
-        id: &'a str,
-        #[serde(borrow)]
-        pub result: Option<CommunityUser<'a>>,
+    struct ItemResult<'a> {
+        #[serde(rename = "id")]
+        _id: &'a str,
+        result: Option<CommunityUser<'a>>,
     }
 
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
-    pub struct SliceInfo<'a> {
-        pub next_cursor: Option<&'a str>,
+    struct SliceInfo<'a> {
+        next_cursor: Option<Cow<'a, str>>,
     }
 }
 
@@ -378,5 +393,21 @@ mod user_by_rest_id {
     pub struct User<'a> {
         #[serde(borrow)]
         pub result: Option<birdsite::model::graphql::user::partial::UserResult<'a>>,
+    }
+}
+
+mod user_by_screen_name {
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct Data<'a> {
+        #[serde(borrow)]
+        pub user: Option<User<'a>>,
+    }
+
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct User<'a> {
+        #[serde(borrow)]
+        pub result: birdsite::model::graphql::user::partial::UserResult<'a>,
     }
 }

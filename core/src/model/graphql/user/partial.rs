@@ -26,6 +26,7 @@ impl<'a> UserResult<'a> {
         }
     }
 
+    /// Note that an empty error result indicates an incomplete response.
     pub fn into_result(self) -> Result<super::User<'a>, Option<UserUnavailableReason>> {
         match self {
             Self::User { user } => user.into_user().map_or(Err(None), Ok),
