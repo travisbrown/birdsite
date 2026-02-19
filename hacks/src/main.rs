@@ -24,6 +24,7 @@ async fn main() -> Result<(), Error> {
                 RequestName::MembersSliceTimelineQuery,
                 RequestName::TweetResultsByRestIds,
                 RequestName::UserByRestId,
+                RequestName::UserByScreenName,
                 RequestName::UsersByRestIds,
             ];
 
@@ -64,6 +65,9 @@ async fn main() -> Result<(), Error> {
                                         for tweet in tweets {
                                             log::warn!("TweetResultsByRestIds: {tweet:?}");
                                         }
+                                    }
+                                    Data::UserByScreenName(user_result) => {
+                                        log::warn!("UserByScreenName: {user_result:?}");
                                     }
                                     Data::UserResultByRestId(user_result) => {
                                         log::warn!("UserResultByRestId: {user_result:?}");

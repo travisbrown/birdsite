@@ -54,6 +54,16 @@ pub struct UserByRestId {
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
+pub struct UserByScreenName<'a> {
+    pub screen_name: Cow<'a, str>,
+    #[serde(rename = "withSafetyModeUserFields")]
+    pub with_safety_mode_user_fields: bool,
+    #[serde(rename = "withGrokTranslatedBio")]
+    pub with_grok_translated_bio: Option<bool>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct UsersByRestIds {
     #[serde(rename = "userIds", with = "integer_or_integer_str_array")]
     pub user_ids: Vec<u64>,
@@ -69,6 +79,7 @@ pub enum Variables {
     MembersSliceTimelineQuery(MembersSliceTimelineQuery<'static>),
     TweetResultsByRestIds(TweetResultsByRestIds),
     UserByRestId(UserByRestId),
+    UserByScreenName(UserByScreenName<'static>),
     UsersByRestIds(UsersByRestIds),
 }
 
@@ -97,6 +108,9 @@ impl<'a> crate::archive::request::Variables<'a> for Variables {
                 Some(map.next_value().map(Variables::TweetResultsByRestIds))
             }
             RequestName::UserByRestId => Some(map.next_value().map(Variables::UserByRestId)),
+            RequestName::UserByScreenName => {
+                Some(map.next_value().map(Variables::UserByScreenName))
+            }
             RequestName::UsersByRestIds => Some(map.next_value().map(Variables::UsersByRestIds)),
             _ => map
                 .next_value::<serde::de::IgnoredAny>()

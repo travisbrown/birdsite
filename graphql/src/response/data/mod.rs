@@ -22,8 +22,9 @@ pub enum Data {
     BirdwatchFetchOneNote(Option<birdsite::model::graphql::birdwatch::note::Note<'static>>),
     MembersSliceTimelineQuery(Option<CommunityResponse<'static>>),
     TweetResultsByRestIds(Vec<TweetResult<'static>>),
-    UserResultByRestId(birdsite::model::graphql::user::UserResult<'static>),
-    UsersByRestIds(Vec<birdsite::model::graphql::user::UserResult<'static>>),
+    UserByScreenName(Option<UserResult<'static>>),
+    UserResultByRestId(UserResult<'static>),
+    UsersByRestIds(Vec<UserResult<'static>>),
     BirdwatchFetchPublicData(birdsite::model::graphql::birdwatch::manifest::Bundle),
 }
 
@@ -62,27 +63,29 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                 Ok(Self::BirdwatchFetchPublicData(bundle))
             }
             Variables::MembersSliceTimelineQuery(_) => {
-                let response = match serde_json::from_str::<members_slice_timeline_query::Data<'_>>(
-                    input,
-                )?
-                .community_results
-                .result
-                {
-                    members_slice_timeline_query::Community::Community { members_slice, .. } => {
-                        let cursor = members_slice
-                            .slice_info
-                            .next_cursor
-                            .map(|s| Cow::Owned(s.to_string()));
-                        let members = members_slice
-                            .items_results
-                            .into_iter()
-                            .filter_map(|item| item.result)
-                            .map(IntoBoundedStatic::into_static)
-                            .collect::<Vec<_>>();
-                        Some(CommunityResponse { members, cursor })
-                    }
-                    members_slice_timeline_query::Community::CommunityUnavailable => None,
-                };
+                let response =
+                    match serde_json::from_str::<members_slice_timeline_query::Data<'_>>(input)?
+                        .community_results
+                        .result
+                    {
+                        members_slice_timeline_query::Community::Community {
+                            members_slice,
+                            ..
+                        } => {
+                            let cursor = members_slice
+                                .slice_info
+                                .next_cursor
+                                .map(|s| Cow::Owned(s.to_string()));
+                            let members = members_slice
+                                .items_results
+                                .into_iter()
+                                .filter_map(|item| item.result)
+                                .map(IntoBoundedStatic::into_static)
+                                .collect::<Vec<_>>();
+                            Some(CommunityResponse { members, cursor })
+                        }
+                        members_slice_timeline_query::Community::CommunityUnavailable => None,
+                    };
 
                 Ok(Self::MembersSliceTimelineQuery(response))
             }
@@ -140,6 +143,24 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                         returned: user_results.len(),
                     })
                 }
+            }
+            Variables::UserByScreenName(_) => {
+                let result = serde_json::from_str::<user_by_rest_id::Data<'_>>(input)?
+                    .user
+                    .result;
+
+                Ok(Self::UserByScreenName(result.map(|user_result| {
+                    // Extract the ID from the response itself since it is not in the variables.
+                    let id = match &user_result {
+                        birdsite::model::graphql::user::partial::UserResult::User { user } => {
+                            user.rest_id
+                        }
+                        birdsite::model::graphql::user::partial::UserResult::UserUnavailable {
+                            ..
+                        } => 0,
+                    };
+                    user_result.complete(id).to_static()
+                })))
             }
             Variables::UserByRestId(variables) => {
                 let user_result = serde_json::from_str::<user_by_rest_id::Data<'_>>(input)?
