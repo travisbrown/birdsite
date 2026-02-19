@@ -5,17 +5,22 @@ use birdsite::model::graphql::{
     user::UserResult,
 };
 use bounded_static::{IntoBoundedStatic, ToBoundedStatic};
+use std::borrow::Cow;
 
 mod tweet;
 mod user;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommunityResponse<'a> {
+    pub members: Vec<birdsite::model::graphql::user::community::CommunityUser<'static>>,
+    pub cursor: Option<Cow<'a, str>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Data {
     AboutAccountQuery(Option<birdsite::model::graphql::user::about_account::UserResult<'static>>),
     BirdwatchFetchOneNote(Option<birdsite::model::graphql::birdwatch::note::Note<'static>>),
-    MembersSliceTimelineQuery(
-        Vec<birdsite::model::graphql::user::community::CommunityUser<'static>>,
-    ),
+    MembersSliceTimelineQuery(Option<CommunityResponse<'static>>),
     TweetResultsByRestIds(Vec<TweetResult<'static>>),
     UserResultByRestId(birdsite::model::graphql::user::UserResult<'static>),
     UsersByRestIds(Vec<birdsite::model::graphql::user::UserResult<'static>>),
@@ -57,18 +62,29 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                 Ok(Self::BirdwatchFetchPublicData(bundle))
             }
             Variables::MembersSliceTimelineQuery(_) => {
-                let users =
-                    serde_json::from_str::<members_slice_timeline_query::Data<'_>>(input)?
-                        .community_results
-                        .result
-                        .members_slice
-                        .items_results
-                        .into_iter()
-                        .filter_map(|item| item.result)
-                        .map(bounded_static::IntoBoundedStatic::into_static)
-                        .collect::<Vec<_>>();
+                let response = match serde_json::from_str::<members_slice_timeline_query::Data<'_>>(
+                    input,
+                )?
+                .community_results
+                .result
+                {
+                    members_slice_timeline_query::Community::Community { members_slice, .. } => {
+                        let cursor = members_slice
+                            .slice_info
+                            .next_cursor
+                            .map(|s| Cow::Owned(s.to_string()));
+                        let members = members_slice
+                            .items_results
+                            .into_iter()
+                            .filter_map(|item| item.result)
+                            .map(IntoBoundedStatic::into_static)
+                            .collect::<Vec<_>>();
+                        Some(CommunityResponse { members, cursor })
+                    }
+                    members_slice_timeline_query::Community::CommunityUnavailable => None,
+                };
 
-                Ok(Self::MembersSliceTimelineQuery(users))
+                Ok(Self::MembersSliceTimelineQuery(response))
             }
             Variables::TweetResultsByRestIds(variables) => {
                 let tweet_results =
@@ -229,13 +245,14 @@ mod members_slice_timeline_query {
     }
 
     #[derive(serde::Deserialize)]
-    #[serde(deny_unknown_fields)]
-    pub struct Community<'a> {
-        #[serde(rename = "__typename")]
-        _typename: &'a str,
-        id: &'a str,
-        #[serde(borrow)]
-        pub members_slice: MembersSlice<'a>,
+    #[serde(tag = "__typename")]
+    pub enum Community<'a> {
+        Community {
+            id: &'a str,
+            #[serde(borrow)]
+            members_slice: MembersSlice<'a>,
+        },
+        CommunityUnavailable,
     }
 
     #[derive(serde::Deserialize)]
@@ -243,7 +260,7 @@ mod members_slice_timeline_query {
     pub struct MembersSlice<'a> {
         #[serde(borrow)]
         pub items_results: Vec<ItemResult<'a>>,
-        slice_info: SliceInfo<'a>,
+        pub slice_info: SliceInfo<'a>,
     }
 
     #[derive(serde::Deserialize)]

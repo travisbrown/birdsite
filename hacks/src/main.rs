@@ -51,9 +51,13 @@ async fn main() -> Result<(), Error> {
                                     Data::BirdwatchFetchPublicData(bundle) => {
                                         log::warn!("BirdwatchFetchPublicData: {bundle:?}");
                                     }
-                                    Data::MembersSliceTimelineQuery(users) => {
-                                        for user in users {
-                                            log::warn!("MembersSliceTimelineQuery: {user:?}");
+                                    Data::MembersSliceTimelineQuery(response) => {
+                                        if let Some(response) = response {
+                                            for user in response.members {
+                                                log::warn!(
+                                                    "MembersSliceTimelineQuery: {user:?}"
+                                                );
+                                            }
                                         }
                                     }
                                     Data::TweetResultsByRestIds(tweets) => {
