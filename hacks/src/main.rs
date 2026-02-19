@@ -21,6 +21,7 @@ async fn main() -> Result<(), Error> {
                 RequestName::AboutAccountQuery,
                 RequestName::BirdwatchFetchOneNote,
                 RequestName::BirdwatchFetchPublicData,
+                RequestName::MembersSliceTimelineQuery,
                 RequestName::TweetResultsByRestIds,
                 RequestName::UserByRestId,
             ];
@@ -48,6 +49,11 @@ async fn main() -> Result<(), Error> {
                                     }
                                     Data::BirdwatchFetchPublicData(bundle) => {
                                         log::warn!("BirdwatchFetchPublicData: {bundle:?}");
+                                    }
+                                    Data::MembersSliceTimelineQuery(users) => {
+                                        for user in users {
+                                            log::warn!("MembersSliceTimelineQuery: {user:?}");
+                                        }
                                     }
                                     Data::TweetResultsByRestIds(tweets) => {
                                         for tweet in tweets {

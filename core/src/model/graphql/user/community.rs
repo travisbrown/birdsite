@@ -43,7 +43,8 @@ impl<'de: 'a, 'a> Deserialize<'de> for CommunityUser<'a> {
             name: user.legacy.name,
             affiliation_label_type: user
                 .affiliates_highlighted_label
-                .map(|label| label.label.user_label_type),
+                .and_then(|label| label.label)
+                .map(|label| label.user_label_type),
             identity_affiliation: user.identity_profile_labels_highlighted_label,
             protected: user.legacy.protected,
             is_blue_verified: user.is_blue_verified,
@@ -64,6 +65,8 @@ mod internal {
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub struct User<'a> {
+        #[serde(rename = "__typename")]
+        _typename: &'a str,
         id: &'a str,
         #[serde(with = "integer_str")]
         pub rest_id: u64,
@@ -86,7 +89,7 @@ mod internal {
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub struct Legacy<'a> {
-        #[serde(with = "integer_str")]
+        #[serde(rename = "id_str", with = "integer_str")]
         pub _id: u64,
         pub screen_name: Cow<'a, str>,
         pub name: Option<Cow<'a, str>>,
@@ -107,7 +110,7 @@ mod internal {
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub struct AffiliatesHighlightedLabel {
-        pub label: AffiliatesHighlightedLabelLabel,
+        pub label: Option<AffiliatesHighlightedLabelLabel>,
     }
 
     #[derive(serde::Deserialize)]

@@ -37,6 +37,14 @@ pub struct TweetResultsByRestIds {
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
+pub struct MembersSliceTimelineQuery<'a> {
+    #[serde(rename = "communityId", with = "integer_or_integer_str")]
+    pub community_id: u64,
+    pub cursor: Option<std::borrow::Cow<'a, str>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct UserByRestId {
     #[serde(rename = "userId", with = "integer_or_integer_str")]
     pub user_id: u64,
@@ -49,6 +57,7 @@ pub enum Variables {
     AboutAccountQuery(AboutAccountQuery<'static>),
     BirdwatchFetchOneNote(BirdwatchFetchOneNote),
     BirdwatchFetchPublicData(Empty),
+    MembersSliceTimelineQuery(MembersSliceTimelineQuery<'static>),
     TweetResultsByRestIds(TweetResultsByRestIds),
     UserByRestId(UserByRestId),
 }
@@ -70,6 +79,9 @@ impl<'a> crate::archive::request::Variables<'a> for Variables {
             }
             RequestName::BirdwatchFetchPublicData => {
                 Some(map.next_value().map(Variables::BirdwatchFetchPublicData))
+            }
+            RequestName::MembersSliceTimelineQuery => {
+                Some(map.next_value().map(Variables::MembersSliceTimelineQuery))
             }
             RequestName::TweetResultsByRestIds => {
                 Some(map.next_value().map(Variables::TweetResultsByRestIds))

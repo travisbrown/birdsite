@@ -13,6 +13,9 @@ mod user;
 pub enum Data {
     AboutAccountQuery(Option<birdsite::model::graphql::user::about_account::UserResult<'static>>),
     BirdwatchFetchOneNote(Option<birdsite::model::graphql::birdwatch::note::Note<'static>>),
+    MembersSliceTimelineQuery(
+        Vec<birdsite::model::graphql::user::community::CommunityUser<'static>>,
+    ),
     TweetResultsByRestIds(Vec<TweetResult<'static>>),
     UserResultByRestId(birdsite::model::graphql::user::UserResult<'static>),
     BirdwatchFetchPublicData(birdsite::model::graphql::birdwatch::manifest::Bundle),
@@ -51,6 +54,20 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                     .birdwatch_latest_public_data_file_bundle;
 
                 Ok(Self::BirdwatchFetchPublicData(bundle))
+            }
+            Variables::MembersSliceTimelineQuery(_) => {
+                let users =
+                    serde_json::from_str::<members_slice_timeline_query::Data<'_>>(input)?
+                        .community_results
+                        .result
+                        .members_slice
+                        .items_results
+                        .into_iter()
+                        .filter_map(|item| item.result)
+                        .map(bounded_static::IntoBoundedStatic::into_static)
+                        .collect::<Vec<_>>();
+
+                Ok(Self::MembersSliceTimelineQuery(users))
             }
             Variables::TweetResultsByRestIds(variables) => {
                 let tweet_results =
@@ -162,6 +179,57 @@ mod tweet_results_by_rest_ids {
     pub struct TweetResult<'a> {
         #[serde(borrow)]
         pub result: Option<birdsite::model::graphql::tweet::partial::TweetResult<'a>>,
+    }
+}
+
+mod members_slice_timeline_query {
+    use birdsite::model::graphql::user::community::CommunityUser;
+
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct Data<'a> {
+        #[serde(borrow, rename = "communityResults")]
+        pub community_results: CommunityResults<'a>,
+    }
+
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct CommunityResults<'a> {
+        id: &'a str,
+        #[serde(borrow)]
+        pub result: Community<'a>,
+    }
+
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct Community<'a> {
+        #[serde(rename = "__typename")]
+        _typename: &'a str,
+        id: &'a str,
+        #[serde(borrow)]
+        pub members_slice: MembersSlice<'a>,
+    }
+
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct MembersSlice<'a> {
+        #[serde(borrow)]
+        pub items_results: Vec<ItemResult<'a>>,
+        slice_info: SliceInfo<'a>,
+    }
+
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct ItemResult<'a> {
+        id: &'a str,
+        #[serde(borrow)]
+        pub result: Option<CommunityUser<'a>>,
+    }
+
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct SliceInfo<'a> {
+        pub next_cursor: Option<&'a str>,
     }
 }
 
