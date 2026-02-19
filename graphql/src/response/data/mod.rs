@@ -18,6 +18,7 @@ pub enum Data {
     ),
     TweetResultsByRestIds(Vec<TweetResult<'static>>),
     UserResultByRestId(birdsite::model::graphql::user::UserResult<'static>),
+    UsersByRestIds(Vec<birdsite::model::graphql::user::UserResult<'static>>),
     BirdwatchFetchPublicData(birdsite::model::graphql::birdwatch::manifest::Bundle),
 }
 
@@ -94,6 +95,33 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                     Err(crate::archive::response::Error::InvalidResultLength {
                         expected: variables.tweet_ids.len(),
                         returned: tweet_results.len(),
+                    })
+                }
+            }
+            Variables::UsersByRestIds(variables) => {
+                let user_results =
+                    serde_json::from_str::<users_by_rest_ids::Data<'_>>(input)?.users;
+
+                if user_results.len() == variables.user_ids.len() {
+                    let user_results = user_results
+                        .into_iter()
+                        .zip(variables.user_ids.iter())
+                        .map(|(wrapper, &user_id)| {
+                            wrapper.result.map_or(
+                                UserResult::Unavailable {
+                                    id: user_id,
+                                    reason: UserUnavailableReason::Deactivated,
+                                },
+                                |user_result| user_result.complete(user_id).into_static(),
+                            )
+                        })
+                        .collect::<Vec<_>>();
+
+                    Ok(Self::UsersByRestIds(user_results))
+                } else {
+                    Err(crate::archive::response::Error::InvalidResultLength {
+                        expected: variables.user_ids.len(),
+                        returned: user_results.len(),
                     })
                 }
             }
@@ -230,6 +258,72 @@ mod members_slice_timeline_query {
     #[serde(deny_unknown_fields)]
     pub struct SliceInfo<'a> {
         pub next_cursor: Option<&'a str>,
+    }
+}
+
+mod users_by_rest_ids {
+    use serde_field_attributes::integer_str;
+    use std::borrow::Cow;
+
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct Data<'a> {
+        #[serde(borrow)]
+        pub users: Vec<UserResultWrapper<'a>>,
+    }
+
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct UserResultWrapper<'a> {
+        #[serde(borrow)]
+        pub result: Option<UserResult<'a>>,
+    }
+
+    #[derive(serde::Deserialize)]
+    #[serde(tag = "__typename")]
+    pub enum UserResult<'a> {
+        User {
+            #[serde(with = "integer_str")]
+            rest_id: u64,
+            #[serde(borrow)]
+            core: Core<'a>,
+            super_follow_eligible: Option<bool>,
+        },
+        UserUnavailable {
+            reason: birdsite::model::graphql::unavailable::UserUnavailableReason,
+        },
+    }
+
+    impl<'a> UserResult<'a> {
+        pub fn complete(self, id: u64) -> birdsite::model::graphql::user::UserResult<'a> {
+            match self {
+                Self::User {
+                    rest_id,
+                    core,
+                    super_follow_eligible,
+                } => birdsite::model::graphql::user::UserResult::Available(
+                    birdsite::model::graphql::user::User {
+                        id: rest_id,
+                        screen_name: core.screen_name,
+                        name: core.name,
+                        super_follow_eligible,
+                        subscribers_count: None,
+                        creator_subscriptions_count: None,
+                    },
+                ),
+                Self::UserUnavailable { reason } => {
+                    birdsite::model::graphql::user::UserResult::Unavailable { id, reason }
+                }
+            }
+        }
+    }
+
+    #[derive(serde::Deserialize)]
+    pub struct Core<'a> {
+        #[serde(borrow)]
+        pub screen_name: Cow<'a, str>,
+        #[serde(borrow)]
+        pub name: Cow<'a, str>,
     }
 }
 

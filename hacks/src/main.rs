@@ -24,6 +24,7 @@ async fn main() -> Result<(), Error> {
                 RequestName::MembersSliceTimelineQuery,
                 RequestName::TweetResultsByRestIds,
                 RequestName::UserByRestId,
+                RequestName::UsersByRestIds,
             ];
 
             match command {
@@ -62,6 +63,11 @@ async fn main() -> Result<(), Error> {
                                     }
                                     Data::UserResultByRestId(user_result) => {
                                         log::warn!("UserResultByRestId: {user_result:?}");
+                                    }
+                                    Data::UsersByRestIds(user_results) => {
+                                        for user_result in user_results {
+                                            log::warn!("UsersByRestIds: {user_result:?}");
+                                        }
                                     }
                                 },
                                 _ => {}

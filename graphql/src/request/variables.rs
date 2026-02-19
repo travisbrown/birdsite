@@ -40,7 +40,7 @@ pub struct TweetResultsByRestIds {
 pub struct MembersSliceTimelineQuery<'a> {
     #[serde(rename = "communityId", with = "integer_or_integer_str")]
     pub community_id: u64,
-    pub cursor: Option<std::borrow::Cow<'a, str>>,
+    pub cursor: Option<Cow<'a, str>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -48,6 +48,15 @@ pub struct MembersSliceTimelineQuery<'a> {
 pub struct UserByRestId {
     #[serde(rename = "userId", with = "integer_or_integer_str")]
     pub user_id: u64,
+    #[serde(rename = "withSafetyModeUserFields")]
+    pub with_safety_mode_user_fields: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct UsersByRestIds {
+    #[serde(rename = "userIds", with = "integer_or_integer_str_array")]
+    pub user_ids: Vec<u64>,
     #[serde(rename = "withSafetyModeUserFields")]
     pub with_safety_mode_user_fields: bool,
 }
@@ -60,6 +69,7 @@ pub enum Variables {
     MembersSliceTimelineQuery(MembersSliceTimelineQuery<'static>),
     TweetResultsByRestIds(TweetResultsByRestIds),
     UserByRestId(UserByRestId),
+    UsersByRestIds(UsersByRestIds),
 }
 
 impl<'a> crate::archive::request::Variables<'a> for Variables {
@@ -87,6 +97,7 @@ impl<'a> crate::archive::request::Variables<'a> for Variables {
                 Some(map.next_value().map(Variables::TweetResultsByRestIds))
             }
             RequestName::UserByRestId => Some(map.next_value().map(Variables::UserByRestId)),
+            RequestName::UsersByRestIds => Some(map.next_value().map(Variables::UsersByRestIds)),
             _ => map
                 .next_value::<serde::de::IgnoredAny>()
                 .map_or_else(|error| Some(Err(error)), |_| None),
