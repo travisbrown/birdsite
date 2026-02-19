@@ -2,6 +2,7 @@ use crate::model::graphql::unavailable::UserUnavailableReason;
 use std::borrow::Cow;
 
 pub mod about_account;
+pub mod community;
 pub mod mention;
 pub mod partial;
 pub mod repr;
