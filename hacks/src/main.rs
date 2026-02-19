@@ -21,6 +21,7 @@ async fn main() -> Result<(), Error> {
                 RequestName::AboutAccountQuery,
                 RequestName::BirdwatchFetchOneNote,
                 RequestName::TweetResultsByRestIds,
+                RequestName::UserByRestId,
             ];
 
             match command {
@@ -57,6 +58,13 @@ async fn main() -> Result<(), Error> {
                                     ),
                                 ) => {
                                     log::warn!("{note:?}");
+                                }
+                                Some(
+                                    birdsite_graphql::response::data::Data::UserResultByRestId(
+                                        user_result,
+                                    ),
+                                ) => {
+                                    log::warn!("{user_result:?}");
                                 }
                                 _ => {}
                             },

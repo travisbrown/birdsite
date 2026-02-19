@@ -31,11 +31,21 @@ pub struct TweetResultsByRestIds {
     pub with_birdwatch_notes: Option<bool>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct UserByRestId {
+    #[serde(rename = "userId", with = "integer_or_integer_str")]
+    pub user_id: u64,
+    #[serde(rename = "withSafetyModeUserFields")]
+    pub with_safety_mode_user_fields: bool,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Variables {
     AboutAccountQuery(AboutAccountQuery<'static>),
     BirdwatchFetchOneNote(BirdwatchFetchOneNote),
     TweetResultsByRestIds(TweetResultsByRestIds),
+    UserByRestId(UserByRestId),
 }
 
 impl<'a> crate::archive::request::Variables<'a> for Variables {
@@ -56,6 +66,7 @@ impl<'a> crate::archive::request::Variables<'a> for Variables {
             RequestName::TweetResultsByRestIds => {
                 Some(map.next_value().map(Variables::TweetResultsByRestIds))
             }
+            RequestName::UserByRestId => Some(map.next_value().map(Variables::UserByRestId)),
             _ => map
                 .next_value::<serde::de::IgnoredAny>()
                 .map_or_else(|error| Some(Err(error)), |_| None),

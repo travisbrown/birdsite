@@ -1,6 +1,10 @@
-use crate::request::variables::Variables;
-use birdsite::model::graphql::{tweet::TweetResult, unavailable::TweetUnavailableReason};
-use bounded_static::IntoBoundedStatic;
+use crate::request::variables::{self, Variables};
+use birdsite::model::graphql::{
+    tweet::TweetResult,
+    unavailable::{TweetUnavailableReason, UserUnavailableReason},
+    user::UserResult,
+};
+use bounded_static::{IntoBoundedStatic, ToBoundedStatic};
 
 mod tweet;
 mod user;
@@ -10,6 +14,7 @@ pub enum Data {
     AboutAccountQuery(Option<birdsite::model::graphql::user::about_account::UserResult<'static>>),
     BirdwatchFetchOneNote(Option<birdsite::model::graphql::birdwatch::note::Note<'static>>),
     TweetResultsByRestIds(Vec<TweetResult<'static>>),
+    UserResultByRestId(birdsite::model::graphql::user::UserResult<'static>),
 }
 
 impl bounded_static::IntoBoundedStatic for Data {
@@ -27,25 +32,23 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
     {
         match variables {
             Variables::AboutAccountQuery(variables) => {
-                let user_result = serde_json::from_str::<about_account_query::Top<'_>>(input)?
-                    .user_result_by_screen_name
-                    .and_then(|user_result_by_screen_name| user_result_by_screen_name.result);
+                let user_result = serde_json::from_str::<about_account_query::Data<'_>>(input)?
+                    .complete(variables.screen_name.clone());
 
-                Ok(Self::AboutAccountQuery(user_result.map(|user_result| {
-                    user_result
-                        .complete(variables.screen_name.clone())
-                        .into_static()
-                })))
+                Ok(Self::AboutAccountQuery(
+                    user_result.map(|user_result| user_result.into_static()),
+                ))
             }
             Variables::BirdwatchFetchOneNote(_) => {
-                let note = serde_json::from_str::<birdwatch_fetch_one_note::Top<'_>>(input)?
+                let note = serde_json::from_str::<birdwatch_fetch_one_note::Data<'_>>(input)?
                     .birdwatch_note_by_rest_id;
 
                 Ok(Self::BirdwatchFetchOneNote(note.into_static()))
             }
             Variables::TweetResultsByRestIds(variables) => {
                 let tweet_results =
-                    serde_json::from_str::<tweet_results_by_rest_ids::Top<'_>>(input)?.tweet_result;
+                    serde_json::from_str::<tweet_results_by_rest_ids::Data<'_>>(input)?
+                        .tweet_result;
 
                 if tweet_results.len() == variables.tweet_ids.len() {
                     let tweet_results = tweet_results
@@ -70,6 +73,19 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                     })
                 }
             }
+            Variables::UserByRestId(variables) => {
+                let user_result = serde_json::from_str::<user_by_rest_id::Data<'_>>(input)?
+                    .user
+                    .result;
+
+                Ok(Self::UserResultByRestId(user_result.map_or_else(
+                    || UserResult::Unavailable {
+                        id: variables.user_id,
+                        reason: UserUnavailableReason::Deactivated,
+                    },
+                    |user_result| user_result.complete(variables.user_id).to_static(),
+                )))
+            }
         }
     }
 }
@@ -80,25 +96,38 @@ mod about_account_query {
 
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
-    pub struct Top<'a> {
+    pub struct Data<'a> {
         #[serde(borrow)]
-        pub user_result_by_screen_name: Option<UserResultByScreenName<'a>>,
+        user_result_by_screen_name: Option<UserResultByScreenName<'a>>,
+    }
+
+    impl<'a> Data<'a> {
+        pub fn complete(
+            self,
+            screen_name: Cow<'a, str>,
+        ) -> Option<birdsite::model::graphql::user::about_account::UserResult<'a>> {
+            let user_result = self
+                .user_result_by_screen_name
+                .and_then(|user_result_by_screen_name| user_result_by_screen_name.result);
+
+            user_result.map(|user_result| user_result.complete(screen_name))
+        }
     }
 
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
-    pub struct UserResultByScreenName<'a> {
+    struct UserResultByScreenName<'a> {
         #[serde(rename = "id")]
         _id: Cow<'a, str>,
         #[serde(borrow)]
-        pub result: Option<UserResult<'a>>,
+        result: Option<UserResult<'a>>,
     }
 }
 
 mod birdwatch_fetch_one_note {
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
-    pub struct Top<'a> {
+    pub struct Data<'a> {
         #[serde(borrow)]
         pub birdwatch_note_by_rest_id: Option<birdsite::model::graphql::birdwatch::note::Note<'a>>,
     }
@@ -107,7 +136,7 @@ mod birdwatch_fetch_one_note {
 mod tweet_results_by_rest_ids {
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
-    pub struct Top<'a> {
+    pub struct Data<'a> {
         #[serde(borrow, rename = "tweetResult")]
         pub tweet_result: Vec<TweetResult<'a>>,
     }
@@ -117,5 +146,21 @@ mod tweet_results_by_rest_ids {
     pub struct TweetResult<'a> {
         #[serde(borrow)]
         pub result: Option<birdsite::model::graphql::tweet::partial::TweetResult<'a>>,
+    }
+}
+
+mod user_by_rest_id {
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct Data<'a> {
+        #[serde(borrow)]
+        pub user: User<'a>,
+    }
+
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct User<'a> {
+        #[serde(borrow)]
+        pub result: Option<birdsite::model::graphql::user::partial::UserResult<'a>>,
     }
 }

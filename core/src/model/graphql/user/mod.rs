@@ -62,4 +62,7 @@ pub struct User<'a> {
     pub id: u64,
     pub screen_name: Cow<'a, str>,
     pub name: Cow<'a, str>,
+    pub super_follow_eligible: Option<bool>,
+    pub subscribers_count: Option<usize>,
+    pub creator_subscriptions_count: Option<usize>,
 }
