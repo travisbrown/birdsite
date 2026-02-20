@@ -24,8 +24,7 @@ impl TweetResult<'_> {
         match self {
             Self::Full(tweet) => tweet.id,
             Self::Preview(tweet) => tweet.id,
-            Self::Unavailable { id, .. } => *id,
-            Self::Incomplete { id } => *id,
+            Self::Unavailable { id, .. } | Self::Incomplete { id } => *id,
         }
     }
 }

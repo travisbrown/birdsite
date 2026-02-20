@@ -60,7 +60,7 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                     .complete(variables.screen_name.clone());
 
                 Ok(Self::AboutAccountQuery(
-                    user_result.map(|user_result| user_result.into_static()),
+                    user_result.map(bounded_static::IntoBoundedStatic::into_static),
                 ))
             }
             Variables::BirdwatchFetchOneNote(_) => {
@@ -142,17 +142,17 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
                     .user
                     .map(|user| user.result);
 
-                let response = match user_result {
-                    Some(user_result) => match user_result.into_result() {
-                        Ok(user) => UserByScreenNameResponse::Available(user.into_static()),
-                        Err(None) => UserByScreenNameResponse::Incomplete,
-                        Err(Some(UserUnavailableReason::Suspended)) => {
-                            UserByScreenNameResponse::Suspended
+                let response =
+                    user_result.map_or(UserByScreenNameResponse::NotFound, |user_result| {
+                        match user_result.into_result() {
+                            Ok(user) => UserByScreenNameResponse::Available(user.into_static()),
+                            Err(None) => UserByScreenNameResponse::Incomplete,
+                            Err(Some(UserUnavailableReason::Suspended)) => {
+                                UserByScreenNameResponse::Suspended
+                            }
+                            Err(Some(other)) => UserByScreenNameResponse::OtherUnavailable(other),
                         }
-                        Err(Some(other)) => UserByScreenNameResponse::OtherUnavailable(other),
-                    },
-                    None => UserByScreenNameResponse::NotFound,
-                };
+                    });
 
                 Ok(Self::UserByScreenName(response))
             }
@@ -253,7 +253,7 @@ mod members_slice_timeline_query {
         community_results: CommunityResults<'a>,
     }
 
-    impl<'a> Data<'a> {
+    impl Data<'_> {
         pub fn into_community_response(self) -> Option<CommunityMembersResponse<'static>> {
             match self.community_results.result {
                 Community::Community { members_slice, .. } => {
@@ -285,7 +285,8 @@ mod members_slice_timeline_query {
     #[serde(tag = "__typename")]
     enum Community<'a> {
         Community {
-            id: &'a str,
+            #[serde(rename = "id")]
+            _id: &'a str,
             members_slice: MembersSlice<'a>,
         },
         CommunityUnavailable,
