@@ -55,9 +55,7 @@ async fn main() -> Result<(), Error> {
                                     Data::MembersSliceTimelineQuery(response) => {
                                         if let Some(response) = response {
                                             for user in response.members {
-                                                log::warn!(
-                                                    "MembersSliceTimelineQuery: {user:?}"
-                                                );
+                                                log::warn!("MembersSliceTimelineQuery: {user:?}");
                                             }
                                         }
                                     }

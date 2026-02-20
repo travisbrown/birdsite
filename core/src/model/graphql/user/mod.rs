@@ -1,3 +1,5 @@
+use chrono::{DateTime, Utc};
+
 use crate::model::graphql::unavailable::UserUnavailableReason;
 use std::borrow::Cow;
 
@@ -62,7 +64,9 @@ impl bounded_static::ToBoundedStatic for UserResult<'_> {
 pub struct User<'a> {
     pub id: u64,
     pub screen_name: Cow<'a, str>,
-    pub name: Cow<'a, str>,
+    /// Name may not be provided for accounts with `XX` withholding, for example.
+    pub name: Option<Cow<'a, str>>,
+    pub created_at: DateTime<Utc>,
     pub super_follow_eligible: Option<bool>,
     pub subscribers_count: Option<usize>,
     pub creator_subscriptions_count: Option<usize>,

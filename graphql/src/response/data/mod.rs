@@ -277,7 +277,8 @@ mod members_slice_timeline_query {
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     struct CommunityResults<'a> {
-        id: &'a str,
+        #[serde(rename = "id")]
+        _id: &'a str,
         result: Community<'a>,
     }
 
@@ -316,9 +317,6 @@ mod members_slice_timeline_query {
 }
 
 mod users_by_rest_ids {
-    use serde_field_attributes::integer_str;
-    use std::borrow::Cow;
-
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub struct Data<'a> {
@@ -330,54 +328,7 @@ mod users_by_rest_ids {
     #[serde(deny_unknown_fields)]
     pub struct UserResultWrapper<'a> {
         #[serde(borrow)]
-        pub result: Option<UserResult<'a>>,
-    }
-
-    #[derive(serde::Deserialize)]
-    #[serde(tag = "__typename")]
-    pub enum UserResult<'a> {
-        User {
-            #[serde(with = "integer_str")]
-            rest_id: u64,
-            #[serde(borrow)]
-            core: Core<'a>,
-            super_follow_eligible: Option<bool>,
-        },
-        UserUnavailable {
-            reason: birdsite::model::graphql::unavailable::UserUnavailableReason,
-        },
-    }
-
-    impl<'a> UserResult<'a> {
-        pub fn complete(self, id: u64) -> birdsite::model::graphql::user::UserResult<'a> {
-            match self {
-                Self::User {
-                    rest_id,
-                    core,
-                    super_follow_eligible,
-                } => birdsite::model::graphql::user::UserResult::Available(
-                    birdsite::model::graphql::user::User {
-                        id: rest_id,
-                        screen_name: core.screen_name,
-                        name: core.name,
-                        super_follow_eligible,
-                        subscribers_count: None,
-                        creator_subscriptions_count: None,
-                    },
-                ),
-                Self::UserUnavailable { reason } => {
-                    birdsite::model::graphql::user::UserResult::Unavailable { id, reason }
-                }
-            }
-        }
-    }
-
-    #[derive(serde::Deserialize)]
-    pub struct Core<'a> {
-        #[serde(borrow)]
-        pub screen_name: Cow<'a, str>,
-        #[serde(borrow)]
-        pub name: Cow<'a, str>,
+        pub result: Option<birdsite::model::graphql::user::partial::UserResult<'a>>,
     }
 }
 

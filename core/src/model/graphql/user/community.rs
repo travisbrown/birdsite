@@ -67,7 +67,8 @@ mod internal {
     pub struct User<'a> {
         #[serde(rename = "__typename")]
         _typename: &'a str,
-        id: &'a str,
+        #[serde(rename = "id")]
+        _id: &'a str,
         #[serde(with = "integer_str")]
         pub rest_id: u64,
         pub community_role: CommunityRole,

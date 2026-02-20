@@ -1,4 +1,8 @@
-use crate::model::graphql::unavailable::UserUnavailableReason;
+use crate::model::{
+    attributes::{optional_text_timestamp, text_timestamp},
+    graphql::unavailable::UserUnavailableReason,
+};
+use chrono::{DateTime, Utc};
 use serde_field_attributes::integer_str;
 use std::borrow::Cow;
 
@@ -41,6 +45,7 @@ pub struct User<'a> {
     #[serde(with = "integer_str")]
     pub rest_id: u64,
     legacy: Option<Legacy<'a>>,
+    core: Option<Core<'a>>,
     pub super_follow_eligible: Option<bool>,
     pub subscribers_count: Option<usize>,
     pub creator_subscriptions_count: Option<usize>,
@@ -48,10 +53,28 @@ pub struct User<'a> {
 
 impl<'a> User<'a> {
     fn into_user(self) -> Option<super::User<'a>> {
-        self.legacy.map(|legacy| super::User {
+        let created_at = self
+            .legacy
+            .as_ref()
+            .and_then(|legacy| legacy.created_at)
+            .or_else(|| self.core.as_ref().map(|core| core.created_at))?;
+
+        let screen_name = self
+            .legacy
+            .as_ref()
+            .and_then(|legacy| legacy.screen_name.clone())
+            .or_else(|| self.core.as_ref().map(|core| core.screen_name.clone()))?;
+
+        let name = self
+            .legacy
+            .and_then(|legacy| legacy.name)
+            .or_else(|| self.core.and_then(|core| core.name));
+
+        Some(super::User {
             id: self.rest_id,
-            screen_name: legacy.screen_name,
-            name: legacy.name,
+            screen_name,
+            name,
+            created_at,
             super_follow_eligible: self.super_follow_eligible,
             subscribers_count: self.subscribers_count,
             creator_subscriptions_count: self.creator_subscriptions_count,
@@ -62,6 +85,17 @@ impl<'a> User<'a> {
 #[derive(Clone, Debug, serde::Deserialize)]
 //#[serde(deny_unknown_fields)]
 struct Legacy<'a> {
+    pub screen_name: Option<Cow<'a, str>>,
+    pub name: Option<Cow<'a, str>>,
+    #[serde(with = "optional_text_timestamp", default)]
+    pub created_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Core<'a> {
     pub screen_name: Cow<'a, str>,
-    pub name: Cow<'a, str>,
+    pub name: Option<Cow<'a, str>>,
+    #[serde(with = "text_timestamp")]
+    pub created_at: DateTime<Utc>,
 }
