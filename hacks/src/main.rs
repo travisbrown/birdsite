@@ -1,6 +1,7 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
 #![allow(clippy::missing_errors_doc)]
 #![forbid(unsafe_code)]
+use birdsite_graphql::response::data::CommunityMembersResponse;
 use cli_helpers::prelude::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -53,8 +54,11 @@ async fn main() -> Result<(), Error> {
                                         log::warn!("BirdwatchFetchPublicData: {bundle:?}");
                                     }
                                     Data::MembersSliceTimelineQuery(response) => {
-                                        if let Some(response) = response {
-                                            for user in response.members {
+                                        if let CommunityMembersResponse::Available {
+                                            members, ..
+                                        } = response
+                                        {
+                                            for user in members {
                                                 log::warn!("MembersSliceTimelineQuery: {user:?}");
                                             }
                                         }

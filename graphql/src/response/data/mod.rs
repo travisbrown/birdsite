@@ -11,9 +11,14 @@ mod tweet;
 mod user;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CommunityMembersResponse<'a> {
-    pub members: Vec<birdsite::model::graphql::user::community::CommunityUser<'static>>,
-    pub cursor: Option<Cow<'a, str>>,
+pub enum CommunityMembersResponse<'a> {
+    Available {
+        members: Vec<birdsite::model::graphql::user::community::CommunityUser<'static>>,
+        cursor: Option<Cow<'a, str>>,
+    },
+    /// May indicate either suspension or deactivation.
+    Unavailable,
+    Incomplete,
 }
 
 // Note that we can't use `UserResult` because we do not have the user ID.
@@ -32,8 +37,7 @@ pub enum UserByScreenNameResponse<'a> {
 pub enum Data {
     AboutAccountQuery(Option<birdsite::model::graphql::user::about_account::UserResult<'static>>),
     BirdwatchFetchOneNote(Option<birdsite::model::graphql::birdwatch::note::Note<'static>>),
-    /// An empty value may indicate either suspension or deactivation.
-    MembersSliceTimelineQuery(Option<CommunityMembersResponse<'static>>),
+    MembersSliceTimelineQuery(CommunityMembersResponse<'static>),
     TweetResultsByRestIds(Vec<TweetResult<'static>>),
     UserByScreenName(UserByScreenNameResponse<'static>),
     UserResultByRestId(UserResult<'static>),
@@ -144,14 +148,18 @@ impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Data {
 
                 let response =
                     user_result.map_or(UserByScreenNameResponse::NotFound, |user_result| {
-                        match user_result.into_result() {
-                            Ok(user) => UserByScreenNameResponse::Available(user.into_static()),
-                            Err(None) => UserByScreenNameResponse::Incomplete,
-                            Err(Some(UserUnavailableReason::Suspended)) => {
-                                UserByScreenNameResponse::Suspended
+                        user_result.map_or(UserByScreenNameResponse::Incomplete, |user_result| {
+                            match user_result.into_result() {
+                                Ok(user) => UserByScreenNameResponse::Available(user.into_static()),
+                                Err(None) => UserByScreenNameResponse::Incomplete,
+                                Err(Some(UserUnavailableReason::Suspended)) => {
+                                    UserByScreenNameResponse::Suspended
+                                }
+                                Err(Some(other)) => {
+                                    UserByScreenNameResponse::OtherUnavailable(other)
+                                }
                             }
-                            Err(Some(other)) => UserByScreenNameResponse::OtherUnavailable(other),
-                        }
+                        })
                     });
 
                 Ok(Self::UserByScreenName(response))
@@ -254,9 +262,9 @@ mod members_slice_timeline_query {
     }
 
     impl Data<'_> {
-        pub fn into_community_response(self) -> Option<CommunityMembersResponse<'static>> {
+        pub fn into_community_response(self) -> CommunityMembersResponse<'static> {
             match self.community_results.result {
-                Community::Community { members_slice, .. } => {
+                Some(Community::Community { members_slice, .. }) => {
                     let cursor = members_slice
                         .slice_info
                         .next_cursor
@@ -267,9 +275,10 @@ mod members_slice_timeline_query {
                         .filter_map(|item| item.result)
                         .map(bounded_static::IntoBoundedStatic::into_static)
                         .collect::<Vec<_>>();
-                    Some(CommunityMembersResponse { members, cursor })
+                    CommunityMembersResponse::Available { members, cursor }
                 }
-                Community::CommunityUnavailable => None,
+                Some(Community::CommunityUnavailable) => CommunityMembersResponse::Unavailable,
+                None => CommunityMembersResponse::Incomplete,
             }
         }
     }
@@ -279,7 +288,7 @@ mod members_slice_timeline_query {
     struct CommunityResults<'a> {
         #[serde(rename = "id")]
         _id: &'a str,
-        result: Community<'a>,
+        result: Option<Community<'a>>,
     }
 
     #[derive(serde::Deserialize)]
@@ -359,7 +368,8 @@ mod user_by_screen_name {
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub struct User<'a> {
+        // Seems to be empty only in the presence of errors.
         #[serde(borrow)]
-        pub result: birdsite::model::graphql::user::partial::UserResult<'a>,
+        pub result: Option<birdsite::model::graphql::user::partial::UserResult<'a>>,
     }
 }

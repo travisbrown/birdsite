@@ -9,12 +9,12 @@ pub struct CommunityUser<'a> {
     pub screen_name: Cow<'a, str>,
     pub name: Option<Cow<'a, str>>,
     pub affiliation_label_type: Option<AffiliationLabelType>,
-    pub identity_affiliation: AffiliationResult<'a>,
+    pub identity_affiliation: Option<AffiliationResult<'a>>,
     pub profile_image_url: Cow<'a, str>,
     pub protected: bool,
     pub is_blue_verified: bool,
     pub verified: bool,
-    pub super_follow_eligible: bool,
+    pub super_follow_eligible: Option<bool>,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -74,10 +74,12 @@ mod internal {
         pub community_role: CommunityRole,
         #[serde(borrow)]
         pub legacy: Legacy<'a>,
-        pub super_follow_eligible: bool,
+        // TODO: Check if this is only ever empty in the error case (as it is for recent instances).
+        pub super_follow_eligible: Option<bool>,
         pub affiliates_highlighted_label: Option<AffiliatesHighlightedLabel>,
+        // TODO: Check if this is only ever empty in the error case (as it is for recent instances).
         pub identity_profile_labels_highlighted_label:
-            crate::model::graphql::affiliation::AffiliationResult<'a>,
+            Option<crate::model::graphql::affiliation::AffiliationResult<'a>>,
         pub is_blue_verified: bool,
         #[serde(rename = "super_following")]
         _super_following: Option<bool>,

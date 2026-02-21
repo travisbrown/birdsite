@@ -49,7 +49,7 @@ pub struct UserByRestId {
     #[serde(rename = "userId", with = "integer_or_integer_str")]
     pub user_id: u64,
     #[serde(rename = "withSafetyModeUserFields")]
-    pub with_safety_mode_user_fields: bool,
+    pub with_safety_mode_user_fields: Option<bool>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
