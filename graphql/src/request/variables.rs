@@ -57,7 +57,7 @@ pub struct UserByRestId {
 pub struct UserByScreenName<'a> {
     pub screen_name: Cow<'a, str>,
     #[serde(rename = "withSafetyModeUserFields")]
-    pub with_safety_mode_user_fields: bool,
+    pub with_safety_mode_user_fields: Option<bool>,
     #[serde(rename = "withGrokTranslatedBio")]
     pub with_grok_translated_bio: Option<bool>,
 }
@@ -68,7 +68,7 @@ pub struct UsersByRestIds {
     #[serde(rename = "userIds", with = "integer_or_integer_str_array")]
     pub user_ids: Vec<u64>,
     #[serde(rename = "withSafetyModeUserFields")]
-    pub with_safety_mode_user_fields: bool,
+    pub with_safety_mode_user_fields: Option<bool>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
