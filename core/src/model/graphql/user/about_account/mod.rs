@@ -1,6 +1,6 @@
 use crate::model::{
-    graphql::{affiliation::Affiliation, unavailable::UserUnavailableReason},
-    user::properties::{ProfileImageShape, VerifiedType},
+    graphql::{affiliation::Affiliation, unavailable::UserUnavailableReason, user::Verification},
+    user::properties::ProfileImageShape,
 };
 use bounded_static::IntoBoundedStatic;
 use chrono::{DateTime, Utc};
@@ -96,11 +96,4 @@ pub struct UsernameChanges {
         default
     )]
     pub last_changed_at: Option<DateTime<Utc>>,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct Verification {
-    verified: bool,
-    verified_type: Option<VerifiedType>,
 }

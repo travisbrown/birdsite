@@ -13,7 +13,7 @@ mod user;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommunityMembersResponse<'a> {
     Available {
-        members: Vec<birdsite::model::graphql::user::community::CommunityUser<'static>>,
+        members: Vec<birdsite::model::graphql::user::community::UserResult<'static>>,
         cursor: Option<Cow<'a, str>>,
     },
     /// May indicate either suspension or deactivation.
@@ -44,6 +44,8 @@ pub enum Data {
     UsersByRestIds(Vec<UserResult<'static>>),
     BirdwatchFetchPublicData(birdsite::model::graphql::birdwatch::manifest::Bundle),
 }
+
+impl Data {}
 
 impl bounded_static::IntoBoundedStatic for Data {
     type Static = Self;
@@ -251,7 +253,7 @@ mod tweet_results_by_rest_ids {
 
 mod members_slice_timeline_query {
     use super::CommunityMembersResponse;
-    use birdsite::model::graphql::user::community::CommunityUser;
+    use birdsite::model::graphql::user::community::UserResult;
     use std::borrow::Cow;
 
     #[derive(serde::Deserialize)]
@@ -315,7 +317,7 @@ mod members_slice_timeline_query {
     struct ItemResult<'a> {
         #[serde(rename = "id")]
         _id: &'a str,
-        result: Option<CommunityUser<'a>>,
+        result: Option<UserResult<'a>>,
     }
 
     #[derive(serde::Deserialize)]

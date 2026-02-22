@@ -1,9 +1,27 @@
-use crate::model::graphql::affiliation::AffiliationResult;
+use crate::model::{graphql::affiliation::AffiliationResult, user::properties::VerifiedType};
+use bounded_static::IntoBoundedStatic;
 use serde::de::Deserialize;
 use std::borrow::Cow;
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum UserResult<'a> {
+    Available(User<'a>),
+    Incomplete { id: u64 },
+}
+
+impl<'a> IntoBoundedStatic for UserResult<'a> {
+    type Static = UserResult<'static>;
+
+    fn into_static(self) -> Self::Static {
+        match self {
+            Self::Available(user) => Self::Static::Available(user.into_static()),
+            Self::Incomplete { id } => Self::Static::Incomplete { id },
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, bounded_static_derive_more::ToStatic)]
-pub struct CommunityUser<'a> {
+pub struct User<'a> {
     pub id: u64,
     pub community_role: CommunityRole,
     pub screen_name: Cow<'a, str>,
@@ -12,8 +30,9 @@ pub struct CommunityUser<'a> {
     pub identity_affiliation: Option<AffiliationResult<'a>>,
     pub profile_image_url: Cow<'a, str>,
     pub protected: bool,
-    pub is_blue_verified: bool,
+    pub is_blue_verified: Option<bool>,
     pub verified: bool,
+    pub verified_type: Option<VerifiedType>,
     pub super_follow_eligible: Option<bool>,
 }
 
@@ -32,26 +51,32 @@ pub enum AffiliationLabelType {
     Business,
 }
 
-impl<'de: 'a, 'a> Deserialize<'de> for CommunityUser<'a> {
+impl<'de: 'a, 'a> Deserialize<'de> for UserResult<'a> {
     fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let user = internal::User::deserialize(deserializer)?;
 
-        Ok(CommunityUser {
-            id: user.rest_id,
-            community_role: user.community_role,
-            screen_name: user.legacy.screen_name,
-            name: user.legacy.name,
-            affiliation_label_type: user
-                .affiliates_highlighted_label
-                .and_then(|label| label.label)
-                .map(|label| label.user_label_type),
-            identity_affiliation: user.identity_profile_labels_highlighted_label,
-            protected: user.legacy.protected,
-            is_blue_verified: user.is_blue_verified,
-            verified: user.legacy.verified,
-            profile_image_url: user.legacy.profile_image_url_https,
-            super_follow_eligible: user.super_follow_eligible,
-        })
+        Ok(user.legacy.map_or_else(
+            || Self::Incomplete { id: user.rest_id },
+            |legacy| {
+                Self::Available(User {
+                    id: user.rest_id,
+                    community_role: user.community_role,
+                    screen_name: legacy.screen_name,
+                    name: legacy.name,
+                    affiliation_label_type: user
+                        .affiliates_highlighted_label
+                        .and_then(|label| label.label)
+                        .map(|label| label.user_label_type),
+                    identity_affiliation: user.identity_profile_labels_highlighted_label,
+                    protected: legacy.protected,
+                    is_blue_verified: user.is_blue_verified,
+                    verified: legacy.verified,
+                    verified_type: legacy.verified_type,
+                    profile_image_url: legacy.profile_image_url_https,
+                    super_follow_eligible: user.super_follow_eligible,
+                })
+            },
+        ))
     }
 }
 
@@ -73,14 +98,15 @@ mod internal {
         pub rest_id: u64,
         pub community_role: CommunityRole,
         #[serde(borrow)]
-        pub legacy: Legacy<'a>,
+        pub legacy: Option<Legacy<'a>>,
         // TODO: Check if this is only ever empty in the error case (as it is for recent instances).
         pub super_follow_eligible: Option<bool>,
         pub affiliates_highlighted_label: Option<AffiliatesHighlightedLabel>,
         // TODO: Check if this is only ever empty in the error case (as it is for recent instances).
         pub identity_profile_labels_highlighted_label:
             Option<crate::model::graphql::affiliation::AffiliationResult<'a>>,
-        pub is_blue_verified: bool,
+        // Should only be missing in the case of an error.
+        pub is_blue_verified: Option<bool>,
         #[serde(rename = "super_following")]
         _super_following: Option<bool>,
         #[serde(rename = "super_followed_by")]

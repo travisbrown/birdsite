@@ -84,6 +84,7 @@ mod internal {
     use std::borrow::Cow;
 
     #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
     pub struct MentionResult<'a> {
         #[serde(rename = "id_str", with = "integer_str")]
         pub id: i64,

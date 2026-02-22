@@ -1,6 +1,7 @@
 use crate::model::{
     attributes::{optional_text_timestamp, text_timestamp},
-    graphql::unavailable::UserUnavailableReason,
+    graphql::{unavailable::UserUnavailableReason, user::Verification},
+    user::properties::VerifiedType,
 };
 use chrono::{DateTime, Utc};
 use serde_field_attributes::integer_str;
@@ -39,16 +40,21 @@ impl<'a> UserResult<'a> {
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 //#[serde(deny_unknown_fields)]
 pub struct User<'a> {
     #[serde(with = "integer_str")]
-    pub rest_id: u64,
+    rest_id: u64,
     legacy: Option<Legacy<'a>>,
     core: Option<Core<'a>>,
-    pub super_follow_eligible: Option<bool>,
-    pub subscribers_count: Option<usize>,
-    pub creator_subscriptions_count: Option<usize>,
+    avatar: Option<Avatar<'a>>,
+    protected: Option<bool>,
+    // Should only be missing in the case of an error.
+    is_blue_verified: Option<bool>,
+    verification: Option<Verification>,
+    super_follow_eligible: Option<bool>,
+    subscribers_count: Option<usize>,
+    creator_subscriptions_count: Option<usize>,
 }
 
 impl<'a> User<'a> {
@@ -59,6 +65,19 @@ impl<'a> User<'a> {
             .and_then(|legacy| legacy.created_at)
             .or_else(|| self.core.as_ref().map(|core| core.created_at))?;
 
+        let verified = self.legacy.as_ref().and_then(|legacy| {
+            legacy
+                .verified
+                .or_else(|| self.verification.map(|verification| verification.verified))
+        })?;
+
+        let verified_type = self.legacy.as_ref().and_then(|legacy| {
+            legacy.verified_type.or_else(|| {
+                self.verification
+                    .and_then(|verification| verification.verified_type)
+            })
+        });
+
         let screen_name = self
             .legacy
             .as_ref()
@@ -67,14 +86,30 @@ impl<'a> User<'a> {
 
         let name = self
             .legacy
-            .and_then(|legacy| legacy.name)
-            .or_else(|| self.core.and_then(|core| core.name));
+            .as_ref()
+            .and_then(|legacy| legacy.name.clone())
+            .or_else(|| self.core.as_ref().and_then(|core| core.name.clone()));
+
+        let profile_image_url = self
+            .legacy
+            .as_ref()
+            .and_then(|legacy| legacy.profile_image_url.clone())
+            .or_else(|| {
+                self.avatar
+                    .as_ref()
+                    .and_then(|avatar| avatar.image_url.clone())
+            });
 
         Some(super::User {
             id: self.rest_id,
             screen_name,
             name,
             created_at,
+            profile_image_url,
+            protected: self.protected,
+            is_blue_verified: self.is_blue_verified?,
+            verified,
+            verified_type,
             super_follow_eligible: self.super_follow_eligible,
             subscribers_count: self.subscribers_count,
             creator_subscriptions_count: self.creator_subscriptions_count,
@@ -82,20 +117,30 @@ impl<'a> User<'a> {
     }
 }
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 //#[serde(deny_unknown_fields)]
 struct Legacy<'a> {
     pub screen_name: Option<Cow<'a, str>>,
     pub name: Option<Cow<'a, str>>,
     #[serde(with = "optional_text_timestamp", default)]
-    pub created_at: Option<DateTime<Utc>>,
+    created_at: Option<DateTime<Utc>>,
+    #[serde(rename = "profile_image_url_https")]
+    profile_image_url: Option<Cow<'a, str>>,
+    verified: Option<bool>,
+    verified_type: Option<VerifiedType>,
 }
 
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Core<'a> {
     pub screen_name: Cow<'a, str>,
     pub name: Option<Cow<'a, str>>,
     #[serde(with = "text_timestamp")]
     pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Avatar<'a> {
+    image_url: Option<Cow<'a, str>>,
 }

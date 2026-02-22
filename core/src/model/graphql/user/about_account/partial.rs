@@ -1,6 +1,8 @@
 use crate::model::{
     attributes::text_timestamp,
-    graphql::{affiliation::AffiliationResult, unavailable::UserUnavailableReason},
+    graphql::{
+        affiliation::AffiliationResult, unavailable::UserUnavailableReason, user::Verification,
+    },
     user::properties::ProfileImageShape,
 };
 use chrono::{DateTime, Utc};
@@ -76,7 +78,7 @@ pub struct User<'a> {
     profile_image_shape: Option<ProfileImageShape>,
     #[serde(with = "integer_str")]
     rest_id: u64,
-    verification: super::Verification,
+    verification: Verification,
     verification_info: Option<VerificationInfo<'a>>,
 }
 
