@@ -120,6 +120,8 @@ pub enum TimeZone {
     AmericaElSalvador,
     #[serde(rename = "America/Guatemala")]
     AmericaGuatemala,
+    #[serde(rename = "America/Guayaquil")]
+    AmericaGuayaquil,
     #[serde(rename = "America/Guyana")]
     AmericaGuyana,
     #[serde(rename = "America/Halifax")]
