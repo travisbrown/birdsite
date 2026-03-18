@@ -165,6 +165,22 @@ impl std::str::FromStr for RequestName {
     }
 }
 
+impl bounded_static::IntoBoundedStatic for RequestName {
+    type Static = Self;
+
+    fn into_static(self) -> Self::Static {
+        self
+    }
+}
+
+impl bounded_static::ToBoundedStatic for RequestName {
+    type Static = Self;
+
+    fn to_static(&self) -> Self::Static {
+        *self
+    }
+}
+
 pub const REQUEST_NAME_VALUES: [RequestName; 112] = [
     RequestName::AboutAccountQuery,
     RequestName::AccountSwitcherDelegateQuery,
