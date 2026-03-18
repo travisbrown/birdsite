@@ -12,8 +12,11 @@ static SITE_VERIFICATION_CONTENT_SEL: LazyLock<Selector> =
     LazyLock::new(|| Selector::parse("meta[name='twitter-site-verification']").unwrap());
 static SITE_VERIFICATION_CONTENT_ATTR: &str = "content";
 
-static ONDEMAND_NAME_RE: LazyLock<Regex> =
+static ONDEMAND_NAME_V1_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"['|"]ondemand\.s['|"]:\s*['|"]([\w]*)['|"]"#).unwrap());
+
+static ONDEMAND_NAME_V2_INDEX_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#",\s*(\d+)\s*:\s*['"]ondemand\.s['"]"#).unwrap());
 
 static ONDEMAND_INDICES_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\(\w\[(\d{1,2})\],\s*16\)").unwrap());
@@ -198,15 +201,37 @@ struct Home {
 
 impl Home {
     fn ondemand_url(&self) -> Result<String, Error> {
-        let name = ONDEMAND_NAME_RE
-            .captures(&self.body)
-            .and_then(|captures| captures.get(1))
+        let name = Self::find_ondemand_name_v2(&self.body)
+            .or_else(|| Self::find_ondemand_name_v1(&self.body))
             .ok_or_else(|| Error::MissingOndemand)?;
 
         Ok(format!(
-            "https://abs.twimg.com/responsive-web/client-web/ondemand.s.{}a.js",
-            name.as_str()
+            "https://abs.twimg.com/responsive-web/client-web/ondemand.s.{name}a.js"
         ))
+    }
+
+    // Older format, seen until around 2026-03-17.
+    fn find_ondemand_name_v1(content: &str) -> Option<&str> {
+        ONDEMAND_NAME_V1_RE
+            .captures(&content)
+            .and_then(|captures| captures.get(1))
+            .map(|name_match| name_match.as_str())
+    }
+
+    // Newer format, first seen 2026-03-18.
+    fn find_ondemand_name_v2(content: &str) -> Option<&str> {
+        let index = ONDEMAND_NAME_V2_INDEX_RE
+            .captures(&content)
+            .and_then(|captures| captures.get(1))
+            .and_then(|index_match| index_match.as_str().parse::<u32>().ok())?;
+
+        let name_re = Regex::new(&format!(r#",\s*{index}\s*:\s*['"]([a-f0-9]+)['"]"#))
+            .expect("Invalid regex (should never happen)");
+
+        name_re
+            .captures(&content)
+            .and_then(|captures| captures.get(1))
+            .map(|name_match| name_match.as_str())
     }
 
     fn site_verification_key(&self) -> Result<Vec<u8>, Error> {
