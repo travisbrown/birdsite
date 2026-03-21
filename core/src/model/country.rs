@@ -41,6 +41,8 @@ pub enum Country {
     Australia,
     #[serde(rename = "AW")]
     Aruba,
+    #[serde(rename = "AX")]
+    AlandIslands,
     #[serde(rename = "AZ")]
     Azerbaijan,
     #[serde(rename = "BA")]
@@ -505,7 +507,7 @@ pub enum Country {
     Zimbabwe,
 }
 
-pub const COUNTRY_VALUES: [Country; 245] = [
+pub const COUNTRY_VALUES: [Country; 246] = [
     Country::Andorra,
     Country::UnitedArabEmirates,
     Country::Afghanistan,
@@ -520,6 +522,7 @@ pub const COUNTRY_VALUES: [Country; 245] = [
     Country::Austria,
     Country::Australia,
     Country::Aruba,
+    Country::AlandIslands,
     Country::Azerbaijan,
     Country::BosniaAndHerzegovina,
     Country::Barbados,
