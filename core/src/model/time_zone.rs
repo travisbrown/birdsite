@@ -1,5 +1,7 @@
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum TimeZone {
+    #[serde(rename = "AST")]
+    Ast,
     #[serde(rename = "BST")]
     Bst,
     #[serde(rename = "CDT")]
@@ -16,6 +18,8 @@ pub enum TimeZone {
     Gmt,
     #[serde(rename = "GMT+1")]
     Gmt1,
+    #[serde(rename = "GMT+6")]
+    Gmt6,
     #[serde(rename = "GMT+7")]
     Gmt7,
     #[serde(rename = "GMT+8")]
@@ -50,10 +54,14 @@ pub enum TimeZone {
     AfricaAccra,
     #[serde(rename = "Africa/Algiers")]
     AfricaAlgiers,
+    #[serde(rename = "Africa/Asmara")]
+    AfricaAsmara,
     #[serde(rename = "Africa/Bangui")]
     AfricaBangui,
     #[serde(rename = "Africa/Blantyre")]
     AfricaBlantyre,
+    #[serde(rename = "Africa/Brazzaville")]
+    AfricaBrazzaville,
     #[serde(rename = "Africa/Cairo")]
     AfricaCairo,
     #[serde(rename = "Africa/Casablanca")]
@@ -64,10 +72,14 @@ pub enum TimeZone {
     AfricaHarare,
     #[serde(rename = "Africa/Johannesburg")]
     AfricaJohannesburg,
+    #[serde(rename = "Africa/Kampala")]
+    AfricaKampala,
     #[serde(rename = "Africa/Kigali")]
     AfricaKigali,
     #[serde(rename = "Africa/Lagos")]
     AfricaLagos,
+    #[serde(rename = "Africa/Lome")]
+    AfricaLome,
     #[serde(rename = "Africa/Nairobi")]
     AfricaNairobi,
     #[serde(rename = "Africa/Nouakchott")]
@@ -104,8 +116,12 @@ pub enum TimeZone {
     AmericaCancun,
     #[serde(rename = "America/Caracas")]
     AmericaCaracas,
+    #[serde(rename = "America/Cayman")]
+    AmericaCayman,
     #[serde(rename = "America/Chicago")]
     AmericaChicago,
+    #[serde(rename = "America/Chihuahua")]
+    AmericaChihuahua,
     #[serde(rename = "America/Costa_Rica")]
     AmericaCostaRica,
     #[serde(rename = "America/Dawson")]
@@ -120,6 +136,8 @@ pub enum TimeZone {
     AmericaElSalvador,
     #[serde(rename = "America/Guatemala")]
     AmericaGuatemala,
+    #[serde(rename = "America/Guayaquil")]
+    AmericaGuayaquil,
     #[serde(rename = "America/Guyana")]
     AmericaGuyana,
     #[serde(rename = "America/Halifax")]
@@ -128,6 +146,8 @@ pub enum TimeZone {
     AmericaIndianaIndianapolis,
     #[serde(rename = "America/Indiana/Vincennes")]
     AmericaIndianaVincennes,
+    #[serde(rename = "America/Jamaica")]
+    AmericaJamaica,
     #[serde(rename = "America/La_Paz")]
     AmericaLaPaz,
     #[serde(rename = "America/Lima")]
@@ -148,6 +168,8 @@ pub enum TimeZone {
     AmericaPanama,
     #[serde(rename = "America/Phoenix")]
     AmericaPhoenix,
+    #[serde(rename = "America/Port_of_Spain")]
+    AmericaPortOfSpain,
     #[serde(rename = "America/Puerto_Rico")]
     AmericaPuertoRico,
     #[serde(rename = "America/Recife")]
@@ -180,10 +202,18 @@ pub enum TimeZone {
     AsiaBangkok,
     #[serde(rename = "Asia/Calcutta")]
     AsiaCalcutta,
+    #[serde(rename = "Asia/Choibalsan")]
+    AsiaChoibalsan,
+    #[serde(rename = "Asia/Damascus")]
+    AsiaDamascus,
     #[serde(rename = "Asia/Dhaka")]
     AsiaDhaka,
     #[serde(rename = "Asia/Dubai")]
     AsiaDubai,
+    #[serde(rename = "Asia/Ho_Chi_Minh")]
+    AsiaHoChiMinh,
+    #[serde(rename = "Asia/Hong_Kong")]
+    AsiaHongKong,
     #[serde(rename = "Asia/Jakarta")]
     AsiaJakarta,
     #[serde(rename = "Asia/Jerusalem")]
@@ -206,6 +236,8 @@ pub enum TimeZone {
     AsiaManila,
     #[serde(rename = "Asia/Muscat")]
     AsiaMuscat,
+    #[serde(rename = "Asia/Qatar")]
+    AsiaQatar,
     #[serde(rename = "Asia/Riyadh")]
     AsiaRiyadh,
     #[serde(rename = "Asia/Seoul")]
@@ -214,8 +246,12 @@ pub enum TimeZone {
     AsiaShanghai,
     #[serde(rename = "Asia/Singapore")]
     AsiaSingapore,
+    #[serde(rename = "Asia/Tehran")]
+    AsiaTehran,
     #[serde(rename = "Asia/Tokyo")]
     AsiaTokyo,
+    #[serde(rename = "Asia/Ulaanbaatar")]
+    AsiaUlaanbaatar,
     #[serde(rename = "Asia/Yerevan")]
     AsiaYerevan,
     #[serde(rename = "Atlantic/Madeira")]
@@ -240,12 +276,16 @@ pub enum TimeZone {
     EuropeBelgrade,
     #[serde(rename = "Europe/Berlin")]
     EuropeBerlin,
+    #[serde(rename = "Europe/Bratislava")]
+    EuropeBratislava,
     #[serde(rename = "Europe/Brussels")]
     EuropeBrussels,
     #[serde(rename = "Europe/Budapest")]
     EuropeBudapest,
     #[serde(rename = "Europe/Chisinau")]
     EuropeChisinau,
+    #[serde(rename = "Europe/Copenhagen")]
+    EuropeCopenhagen,
     #[serde(rename = "Europe/Dublin")]
     EuropeDublin,
     #[serde(rename = "Europe/Helsinki")]
@@ -270,18 +310,24 @@ pub enum TimeZone {
     EuropeParis,
     #[serde(rename = "Europe/Prague")]
     EuropePrague,
+    #[serde(rename = "Europe/Riga")]
+    EuropeRiga,
     #[serde(rename = "Europe/Rome")]
     EuropeRome,
     #[serde(rename = "Europe/Skopje")]
     EuropeSkopje,
     #[serde(rename = "Europe/Stockholm")]
     EuropeStockholm,
+    #[serde(rename = "Europe/Tallinn")]
+    EuropeTallinn,
     #[serde(rename = "Europe/Vienna")]
     EuropeVienna,
     #[serde(rename = "Europe/Vilnius")]
     EuropeVilnius,
     #[serde(rename = "Europe/Warsaw")]
     EuropeWarsaw,
+    #[serde(rename = "Europe/Zagreb")]
+    EuropeZagreb,
     #[serde(rename = "Europe/Zurich")]
     EuropeZurich,
     #[serde(rename = "Indian/Maldives")]
