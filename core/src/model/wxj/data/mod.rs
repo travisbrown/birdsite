@@ -275,6 +275,8 @@ pub enum ReplySettings {
     MentionedUsers,
     #[serde(rename = "subscribers")]
     Subscribers,
+    #[serde(rename = "other")]
+    Other,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
