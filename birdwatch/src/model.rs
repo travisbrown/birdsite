@@ -28,6 +28,8 @@ pub enum Classification {
     NotMisleading,
     #[serde(rename = "MISINFORMED_OR_POTENTIALLY_MISLEADING")]
     Misleading,
+    #[serde(rename = "")]
+    Empty,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
