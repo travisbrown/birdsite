@@ -33,7 +33,6 @@ pub enum Classification {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct NoteStatusHistoryEntry<'a> {
     #[serde(rename = "noteId")]
     pub note_id: u64,
@@ -46,7 +45,6 @@ pub struct NoteStatusHistoryEntry<'a> {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct NoteEntry<'a> {
     #[serde(rename = "noteId")]
     pub note_id: u64,
