@@ -19,8 +19,12 @@ pub enum TweetUnavailableReason {
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum UserUnavailableReason {
     Deactivated,
+    #[serde(alias = "USER_UNAVAILABLE_REASON_NO_REASON")]
     NoReason,
+    #[serde(alias = "USER_UNAVAILABLE_REASON_OFFBOARDED")]
     Offboarded,
+    #[serde(alias = "USER_UNAVAILABLE_REASON_PROTECTED")]
     Protected,
+    #[serde(alias = "USER_UNAVAILABLE_REASON_SUSPENDED")]
     Suspended,
 }
