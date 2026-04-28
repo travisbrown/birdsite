@@ -24,7 +24,7 @@ impl<'a> Url<'a> {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Entities<'a> {
-    pub description_urls: Cow<'a, [Url<'a>]>,
+    pub description_urls: Option<Cow<'a, [Url<'a>]>>,
     pub url: Option<Url<'a>>,
 }
 
@@ -33,11 +33,12 @@ impl bounded_static::IntoBoundedStatic for Entities<'_> {
 
     fn into_static(self) -> Self::Static {
         Entities {
-            description_urls: self
-                .description_urls
-                .iter()
-                .map(|description_url| description_url.clone().into_static())
-                .collect(),
+            description_urls: self.description_urls.map(|description_urls| {
+                description_urls
+                    .iter()
+                    .map(|description_url| description_url.clone().into_static())
+                    .collect()
+            }),
             url: self.url.map(bounded_static::IntoBoundedStatic::into_static),
         }
     }
@@ -48,11 +49,12 @@ impl bounded_static::ToBoundedStatic for Entities<'_> {
 
     fn to_static(&self) -> Self::Static {
         Entities {
-            description_urls: self
-                .description_urls
-                .iter()
-                .map(bounded_static::ToBoundedStatic::to_static)
-                .collect(),
+            description_urls: self.description_urls.as_ref().map(|description_urls| {
+                description_urls
+                    .iter()
+                    .map(bounded_static::ToBoundedStatic::to_static)
+                    .collect()
+            }),
             url: self
                 .url
                 .as_ref()
@@ -104,7 +106,7 @@ mod internal {
     #[serde(deny_unknown_fields)]
     pub(super) struct DescriptionUrls<'a> {
         #[serde(borrow)]
-        pub urls: Cow<'a, [super::Url<'a>]>,
+        pub urls: Option<Cow<'a, [super::Url<'a>]>>,
     }
 
     #[derive(serde::Deserialize, serde::Serialize)]
@@ -123,9 +125,9 @@ mod tests {
 
         let parsed: super::Entities<'_> = serde_json::from_str(doc).unwrap();
 
-        assert_eq!(parsed.description_urls.len(), 1);
+        assert_eq!(parsed.description_urls.as_ref().unwrap().len(), 1);
         assert_eq!(
-            parsed.description_urls[0].url(),
+            parsed.description_urls.as_ref().unwrap()[0].url(),
             "http://www.youtube.com/user/EnglishAttitude"
         );
         assert!(parsed.url.is_some());
@@ -137,7 +139,7 @@ mod tests {
 
         let parsed: super::Entities<'_> = serde_json::from_str(doc).unwrap();
 
-        assert!(parsed.description_urls.is_empty());
+        assert!(parsed.description_urls.unwrap().is_empty());
         assert!(parsed.url.is_none());
     }
 }
