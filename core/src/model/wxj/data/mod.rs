@@ -39,7 +39,10 @@ pub struct TweetSnapshot<'a> {
 impl<'a> TweetSnapshot<'a> {
     #[must_use]
     pub fn lookup_user(&self, id: u64) -> Option<&User<'a>> {
-        self.includes.users.iter().find(|user| user.id == id)
+        self.includes.users.iter().find_map(|user| match user {
+            UserEntry::User(user) if user.id == id => Some(user.as_ref()),
+            _ => None,
+        })
     }
 
     #[must_use]
@@ -187,11 +190,20 @@ pub struct Attachments {
 #[serde(deny_unknown_fields)]
 pub struct TweetIncludes<'a> {
     #[serde(borrow)]
-    pub users: Vec<User<'a>>,
+    pub users: Vec<UserEntry<'a>>,
     pub tweets: Option<Vec<Tweet<'a>>>,
     pub media: Option<Vec<media::Media<'a>>>,
     pub polls: Option<Vec<Poll<'a>>>,
     pub places: Option<Vec<place::Place<'a>>>,
+}
+
+impl<'a> TweetIncludes<'a> {
+    pub fn users(&self) -> impl Iterator<Item = &User<'a>> {
+        self.users.iter().filter_map(|user| match user {
+            UserEntry::User(user) => Some(user.as_ref()),
+            UserEntry::DerivedUser(_) => None,
+        })
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
@@ -280,6 +292,29 @@ pub enum ReplySettings {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields, untagged)]
+pub enum UserEntry<'a> {
+    User(#[serde(borrow)] Box<User<'a>>),
+    DerivedUser(DerivedUser<'a>),
+}
+
+impl<'a> UserEntry<'a> {
+    pub fn id(&self) -> u64 {
+        match self {
+            Self::User(user) => user.id,
+            Self::DerivedUser(user) => user.id,
+        }
+    }
+
+    pub fn user(&self) -> Option<&User<'a>> {
+        match self {
+            Self::User(user) => Some(user.as_ref()),
+            Self::DerivedUser(_) => None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct User<'a> {
     #[serde(with = "integer_str")]
@@ -299,6 +334,15 @@ pub struct User<'a> {
     pub protected: bool,
     pub public_metrics: UserPublicMetrics,
     pub withheld: Option<Withheld>,
+    pub derived: Option<Derived<'a>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DerivedUser<'a> {
+    #[serde(with = "integer_str")]
+    pub id: u64,
+    #[serde(borrow)]
     pub derived: Option<Derived<'a>>,
 }
 
