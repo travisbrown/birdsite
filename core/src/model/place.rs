@@ -14,7 +14,8 @@ pub struct Place<'a> {
     pub country: Cow<'a, str>,
     pub full_name: Cow<'a, str>,
     pub bounding_box: Option<BoundingBox>,
-    pub attributes: Option<Attributes>,
+    #[serde(borrow)]
+    pub attributes: Option<Attributes<'a>>,
     pub contained_within: Option<Vec<()>>,
 }
 
@@ -65,6 +66,9 @@ pub enum CoordinatesType {
     Point,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct Attributes {}
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+pub struct Attributes<'a> {
+    /// Street address associated with the place, if provided.
+    #[serde(borrow)]
+    pub street_address: Option<Cow<'a, str>>,
+}
