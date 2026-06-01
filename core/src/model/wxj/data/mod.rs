@@ -299,6 +299,7 @@ pub enum UserEntry<'a> {
 }
 
 impl<'a> UserEntry<'a> {
+    #[must_use]
     pub fn id(&self) -> u64 {
         match self {
             Self::User(user) => user.id,
@@ -306,6 +307,7 @@ impl<'a> UserEntry<'a> {
         }
     }
 
+    #[must_use]
     pub fn user(&self) -> Option<&User<'a>> {
         match self {
             Self::User(user) => Some(user.as_ref()),

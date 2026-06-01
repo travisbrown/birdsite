@@ -150,6 +150,7 @@ mod internal {
     use serde::de::Unexpected;
     use serde_field_attributes::integer_str;
 
+    #[allow(clippy::struct_field_names)]
     #[derive(serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
     pub struct MediaSourceMetadata {

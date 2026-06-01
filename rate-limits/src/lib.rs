@@ -7,7 +7,7 @@ use std::time::Duration;
 
 pub const DEFAULT_RATE_LIMIT_RESET_HEADER_NAME: &str = "x-rate-limit-reset";
 pub const DEFAULT_RATE_LIMIT_REMAINING_HEADER_NAME: &str = "x-rate-limit-remaining";
-pub const DEFAULT_RATE_LIMIT_ERROR_WAIT: Duration = Duration::from_secs(15 * 60);
+pub const DEFAULT_RATE_LIMIT_ERROR_WAIT: Duration = Duration::from_mins(15);
 
 const DEFAULT_RATE_LIMIT_WAIT_BUFFER: TimeDelta = TimeDelta::seconds(10);
 const DEFAULT_RATE_LIMITS_MAP_CAPACITY: usize = 16;
@@ -217,7 +217,9 @@ impl<S: Eq + Hash> RateLimits<S> {
             entry.store(encoded, std::sync::atomic::Ordering::Relaxed);
         }
     }
+}
 
+impl<S: Clone + Eq + Hash> RateLimits<S> {
     #[must_use]
     pub fn iter(&self) -> RateLimitsIterator<'_, S> {
         RateLimitsIterator {
