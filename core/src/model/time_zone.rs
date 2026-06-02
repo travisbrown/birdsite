@@ -156,12 +156,16 @@ pub enum IanaTimeZone {
     AfricaHarare,
     #[serde(rename = "Africa/Johannesburg")]
     AfricaJohannesburg,
+    #[serde(rename = "Africa/Juba")]
+    AfricaJuba,
     #[serde(rename = "Africa/Kampala")]
     AfricaKampala,
     #[serde(rename = "Africa/Khartoum")]
     AfricaKhartoum,
     #[serde(rename = "Africa/Kigali")]
     AfricaKigali,
+    #[serde(rename = "Africa/Kinshasa")]
+    AfricaKinshasa,
     #[serde(rename = "Africa/Lagos")]
     AfricaLagos,
     #[serde(rename = "Africa/Libreville")]
@@ -188,10 +192,14 @@ pub enum IanaTimeZone {
     AfricaMonrovia,
     #[serde(rename = "Africa/Nairobi")]
     AfricaNairobi,
+    #[serde(rename = "Africa/Ndjamena")]
+    AfricaNdjamena,
     #[serde(rename = "Africa/Niamey")]
     AfricaNiamey,
     #[serde(rename = "Africa/Nouakchott")]
     AfricaNouakchott,
+    #[serde(rename = "Africa/Ouagadougou")]
+    AfricaOuagadougou,
     #[serde(rename = "Africa/Porto-Novo")]
     AfricaPortoNovo,
     #[serde(rename = "Africa/Tripoli")]
@@ -220,6 +228,8 @@ pub enum IanaTimeZone {
     AmericaArgentinaSanJuan,
     #[serde(rename = "America/Argentina/San_Luis")]
     AmericaArgentinaSanLuis,
+    #[serde(rename = "America/Argentina/Ushuaia")]
+    AmericaArgentinaUshuaia,
     #[serde(rename = "America/Aruba")]
     AmericaAruba,
     #[serde(rename = "America/Asuncion")]
@@ -252,12 +262,16 @@ pub enum IanaTimeZone {
     AmericaCancun,
     #[serde(rename = "America/Caracas")]
     AmericaCaracas,
+    #[serde(rename = "America/Cayenne")]
+    AmericaCayenne,
     #[serde(rename = "America/Cayman")]
     AmericaCayman,
     #[serde(rename = "America/Chicago")]
     AmericaChicago,
     #[serde(rename = "America/Chihuahua")]
     AmericaChihuahua,
+    #[serde(rename = "America/Coral_Harbour")]
+    AmericaCoralHarbour,
     #[serde(rename = "America/Cordoba")]
     AmericaCordoba,
     #[serde(rename = "America/Costa_Rica")]
@@ -292,6 +306,8 @@ pub enum IanaTimeZone {
     AmericaGodthab,
     #[serde(rename = "America/Grand_Turk")]
     AmericaGrandTurk,
+    #[serde(rename = "America/Grenada")]
+    AmericaGrenada,
     #[serde(rename = "America/Guadeloupe")]
     AmericaGuadeloupe,
     #[serde(rename = "America/Guatemala")]
@@ -328,6 +344,8 @@ pub enum IanaTimeZone {
     AmericaLima,
     #[serde(rename = "America/Los_Angeles")]
     AmericaLosAngeles,
+    #[serde(rename = "America/Lower_Princes")]
+    AmericaLowerPrinces,
     #[serde(rename = "America/Maceio")]
     AmericaMaceio,
     #[serde(rename = "America/Managua")]
@@ -354,10 +372,14 @@ pub enum IanaTimeZone {
     AmericaMontevideo,
     #[serde(rename = "America/Montreal")]
     AmericaMontreal,
+    #[serde(rename = "America/Montserrat")]
+    AmericaMontserrat,
     #[serde(rename = "America/Nassau")]
     AmericaNassau,
     #[serde(rename = "America/New_York")]
     AmericaNewYork,
+    #[serde(rename = "America/Nipigon")]
+    AmericaNipigon,
     #[serde(rename = "America/Noronha")]
     AmericaNoronha,
     #[serde(rename = "America/North_Dakota/Beulah")]
@@ -406,6 +428,8 @@ pub enum IanaTimeZone {
     AmericaStThomas,
     #[serde(rename = "America/St_Vincent")]
     AmericaStVincent,
+    #[serde(rename = "America/Swift_Current")]
+    AmericaSwiftCurrent,
     #[serde(rename = "America/Tegucigalpa")]
     AmericaTegucigalpa,
     #[serde(rename = "America/Thunder_Bay")]
@@ -426,6 +450,8 @@ pub enum IanaTimeZone {
     AntarcticaCasey,
     #[serde(rename = "Antarctica/Davis")]
     AntarcticaDavis,
+    #[serde(rename = "Antarctica/DumontDUrville")]
+    AntarcticaDumontDUrville,
     #[serde(rename = "Antarctica/Mawson")]
     AntarcticaMawson,
     #[serde(rename = "Antarctica/Palmer")]
@@ -508,8 +534,12 @@ pub enum IanaTimeZone {
     AsiaKrasnoyarsk,
     #[serde(rename = "Asia/Kuala_Lumpur")]
     AsiaKualaLumpur,
+    #[serde(rename = "Asia/Kuching")]
+    AsiaKuching,
     #[serde(rename = "Asia/Kuwait")]
     AsiaKuwait,
+    #[serde(rename = "Asia/Macao")]
+    AsiaMacao,
     #[serde(rename = "Asia/Macau")]
     AsiaMacau,
     #[serde(rename = "Asia/Magadan")]
@@ -532,6 +562,8 @@ pub enum IanaTimeZone {
     AsiaPhnomPenh,
     #[serde(rename = "Asia/Pontianak")]
     AsiaPontianak,
+    #[serde(rename = "Asia/Pyongyang")]
+    AsiaPyongyang,
     #[serde(rename = "Asia/Qatar")]
     AsiaQatar,
     #[serde(rename = "Asia/Qyzylorda")]
@@ -540,6 +572,10 @@ pub enum IanaTimeZone {
     AsiaRangoon,
     #[serde(rename = "Asia/Riyadh")]
     AsiaRiyadh,
+    #[serde(rename = "Asia/Sakhalin")]
+    AsiaSakhalin,
+    #[serde(rename = "Asia/Samarkand")]
+    AsiaSamarkand,
     #[serde(rename = "Asia/Seoul")]
     AsiaSeoul,
     #[serde(rename = "Asia/Shanghai")]
@@ -582,6 +618,8 @@ pub enum IanaTimeZone {
     AtlanticCapeVerde,
     #[serde(rename = "Atlantic/Canary")]
     AtlanticCanary,
+    #[serde(rename = "Atlantic/Faroe")]
+    AtlanticFaroe,
     #[serde(rename = "Atlantic/Madeira")]
     AtlanticMadeira,
     #[serde(rename = "Atlantic/Reykjavik")]
@@ -596,6 +634,8 @@ pub enum IanaTimeZone {
     AustraliaAdelaide,
     #[serde(rename = "Australia/Brisbane")]
     AustraliaBrisbane,
+    #[serde(rename = "Australia/Currie")]
+    AustraliaCurrie,
     #[serde(rename = "Australia/Darwin")]
     AustraliaDarwin,
     #[serde(rename = "Australia/Eucla")]
@@ -614,16 +654,30 @@ pub enum IanaTimeZone {
     // Etc
     #[serde(rename = "Etc/GMT")]
     EtcGmt,
+    #[serde(rename = "Etc/GMT+10")]
+    EtcGmtPlus10,
+    #[serde(rename = "Etc/GMT+3")]
+    EtcGmtPlus3,
+    #[serde(rename = "Etc/GMT+4")]
+    EtcGmtPlus4,
     #[serde(rename = "Etc/GMT+5")]
     EtcGmtPlus5,
+    #[serde(rename = "Etc/GMT+6")]
+    EtcGmtPlus6,
     #[serde(rename = "Etc/GMT-1")]
     EtcGmtMinus1,
+    #[serde(rename = "Etc/GMT-10")]
+    EtcGmtMinus10,
+    #[serde(rename = "Etc/GMT-12")]
+    EtcGmtMinus12,
     #[serde(rename = "Etc/GMT-2")]
     EtcGmtMinus2,
     #[serde(rename = "Etc/GMT-3")]
     EtcGmtMinus3,
     #[serde(rename = "Etc/GMT-4")]
     EtcGmtMinus4,
+    #[serde(rename = "Etc/GMT-5")]
+    EtcGmtMinus5,
     #[serde(rename = "Etc/GMT-8")]
     EtcGmtMinus8,
     #[serde(rename = "Etc/GMT-9")]
@@ -664,6 +718,8 @@ pub enum IanaTimeZone {
     EuropeGuernsey,
     #[serde(rename = "Europe/Helsinki")]
     EuropeHelsinki,
+    #[serde(rename = "Europe/Isle_of_Man")]
+    EuropeIsleOfMan,
     #[serde(rename = "Europe/Istanbul")]
     EuropeIstanbul,
     #[serde(rename = "Europe/Jersey")]
@@ -684,6 +740,8 @@ pub enum IanaTimeZone {
     EuropeMadrid,
     #[serde(rename = "Europe/Malta")]
     EuropeMalta,
+    #[serde(rename = "Europe/Mariehamn")]
+    EuropeMariehamn,
     #[serde(rename = "Europe/Minsk")]
     EuropeMinsk,
     #[serde(rename = "Europe/Monaco")]
@@ -720,6 +778,10 @@ pub enum IanaTimeZone {
     EuropeTallinn,
     #[serde(rename = "Europe/Tirane")]
     EuropeTirane,
+    #[serde(rename = "Europe/Uzhgorod")]
+    EuropeUzhgorod,
+    #[serde(rename = "Europe/Vaduz")]
+    EuropeVaduz,
     #[serde(rename = "Europe/Vienna")]
     EuropeVienna,
     #[serde(rename = "Europe/Vilnius")]
@@ -736,6 +798,8 @@ pub enum IanaTimeZone {
     // Indian
     #[serde(rename = "Indian/Antananarivo")]
     IndianAntananarivo,
+    #[serde(rename = "Indian/Chagos")]
+    IndianChagos,
     #[serde(rename = "Indian/Christmas")]
     IndianChristmas,
     #[serde(rename = "Indian/Mahe")]
@@ -750,14 +814,20 @@ pub enum IanaTimeZone {
     IndianReunion,
 
     // Pacific
+    #[serde(rename = "Pacific/Apia")]
+    PacificApia,
     #[serde(rename = "Pacific/Auckland")]
     PacificAuckland,
     #[serde(rename = "Pacific/Easter")]
     PacificEaster,
+    #[serde(rename = "Pacific/Efate")]
+    PacificEfate,
     #[serde(rename = "Pacific/Fiji")]
     PacificFiji,
     #[serde(rename = "Pacific/Galapagos")]
     PacificGalapagos,
+    #[serde(rename = "Pacific/Guadalcanal")]
+    PacificGuadalcanal,
     #[serde(rename = "Pacific/Guam")]
     PacificGuam,
     #[serde(rename = "Pacific/Honolulu")]
@@ -766,10 +836,16 @@ pub enum IanaTimeZone {
     PacificMajuro,
     #[serde(rename = "Pacific/Midway")]
     PacificMidway,
+    #[serde(rename = "Pacific/Noumea")]
+    PacificNoumea,
     #[serde(rename = "Pacific/Palau")]
     PacificPalau,
+    #[serde(rename = "Pacific/Pitcairn")]
+    PacificPitcairn,
     #[serde(rename = "Pacific/Port_Moresby")]
     PacificPortMoresby,
+    #[serde(rename = "Pacific/Rarotonga")]
+    PacificRarotonga,
     #[serde(rename = "Pacific/Tahiti")]
     PacificTahiti,
     #[serde(rename = "Pacific/Tongatapu")]
@@ -778,7 +854,7 @@ pub enum IanaTimeZone {
 
 impl IanaTimeZone {
     /// Every [`IanaTimeZone`] variant, in declaration order.
-    pub const ALL: [Self; 324] = [
+    pub const ALL: [Self; 362] = [
         Self::AfricaAbidjan,
         Self::AfricaAccra,
         Self::AfricaAddisAbaba,
@@ -803,9 +879,11 @@ impl IanaTimeZone {
         Self::AfricaGaborone,
         Self::AfricaHarare,
         Self::AfricaJohannesburg,
+        Self::AfricaJuba,
         Self::AfricaKampala,
         Self::AfricaKhartoum,
         Self::AfricaKigali,
+        Self::AfricaKinshasa,
         Self::AfricaLagos,
         Self::AfricaLibreville,
         Self::AfricaLome,
@@ -819,8 +897,10 @@ impl IanaTimeZone {
         Self::AfricaMogadishu,
         Self::AfricaMonrovia,
         Self::AfricaNairobi,
+        Self::AfricaNdjamena,
         Self::AfricaNiamey,
         Self::AfricaNouakchott,
+        Self::AfricaOuagadougou,
         Self::AfricaPortoNovo,
         Self::AfricaTripoli,
         Self::AfricaTunis,
@@ -834,6 +914,7 @@ impl IanaTimeZone {
         Self::AmericaArgentinaCordoba,
         Self::AmericaArgentinaSanJuan,
         Self::AmericaArgentinaSanLuis,
+        Self::AmericaArgentinaUshuaia,
         Self::AmericaAruba,
         Self::AmericaAsuncion,
         Self::AmericaAtikokan,
@@ -850,9 +931,11 @@ impl IanaTimeZone {
         Self::AmericaCampoGrande,
         Self::AmericaCancun,
         Self::AmericaCaracas,
+        Self::AmericaCayenne,
         Self::AmericaCayman,
         Self::AmericaChicago,
         Self::AmericaChihuahua,
+        Self::AmericaCoralHarbour,
         Self::AmericaCordoba,
         Self::AmericaCostaRica,
         Self::AmericaCreston,
@@ -870,6 +953,7 @@ impl IanaTimeZone {
         Self::AmericaGlaceBay,
         Self::AmericaGodthab,
         Self::AmericaGrandTurk,
+        Self::AmericaGrenada,
         Self::AmericaGuadeloupe,
         Self::AmericaGuatemala,
         Self::AmericaGuayaquil,
@@ -888,6 +972,7 @@ impl IanaTimeZone {
         Self::AmericaLaPaz,
         Self::AmericaLima,
         Self::AmericaLosAngeles,
+        Self::AmericaLowerPrinces,
         Self::AmericaMaceio,
         Self::AmericaManagua,
         Self::AmericaManaus,
@@ -901,8 +986,10 @@ impl IanaTimeZone {
         Self::AmericaMonterrey,
         Self::AmericaMontevideo,
         Self::AmericaMontreal,
+        Self::AmericaMontserrat,
         Self::AmericaNassau,
         Self::AmericaNewYork,
+        Self::AmericaNipigon,
         Self::AmericaNoronha,
         Self::AmericaNorthDakotaBeulah,
         Self::AmericaNorthDakotaCenter,
@@ -927,6 +1014,7 @@ impl IanaTimeZone {
         Self::AmericaStLucia,
         Self::AmericaStThomas,
         Self::AmericaStVincent,
+        Self::AmericaSwiftCurrent,
         Self::AmericaTegucigalpa,
         Self::AmericaThunderBay,
         Self::AmericaTijuana,
@@ -936,6 +1024,7 @@ impl IanaTimeZone {
         Self::AmericaWinnipeg,
         Self::AntarcticaCasey,
         Self::AntarcticaDavis,
+        Self::AntarcticaDumontDUrville,
         Self::AntarcticaMawson,
         Self::AntarcticaPalmer,
         Self::AntarcticaSyowa,
@@ -976,7 +1065,9 @@ impl IanaTimeZone {
         Self::AsiaKolkata,
         Self::AsiaKrasnoyarsk,
         Self::AsiaKualaLumpur,
+        Self::AsiaKuching,
         Self::AsiaKuwait,
+        Self::AsiaMacao,
         Self::AsiaMacau,
         Self::AsiaMagadan,
         Self::AsiaMakassar,
@@ -988,10 +1079,13 @@ impl IanaTimeZone {
         Self::AsiaOral,
         Self::AsiaPhnomPenh,
         Self::AsiaPontianak,
+        Self::AsiaPyongyang,
         Self::AsiaQatar,
         Self::AsiaQyzylorda,
         Self::AsiaRangoon,
         Self::AsiaRiyadh,
+        Self::AsiaSakhalin,
+        Self::AsiaSamarkand,
         Self::AsiaSeoul,
         Self::AsiaShanghai,
         Self::AsiaSingapore,
@@ -1012,12 +1106,14 @@ impl IanaTimeZone {
         Self::AtlanticBermuda,
         Self::AtlanticCapeVerde,
         Self::AtlanticCanary,
+        Self::AtlanticFaroe,
         Self::AtlanticMadeira,
         Self::AtlanticReykjavik,
         Self::AtlanticSouthGeorgia,
         Self::AtlanticStanley,
         Self::AustraliaAdelaide,
         Self::AustraliaBrisbane,
+        Self::AustraliaCurrie,
         Self::AustraliaDarwin,
         Self::AustraliaEucla,
         Self::AustraliaHobart,
@@ -1026,11 +1122,18 @@ impl IanaTimeZone {
         Self::AustraliaPerth,
         Self::AustraliaSydney,
         Self::EtcGmt,
+        Self::EtcGmtPlus10,
+        Self::EtcGmtPlus3,
+        Self::EtcGmtPlus4,
         Self::EtcGmtPlus5,
+        Self::EtcGmtPlus6,
         Self::EtcGmtMinus1,
+        Self::EtcGmtMinus10,
+        Self::EtcGmtMinus12,
         Self::EtcGmtMinus2,
         Self::EtcGmtMinus3,
         Self::EtcGmtMinus4,
+        Self::EtcGmtMinus5,
         Self::EtcGmtMinus8,
         Self::EtcGmtMinus9,
         Self::EtcUtc,
@@ -1050,6 +1153,7 @@ impl IanaTimeZone {
         Self::EuropeGibraltar,
         Self::EuropeGuernsey,
         Self::EuropeHelsinki,
+        Self::EuropeIsleOfMan,
         Self::EuropeIstanbul,
         Self::EuropeJersey,
         Self::EuropeKaliningrad,
@@ -1060,6 +1164,7 @@ impl IanaTimeZone {
         Self::EuropeLuxembourg,
         Self::EuropeMadrid,
         Self::EuropeMalta,
+        Self::EuropeMariehamn,
         Self::EuropeMinsk,
         Self::EuropeMonaco,
         Self::EuropeMoscow,
@@ -1078,6 +1183,8 @@ impl IanaTimeZone {
         Self::EuropeStockholm,
         Self::EuropeTallinn,
         Self::EuropeTirane,
+        Self::EuropeUzhgorod,
+        Self::EuropeVaduz,
         Self::EuropeVienna,
         Self::EuropeVilnius,
         Self::EuropeVolgograd,
@@ -1085,22 +1192,29 @@ impl IanaTimeZone {
         Self::EuropeZagreb,
         Self::EuropeZurich,
         Self::IndianAntananarivo,
+        Self::IndianChagos,
         Self::IndianChristmas,
         Self::IndianMahe,
         Self::IndianMaldives,
         Self::IndianMauritius,
         Self::IndianMayotte,
         Self::IndianReunion,
+        Self::PacificApia,
         Self::PacificAuckland,
         Self::PacificEaster,
+        Self::PacificEfate,
         Self::PacificFiji,
         Self::PacificGalapagos,
+        Self::PacificGuadalcanal,
         Self::PacificGuam,
         Self::PacificHonolulu,
         Self::PacificMajuro,
         Self::PacificMidway,
+        Self::PacificNoumea,
         Self::PacificPalau,
+        Self::PacificPitcairn,
         Self::PacificPortMoresby,
+        Self::PacificRarotonga,
         Self::PacificTahiti,
         Self::PacificTongatapu,
     ];
@@ -1135,9 +1249,11 @@ impl IanaTimeZone {
             Self::AfricaGaborone => "Africa/Gaborone",
             Self::AfricaHarare => "Africa/Harare",
             Self::AfricaJohannesburg => "Africa/Johannesburg",
+            Self::AfricaJuba => "Africa/Juba",
             Self::AfricaKampala => "Africa/Kampala",
             Self::AfricaKhartoum => "Africa/Khartoum",
             Self::AfricaKigali => "Africa/Kigali",
+            Self::AfricaKinshasa => "Africa/Kinshasa",
             Self::AfricaLagos => "Africa/Lagos",
             Self::AfricaLibreville => "Africa/Libreville",
             Self::AfricaLome => "Africa/Lome",
@@ -1151,8 +1267,10 @@ impl IanaTimeZone {
             Self::AfricaMogadishu => "Africa/Mogadishu",
             Self::AfricaMonrovia => "Africa/Monrovia",
             Self::AfricaNairobi => "Africa/Nairobi",
+            Self::AfricaNdjamena => "Africa/Ndjamena",
             Self::AfricaNiamey => "Africa/Niamey",
             Self::AfricaNouakchott => "Africa/Nouakchott",
+            Self::AfricaOuagadougou => "Africa/Ouagadougou",
             Self::AfricaPortoNovo => "Africa/Porto-Novo",
             Self::AfricaTripoli => "Africa/Tripoli",
             Self::AfricaTunis => "Africa/Tunis",
@@ -1166,6 +1284,7 @@ impl IanaTimeZone {
             Self::AmericaArgentinaCordoba => "America/Argentina/Cordoba",
             Self::AmericaArgentinaSanJuan => "America/Argentina/San_Juan",
             Self::AmericaArgentinaSanLuis => "America/Argentina/San_Luis",
+            Self::AmericaArgentinaUshuaia => "America/Argentina/Ushuaia",
             Self::AmericaAruba => "America/Aruba",
             Self::AmericaAsuncion => "America/Asuncion",
             Self::AmericaAtikokan => "America/Atikokan",
@@ -1182,9 +1301,11 @@ impl IanaTimeZone {
             Self::AmericaCampoGrande => "America/Campo_Grande",
             Self::AmericaCancun => "America/Cancun",
             Self::AmericaCaracas => "America/Caracas",
+            Self::AmericaCayenne => "America/Cayenne",
             Self::AmericaCayman => "America/Cayman",
             Self::AmericaChicago => "America/Chicago",
             Self::AmericaChihuahua => "America/Chihuahua",
+            Self::AmericaCoralHarbour => "America/Coral_Harbour",
             Self::AmericaCordoba => "America/Cordoba",
             Self::AmericaCostaRica => "America/Costa_Rica",
             Self::AmericaCreston => "America/Creston",
@@ -1202,6 +1323,7 @@ impl IanaTimeZone {
             Self::AmericaGlaceBay => "America/Glace_Bay",
             Self::AmericaGodthab => "America/Godthab",
             Self::AmericaGrandTurk => "America/Grand_Turk",
+            Self::AmericaGrenada => "America/Grenada",
             Self::AmericaGuadeloupe => "America/Guadeloupe",
             Self::AmericaGuatemala => "America/Guatemala",
             Self::AmericaGuayaquil => "America/Guayaquil",
@@ -1220,6 +1342,7 @@ impl IanaTimeZone {
             Self::AmericaLaPaz => "America/La_Paz",
             Self::AmericaLima => "America/Lima",
             Self::AmericaLosAngeles => "America/Los_Angeles",
+            Self::AmericaLowerPrinces => "America/Lower_Princes",
             Self::AmericaMaceio => "America/Maceio",
             Self::AmericaManagua => "America/Managua",
             Self::AmericaManaus => "America/Manaus",
@@ -1233,8 +1356,10 @@ impl IanaTimeZone {
             Self::AmericaMonterrey => "America/Monterrey",
             Self::AmericaMontevideo => "America/Montevideo",
             Self::AmericaMontreal => "America/Montreal",
+            Self::AmericaMontserrat => "America/Montserrat",
             Self::AmericaNassau => "America/Nassau",
             Self::AmericaNewYork => "America/New_York",
+            Self::AmericaNipigon => "America/Nipigon",
             Self::AmericaNoronha => "America/Noronha",
             Self::AmericaNorthDakotaBeulah => "America/North_Dakota/Beulah",
             Self::AmericaNorthDakotaCenter => "America/North_Dakota/Center",
@@ -1259,6 +1384,7 @@ impl IanaTimeZone {
             Self::AmericaStLucia => "America/St_Lucia",
             Self::AmericaStThomas => "America/St_Thomas",
             Self::AmericaStVincent => "America/St_Vincent",
+            Self::AmericaSwiftCurrent => "America/Swift_Current",
             Self::AmericaTegucigalpa => "America/Tegucigalpa",
             Self::AmericaThunderBay => "America/Thunder_Bay",
             Self::AmericaTijuana => "America/Tijuana",
@@ -1268,6 +1394,7 @@ impl IanaTimeZone {
             Self::AmericaWinnipeg => "America/Winnipeg",
             Self::AntarcticaCasey => "Antarctica/Casey",
             Self::AntarcticaDavis => "Antarctica/Davis",
+            Self::AntarcticaDumontDUrville => "Antarctica/DumontDUrville",
             Self::AntarcticaMawson => "Antarctica/Mawson",
             Self::AntarcticaPalmer => "Antarctica/Palmer",
             Self::AntarcticaSyowa => "Antarctica/Syowa",
@@ -1308,7 +1435,9 @@ impl IanaTimeZone {
             Self::AsiaKolkata => "Asia/Kolkata",
             Self::AsiaKrasnoyarsk => "Asia/Krasnoyarsk",
             Self::AsiaKualaLumpur => "Asia/Kuala_Lumpur",
+            Self::AsiaKuching => "Asia/Kuching",
             Self::AsiaKuwait => "Asia/Kuwait",
+            Self::AsiaMacao => "Asia/Macao",
             Self::AsiaMacau => "Asia/Macau",
             Self::AsiaMagadan => "Asia/Magadan",
             Self::AsiaMakassar => "Asia/Makassar",
@@ -1320,10 +1449,13 @@ impl IanaTimeZone {
             Self::AsiaOral => "Asia/Oral",
             Self::AsiaPhnomPenh => "Asia/Phnom_Penh",
             Self::AsiaPontianak => "Asia/Pontianak",
+            Self::AsiaPyongyang => "Asia/Pyongyang",
             Self::AsiaQatar => "Asia/Qatar",
             Self::AsiaQyzylorda => "Asia/Qyzylorda",
             Self::AsiaRangoon => "Asia/Rangoon",
             Self::AsiaRiyadh => "Asia/Riyadh",
+            Self::AsiaSakhalin => "Asia/Sakhalin",
+            Self::AsiaSamarkand => "Asia/Samarkand",
             Self::AsiaSeoul => "Asia/Seoul",
             Self::AsiaShanghai => "Asia/Shanghai",
             Self::AsiaSingapore => "Asia/Singapore",
@@ -1344,12 +1476,14 @@ impl IanaTimeZone {
             Self::AtlanticBermuda => "Atlantic/Bermuda",
             Self::AtlanticCapeVerde => "Atlantic/Cape_Verde",
             Self::AtlanticCanary => "Atlantic/Canary",
+            Self::AtlanticFaroe => "Atlantic/Faroe",
             Self::AtlanticMadeira => "Atlantic/Madeira",
             Self::AtlanticReykjavik => "Atlantic/Reykjavik",
             Self::AtlanticSouthGeorgia => "Atlantic/South_Georgia",
             Self::AtlanticStanley => "Atlantic/Stanley",
             Self::AustraliaAdelaide => "Australia/Adelaide",
             Self::AustraliaBrisbane => "Australia/Brisbane",
+            Self::AustraliaCurrie => "Australia/Currie",
             Self::AustraliaDarwin => "Australia/Darwin",
             Self::AustraliaEucla => "Australia/Eucla",
             Self::AustraliaHobart => "Australia/Hobart",
@@ -1358,11 +1492,18 @@ impl IanaTimeZone {
             Self::AustraliaPerth => "Australia/Perth",
             Self::AustraliaSydney => "Australia/Sydney",
             Self::EtcGmt => "Etc/GMT",
+            Self::EtcGmtPlus10 => "Etc/GMT+10",
+            Self::EtcGmtPlus3 => "Etc/GMT+3",
+            Self::EtcGmtPlus4 => "Etc/GMT+4",
             Self::EtcGmtPlus5 => "Etc/GMT+5",
+            Self::EtcGmtPlus6 => "Etc/GMT+6",
             Self::EtcGmtMinus1 => "Etc/GMT-1",
+            Self::EtcGmtMinus10 => "Etc/GMT-10",
+            Self::EtcGmtMinus12 => "Etc/GMT-12",
             Self::EtcGmtMinus2 => "Etc/GMT-2",
             Self::EtcGmtMinus3 => "Etc/GMT-3",
             Self::EtcGmtMinus4 => "Etc/GMT-4",
+            Self::EtcGmtMinus5 => "Etc/GMT-5",
             Self::EtcGmtMinus8 => "Etc/GMT-8",
             Self::EtcGmtMinus9 => "Etc/GMT-9",
             Self::EtcUtc => "Etc/UTC",
@@ -1382,6 +1523,7 @@ impl IanaTimeZone {
             Self::EuropeGibraltar => "Europe/Gibraltar",
             Self::EuropeGuernsey => "Europe/Guernsey",
             Self::EuropeHelsinki => "Europe/Helsinki",
+            Self::EuropeIsleOfMan => "Europe/Isle_of_Man",
             Self::EuropeIstanbul => "Europe/Istanbul",
             Self::EuropeJersey => "Europe/Jersey",
             Self::EuropeKaliningrad => "Europe/Kaliningrad",
@@ -1392,6 +1534,7 @@ impl IanaTimeZone {
             Self::EuropeLuxembourg => "Europe/Luxembourg",
             Self::EuropeMadrid => "Europe/Madrid",
             Self::EuropeMalta => "Europe/Malta",
+            Self::EuropeMariehamn => "Europe/Mariehamn",
             Self::EuropeMinsk => "Europe/Minsk",
             Self::EuropeMonaco => "Europe/Monaco",
             Self::EuropeMoscow => "Europe/Moscow",
@@ -1410,6 +1553,8 @@ impl IanaTimeZone {
             Self::EuropeStockholm => "Europe/Stockholm",
             Self::EuropeTallinn => "Europe/Tallinn",
             Self::EuropeTirane => "Europe/Tirane",
+            Self::EuropeUzhgorod => "Europe/Uzhgorod",
+            Self::EuropeVaduz => "Europe/Vaduz",
             Self::EuropeVienna => "Europe/Vienna",
             Self::EuropeVilnius => "Europe/Vilnius",
             Self::EuropeVolgograd => "Europe/Volgograd",
@@ -1417,22 +1562,29 @@ impl IanaTimeZone {
             Self::EuropeZagreb => "Europe/Zagreb",
             Self::EuropeZurich => "Europe/Zurich",
             Self::IndianAntananarivo => "Indian/Antananarivo",
+            Self::IndianChagos => "Indian/Chagos",
             Self::IndianChristmas => "Indian/Christmas",
             Self::IndianMahe => "Indian/Mahe",
             Self::IndianMaldives => "Indian/Maldives",
             Self::IndianMauritius => "Indian/Mauritius",
             Self::IndianMayotte => "Indian/Mayotte",
             Self::IndianReunion => "Indian/Reunion",
+            Self::PacificApia => "Pacific/Apia",
             Self::PacificAuckland => "Pacific/Auckland",
             Self::PacificEaster => "Pacific/Easter",
+            Self::PacificEfate => "Pacific/Efate",
             Self::PacificFiji => "Pacific/Fiji",
             Self::PacificGalapagos => "Pacific/Galapagos",
+            Self::PacificGuadalcanal => "Pacific/Guadalcanal",
             Self::PacificGuam => "Pacific/Guam",
             Self::PacificHonolulu => "Pacific/Honolulu",
             Self::PacificMajuro => "Pacific/Majuro",
             Self::PacificMidway => "Pacific/Midway",
+            Self::PacificNoumea => "Pacific/Noumea",
             Self::PacificPalau => "Pacific/Palau",
+            Self::PacificPitcairn => "Pacific/Pitcairn",
             Self::PacificPortMoresby => "Pacific/Port_Moresby",
+            Self::PacificRarotonga => "Pacific/Rarotonga",
             Self::PacificTahiti => "Pacific/Tahiti",
             Self::PacificTongatapu => "Pacific/Tongatapu",
         }
@@ -1466,8 +1618,18 @@ pub enum Deprecated {
     CanadaPacific,
     #[serde(rename = "Canada/Saskatchewan")]
     CanadaSaskatchewan,
+    #[serde(rename = "Chile/Continental")]
+    ChileContinental,
     #[serde(rename = "Eire")]
     Eire,
+    #[serde(rename = "Iceland")]
+    Iceland,
+    #[serde(rename = "Iran")]
+    Iran,
+    #[serde(rename = "Jamaica")]
+    Jamaica,
+    #[serde(rename = "Mexico/BajaSur")]
+    MexicoBajaSur,
     #[serde(rename = "US/Central")]
     UsCentral,
     #[serde(rename = "US/Eastern")]
@@ -1476,11 +1638,19 @@ pub enum Deprecated {
     UsIndianaStarke,
     #[serde(rename = "US/Michigan")]
     UsMichigan,
+    #[serde(rename = "US/Mountain")]
+    UsMountain,
+    #[serde(rename = "US/Pacific")]
+    UsPacific,
+    #[serde(rename = "W-SU")]
+    WSu,
+    #[serde(rename = "Zulu")]
+    Zulu,
 }
 
 impl Deprecated {
     /// Every [`Deprecated`] variant, in declaration order.
-    pub const ALL: [Self; 15] = [
+    pub const ALL: [Self; 24] = [
         Self::AmericaBuenosAires,
         Self::AsiaCalcutta,
         Self::AsiaKatmandu,
@@ -1491,11 +1661,20 @@ impl Deprecated {
         Self::CanadaMountain,
         Self::CanadaPacific,
         Self::CanadaSaskatchewan,
+        Self::ChileContinental,
         Self::Eire,
+        Self::Iceland,
+        Self::Iran,
+        Self::Jamaica,
+        Self::MexicoBajaSur,
         Self::UsCentral,
         Self::UsEastern,
         Self::UsIndianaStarke,
         Self::UsMichigan,
+        Self::UsMountain,
+        Self::UsPacific,
+        Self::WSu,
+        Self::Zulu,
     ];
 
     /// The exact wire label for this variant.
@@ -1512,11 +1691,20 @@ impl Deprecated {
             Self::CanadaMountain => "Canada/Mountain",
             Self::CanadaPacific => "Canada/Pacific",
             Self::CanadaSaskatchewan => "Canada/Saskatchewan",
+            Self::ChileContinental => "Chile/Continental",
             Self::Eire => "Eire",
+            Self::Iceland => "Iceland",
+            Self::Iran => "Iran",
+            Self::Jamaica => "Jamaica",
+            Self::MexicoBajaSur => "Mexico/BajaSur",
             Self::UsCentral => "US/Central",
             Self::UsEastern => "US/Eastern",
             Self::UsIndianaStarke => "US/Indiana-Starke",
             Self::UsMichigan => "US/Michigan",
+            Self::UsMountain => "US/Mountain",
+            Self::UsPacific => "US/Pacific",
+            Self::WSu => "W-SU",
+            Self::Zulu => "Zulu",
         }
     }
 }
@@ -1536,10 +1724,19 @@ impl Deprecated {
             Self::CanadaMountain => IanaTimeZone::AmericaEdmonton,
             Self::CanadaPacific => IanaTimeZone::AmericaVancouver,
             Self::CanadaSaskatchewan => IanaTimeZone::AmericaRegina,
+            Self::ChileContinental => IanaTimeZone::AmericaSantiago,
             Self::Eire => IanaTimeZone::EuropeDublin,
+            Self::Iceland => IanaTimeZone::AtlanticReykjavik,
+            Self::Iran => IanaTimeZone::AsiaTehran,
+            Self::Jamaica => IanaTimeZone::AmericaJamaica,
+            Self::MexicoBajaSur => IanaTimeZone::AmericaMazatlan,
             Self::UsCentral | Self::UsIndianaStarke => IanaTimeZone::AmericaChicago,
             Self::UsEastern => IanaTimeZone::AmericaNewYork,
             Self::UsMichigan => IanaTimeZone::AmericaDetroit,
+            Self::UsPacific => IanaTimeZone::AmericaLosAngeles,
+            Self::UsMountain => IanaTimeZone::AmericaDenver,
+            Self::WSu => IanaTimeZone::EuropeMoscow,
+            Self::Zulu => IanaTimeZone::EtcUtc,
         }
     }
 }
@@ -1577,6 +1774,8 @@ pub enum Abbreviation {
     Est,
     #[serde(rename = "GMT")]
     Gmt,
+    #[serde(rename = "GMT+0")]
+    GmtPlus0,
     #[serde(rename = "GMT+1")]
     GmtPlus1,
     #[serde(rename = "GMT+2")]
@@ -1647,7 +1846,7 @@ pub enum Abbreviation {
 
 impl Abbreviation {
     /// Every [`Abbreviation`] variant, in declaration order.
-    pub const ALL: [Self; 47] = [
+    pub const ALL: [Self; 48] = [
         Self::Act,
         Self::Art,
         Self::Ast,
@@ -1662,6 +1861,7 @@ impl Abbreviation {
         Self::Eet,
         Self::Est,
         Self::Gmt,
+        Self::GmtPlus0,
         Self::GmtPlus1,
         Self::GmtPlus2,
         Self::GmtPlus3,
@@ -1715,6 +1915,7 @@ impl Abbreviation {
             Self::Eet => "EET",
             Self::Est => "EST",
             Self::Gmt => "GMT",
+            Self::GmtPlus0 => "GMT+0",
             Self::GmtPlus1 => "GMT+1",
             Self::GmtPlus2 => "GMT+2",
             Self::GmtPlus3 => "GMT+3",
@@ -1772,7 +1973,7 @@ impl Abbreviation {
             Self::Ect => IanaTimeZone::AmericaGuayaquil,
             Self::Edt | Self::Est | Self::GmtMinus5 => IanaTimeZone::AmericaNewYork,
             Self::Eet => IanaTimeZone::EuropeBucharest,
-            Self::Gmt | Self::Utc => IanaTimeZone::EtcGmt,
+            Self::Gmt | Self::GmtPlus0 | Self::Utc => IanaTimeZone::EtcGmt,
             Self::GmtMinus10 | Self::Hst => IanaTimeZone::PacificHonolulu,
             Self::GmtMinus11 => IanaTimeZone::PacificMidway,
             Self::GmtMinus2 => IanaTimeZone::AtlanticSouthGeorgia,
