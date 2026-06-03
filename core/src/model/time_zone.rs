@@ -22,7 +22,7 @@ use std::sync::LazyLock;
 /// Preserves the original label family so serialization round-trips exactly.
 /// Use [`canonical`](Self::canonical) or [`same_zone`](Self::same_zone) to compare
 /// labels for zone equivalence. Ordering is by the string label ([`as_str`](Self::as_str)).
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum TimeZone {
     /// A canonical IANA identifier such as `Asia/Tokyo`.
@@ -62,6 +62,34 @@ impl TimeZone {
     #[must_use]
     pub fn same_zone(self, other: Self) -> bool {
         self.canonical() == other.canonical()
+    }
+
+    /// Parses a wire `time_zone` label, returning `None` if it matches no known
+    /// IANA identifier, deprecated alias, abbreviation, or display name.
+    ///
+    /// [`TIME_ZONE_VALUES`] is sorted by [`as_str`](Self::as_str), so this is a
+    /// binary search over every known label.
+    #[must_use]
+    pub fn parse(label: &str) -> Option<Self> {
+        TIME_ZONE_VALUES
+            .binary_search_by(|zone| zone.as_str().cmp(label))
+            .ok()
+            .map(|index| TIME_ZONE_VALUES[index])
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for TimeZone {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        // Borrow when possible, fall back to an owned buffer for escaped input,
+        // so the unknown value can be surfaced in the error either way.
+        let label: std::borrow::Cow<'de, str> = serde::Deserialize::deserialize(deserializer)?;
+
+        Self::parse(&label).ok_or_else(|| {
+            serde::de::Error::invalid_value(
+                serde::de::Unexpected::Str(&label),
+                &"a known Twitter time zone label",
+            )
+        })
     }
 }
 
@@ -2621,6 +2649,17 @@ mod tests {
 
     fn parse(label: &str) -> TimeZone {
         serde_json::from_str(&format!("{label:?}")).expect("label should parse")
+    }
+
+    #[test]
+    fn unknown_label_error_surfaces_value() {
+        let error = serde_json::from_str::<TimeZone>(r#""Mars/Olympus_Mons""#)
+            .expect_err("an unknown label should fail to deserialize");
+
+        assert!(
+            error.to_string().contains("Mars/Olympus_Mons"),
+            "error should name the unknown label, got: {error}"
+        );
     }
 
     #[test]
