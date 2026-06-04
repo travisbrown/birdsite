@@ -811,27 +811,22 @@ impl Display for PossibleCountry {
     }
 }
 
-mod internal {
-    #[derive(serde::Deserialize)]
-    #[serde(untagged)]
-    pub(super) enum PossibleCountry {
-        Empty(PossibleCountryEmpty),
-        Country(super::Country),
-    }
-
-    #[derive(serde::Deserialize)]
-    pub(super) enum PossibleCountryEmpty {
-        #[serde(rename = "")]
-        Empty,
-    }
-}
-
 impl<'de> serde::Deserialize<'de> for PossibleCountry {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        internal::PossibleCountry::deserialize(deserializer).map(|country| match country {
-            internal::PossibleCountry::Empty(_) => Self(None),
-            internal::PossibleCountry::Country(country) => Self(Some(country)),
-        })
+        let code: std::borrow::Cow<'de, str> = serde::Deserialize::deserialize(deserializer)?;
+
+        if code.is_empty() {
+            Ok(Self(None))
+        } else {
+            code.parse::<Country>()
+                .map(|country| Self(Some(country)))
+                .map_err(|_| {
+                    serde::de::Error::invalid_value(
+                        serde::de::Unexpected::Str(&code),
+                        &"a known country code or an empty string",
+                    )
+                })
+        }
     }
 }
 
@@ -869,6 +864,42 @@ mod test {
         for value in super::COUNTRY_VALUES {
             let as_string = value.to_string();
             let parsed = as_string.parse().unwrap();
+
+            assert_eq!(value, parsed);
+        }
+    }
+
+    #[test]
+    fn deserialize_possible_country_empty() {
+        let parsed: super::PossibleCountry = serde_json::from_str("\"\"").unwrap();
+
+        assert_eq!(parsed, super::PossibleCountry(None));
+    }
+
+    #[test]
+    fn deserialize_possible_country_present() {
+        let parsed: super::PossibleCountry = serde_json::from_str("\"JP\"").unwrap();
+
+        assert_eq!(parsed, super::PossibleCountry(Some(super::Country::Japan)));
+    }
+
+    #[test]
+    fn deserialize_possible_country_invalid() {
+        let error = serde_json::from_str::<super::PossibleCountry>("\"ZZ\"").unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            "invalid value: string \"ZZ\", expected a known country code or an empty string"
+        );
+    }
+
+    #[test]
+    fn round_trip_possible_country() {
+        for value in std::iter::once(super::PossibleCountry(None))
+            .chain(super::COUNTRY_VALUES.map(|country| super::PossibleCountry(Some(country))))
+        {
+            let as_json = serde_json::to_string(&value).unwrap();
+            let parsed = serde_json::from_str(&as_json).unwrap();
 
             assert_eq!(value, parsed);
         }
