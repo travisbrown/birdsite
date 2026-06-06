@@ -77,7 +77,7 @@ impl Generator {
                 .expect("Invalid system clock")
                 .as_millis() as i128;
 
-            // `2023-05-01T00:00:00Z`
+            // X transaction-id epoch (`2023-05-01T07:00:00Z`).
             let base_ms = 1_682_924_400i128 * 1000;
             ((ms - base_ms) / 1000) as i64
         });
