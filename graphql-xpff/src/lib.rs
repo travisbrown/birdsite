@@ -75,9 +75,8 @@ impl Generator {
             created_at,
         };
 
-        let bytes = self
-            .encode_raw(guest_id, serde_json::json!(payload).to_string().as_bytes())
-            .map_err(Error::AesGcm)?;
+        let json = serde_json::to_vec(&payload)?;
+        let bytes = self.encode_raw(guest_id, &json).map_err(Error::AesGcm)?;
 
         Ok(hex::encode(bytes))
     }
