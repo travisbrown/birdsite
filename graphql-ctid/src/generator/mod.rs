@@ -207,7 +207,11 @@ fn float_to_hex(x: f64) -> String {
         while n > 0 {
             let rem = (n % 16) as u32;
             n /= 16;
-            tmp.push(std::char::from_digit(rem, 16).unwrap().to_ascii_uppercase());
+            tmp.push(
+                std::char::from_digit(rem, 16)
+                    .expect("rem is always < 16")
+                    .to_ascii_uppercase(),
+            );
         }
         tmp.into_iter().rev().collect()
     };
@@ -225,7 +229,7 @@ fn float_to_hex(x: f64) -> String {
             f -= f64::from(digit);
             frac_str.push(
                 std::char::from_digit(digit, 16)
-                    .unwrap()
+                    .expect("digit is always < 16")
                     .to_ascii_uppercase(),
             );
             steps += 1;
