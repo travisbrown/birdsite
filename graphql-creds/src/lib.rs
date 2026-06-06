@@ -4,7 +4,7 @@ use birdsite_graphql_ctid::{Endpoint, TransactionId, client::Client};
 use chrono::Utc;
 use rusqlite::{Connection, OptionalExtension};
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
 mod types;
@@ -73,9 +73,22 @@ impl Store {
         Ok(store)
     }
 
+    /// Locks the shared connection, recovering the guard if the mutex was
+    /// poisoned.
+    ///
+    /// A panic while the lock is held poisons the mutex, but a [`Connection`] is
+    /// not left in an inconsistent state by an unwind, so the guard is recovered
+    /// rather than propagating the poison (which would make every later call
+    /// panic).
+    fn connection(&self) -> MutexGuard<'_, Connection> {
+        self.connection
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+    }
+
     pub fn load_schema(&self) -> Result<(), rusqlite::Error> {
         let schema = include_str!("schemas/ctid.sql");
-        let connection = self.connection.lock().unwrap();
+        let connection = self.connection();
 
         connection.execute_batch(schema)
     }
@@ -122,7 +135,7 @@ impl Store {
         &self,
         endpoint: &Endpoint<'_>,
     ) -> Result<Option<TransactionId>, rusqlite::Error> {
-        let connection = self.connection.lock().unwrap();
+        let connection = self.connection();
         let mut statement = connection.prepare_cached(LOOKUP_CTID_FOR_ENDPOINT)?;
 
         statement
@@ -140,7 +153,7 @@ impl Store {
         endpoint: &Endpoint<'_>,
         transaction_id: &TransactionId,
     ) -> Result<i64, rusqlite::Error> {
-        let connection = self.connection.lock().unwrap();
+        let connection = self.connection();
         let mut statement = connection.prepare_cached(ADD_CTID)?;
 
         statement.query_one(
@@ -150,7 +163,7 @@ impl Store {
     }
 
     pub fn expire_ctid(&self, value: &str) -> Result<bool, rusqlite::Error> {
-        let connection = self.connection.lock().unwrap();
+        let connection = self.connection();
         let mut statement = connection.prepare_cached(EXPIRE_CTID)?;
 
         let result = statement.execute((value,))?;
