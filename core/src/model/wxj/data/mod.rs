@@ -77,7 +77,7 @@ impl<'a> TweetSnapshot<'a> {
                 self.lookup_tweet(id)
                     .ok_or(FormatError::MissingReferencedTweet(id))
             })
-            .map_or(Ok(None), |v| v.map(Some))
+            .transpose()
     }
 }
 
@@ -151,7 +151,7 @@ impl Tweet<'_> {
                     })
                 })
             })
-            .map_or(Ok(None), |v| v.map(Some))
+            .transpose()
     }
 
     /*pub fn mention_ids(&self) -> Vec<u64> {

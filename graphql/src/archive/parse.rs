@@ -83,7 +83,7 @@ pub fn parse_exchange<
                 serde_json::from_str::<Vec<crate::response::error::Error>>(errors_json_str)
                     .map_err(|error| Error::ErrorsJson { error, line_number })
             })
-            .map_or(Ok(None), |errors| errors.map(Some))?
+            .transpose()?
             .unwrap_or_default();
 
         let data = if data_start < data_end {
