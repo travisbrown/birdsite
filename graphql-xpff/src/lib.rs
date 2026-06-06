@@ -155,6 +155,6 @@ mod tests {
             generator.decode(guest_id, &encoded).unwrap();
 
         assert_eq!(user_agent, decoded_user_agent);
-        assert_eq!(decoded_created_at, decoded_created_at);
+        assert_eq!(created_at, decoded_created_at);
     }
 }
