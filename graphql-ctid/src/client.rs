@@ -13,7 +13,7 @@ static SITE_VERIFICATION_CONTENT_SEL: LazyLock<Selector> =
 static SITE_VERIFICATION_CONTENT_ATTR: &str = "content";
 
 static ONDEMAND_NAME_V1_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"['|"]ondemand\.s['|"]:\s*['|"]([\w]*)['|"]"#).unwrap());
+    LazyLock::new(|| Regex::new(r#"['"]ondemand\.s['"]:\s*['"]([\w]*)['"]"#).unwrap());
 
 static ONDEMAND_NAME_V2_INDEX_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#",\s*(\d+)\s*:\s*['"]ondemand\.s['"]"#).unwrap());
