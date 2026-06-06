@@ -159,6 +159,7 @@ pub struct MediaMetadata<'a> {
     pub width: usize,
 }
 
+#[cfg(test)]
 mod tests {
     #[test]
     fn deserialize_media_examples() {
