@@ -117,9 +117,27 @@ impl Client {
     }
 
     pub async fn get_site_info(&self) -> Result<SiteInfo, Error> {
-        let home = self.download_home().await?;
-        let ondemand_url = home.ondemand_url()?;
-        let verification_key = home.site_verification_key()?;
+        // `Home` holds a `scraper::Html`, which is not `Sync`; its scope must
+        // end before the next await (an explicit `drop` is not enough for the
+        // compiler's capture analysis) so that this future (and every
+        // `generate` future built on it) stays `Send` and usable with
+        // `tokio::spawn`.
+        let (ondemand_url, verification_key, frame_array) = {
+            let home = self.download_home().await?;
+            let ondemand_url = home.ondemand_url()?;
+            let verification_key = home.site_verification_key()?;
+            let frame_index =
+                verification_key
+                    .get(5)
+                    .ok_or_else(|| Error::ShortSiteVerificationKey {
+                        length: verification_key.len(),
+                    })?
+                    % 4;
+            let frame_array = home.frame_array(frame_index as usize)?;
+
+            (ondemand_url, verification_key, frame_array)
+        };
+
         let ondemand = self.download_ondemand(&ondemand_url).await?;
         let indices = ondemand.indices()?;
 
@@ -132,15 +150,6 @@ impl Client {
                 length: verification_key.len(),
             })
         } else {
-            let frame_index =
-                verification_key
-                    .get(5)
-                    .ok_or_else(|| Error::ShortSiteVerificationKey {
-                        length: verification_key.len(),
-                    })?
-                    % 4;
-            let frame_array = home.frame_array(frame_index as usize)?;
-
             // Safe because we've already checked that there are at least two
             // indices and that every index is in bounds for the key.
             let frame_index_from_key = (verification_key[indices[0]] % 16) as usize;
@@ -306,5 +315,26 @@ impl Ondemand {
         } else {
             Ok(indices)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Compile-time regression check: `scraper::Html` is not `Sync`, so holding
+    // it across an await would make every `generate` future `!Send` and
+    // unusable with `tokio::spawn` on a multithreaded runtime.
+    #[test]
+    fn generate_futures_are_send() {
+        fn assert_send<T: Send>(_value: &T) {}
+
+        let client = Client::default();
+        let endpoint = crate::Endpoint::new("Name", "version");
+
+        assert_send(&client.generate(&endpoint));
+        assert_send(&client.generate_for_path("/path"));
+        assert_send(&client.generate_batch(&[&endpoint]));
+        assert_send(&client.get_site_info());
     }
 }
