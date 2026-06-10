@@ -15,10 +15,14 @@ static BEARER_TOKEN_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"(?i)\-H ['"]authorization: Bearer ([\w%]+)['"]"#).unwrap());
 static CSRF_TOKEN_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"(?i)\-H ['"]x-csrf-token: ([\w]+)['"]"#).unwrap());
+// The closing quote must be followed by whitespace or the end of the command
+// (cookie values may contain quote characters, e.g. `personalization_id=".."`,
+// so the boundary cannot be the quote alone); a bare `\s` here used to reject
+// commands whose cookie header was the final token.
 static COOKIE_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"(?i)\-H ['"]Cookie: ([^'\n]+)['"]\s"#).unwrap());
+    LazyLock::new(|| Regex::new(r#"(?i)\-H ['"]Cookie: ([^'\n]+)['"](?:\s|$)"#).unwrap());
 static COOKIE_SHORT_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"\-b ['"]([^'\n]+)['"]\s"#).unwrap());
+    LazyLock::new(|| Regex::new(r#"\-b ['"]([^'\n]+)['"](?:\s|$)"#).unwrap());
 
 impl Creds {
     #[must_use]
@@ -81,5 +85,27 @@ mod tests {
         };
 
         assert_eq!(creds, expected);
+    }
+
+    #[test]
+    fn parse_curl_command_with_trailing_cookie_header() {
+        // Regression: the cookie header may be the final token of the pasted
+        // command, with no trailing whitespace after the closing quote.
+        let command = "curl 'https://x.com/' -H 'authorization: Bearer abc123' \
+            -H 'x-csrf-token: def456' -H 'Cookie: guest_id=v1%3A1234; ct0=def456'";
+
+        let creds = Creds::parse_curl_command(command).unwrap();
+
+        assert_eq!(creds.cookie, "guest_id=v1%3A1234; ct0=def456");
+    }
+
+    #[test]
+    fn parse_curl_command_with_trailing_short_cookie() {
+        let command = "curl 'https://x.com/' -H 'authorization: Bearer abc123' \
+            -H 'x-csrf-token: def456' -b 'guest_id=v1%3A1234; ct0=def456'";
+
+        let creds = Creds::parse_curl_command(command).unwrap();
+
+        assert_eq!(creds.cookie, "guest_id=v1%3A1234; ct0=def456");
     }
 }
