@@ -5,29 +5,72 @@ pub enum Action {
     Click,
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(untagged)]
+/// Implements `as_str` and string-keyed serde for an enum of known unit
+/// variants plus a borrowed `Other` fallback.
+///
+/// `#[serde(untagged)]` cannot express this: untagged unit variants match only
+/// JSON `null`, never their renamed strings, so every value would deserialize
+/// as `Other` and the known variants would serialize as `null`.
+macro_rules! known_or_other_str {
+    ($name:ident { $($variant:ident => $string:literal),+ $(,)? }) => {
+        impl $name<'_> {
+            /// The wire string for this value.
+            #[must_use]
+            pub const fn as_str(&self) -> &str {
+                match self {
+                    $(Self::$variant => $string,)+
+                    Self::Other(value) => value,
+                }
+            }
+        }
+
+        impl<'de: 'a, 'a> serde::de::Deserialize<'de> for $name<'a> {
+            fn deserialize<D: serde::de::Deserializer<'de>>(
+                deserializer: D,
+            ) -> Result<Self, D::Error> {
+                let value: &'de str = serde::de::Deserialize::deserialize(deserializer)?;
+                Ok(match value {
+                    $($string => Self::$variant,)+
+                    other => Self::Other(other),
+                })
+            }
+        }
+
+        impl serde::ser::Serialize for $name<'_> {
+            fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                serializer.serialize_str(self.as_str())
+            }
+        }
+    };
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Component<'a> {
-    #[serde(rename = "suggest_who_to_follow")]
     SuggestWhoToFollow,
-    #[serde(rename = "trends")]
     Trends,
-    #[serde(rename = "tweet")]
     Tweet,
-    #[serde(rename = "unified_events")]
     UnifiedEvents,
     Other(&'a str),
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(untagged)]
+known_or_other_str!(Component {
+    SuggestWhoToFollow => "suggest_who_to_follow",
+    Trends => "trends",
+    Tweet => "tweet",
+    UnifiedEvents => "unified_events",
+});
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Element<'a> {
-    #[serde(rename = "feedback")]
     Feedback,
-    #[serde(rename = "trend")]
     Trend,
     Other(&'a str),
 }
+
+known_or_other_str!(Element {
+    Feedback => "feedback",
+    Trend => "trend",
+});
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -82,8 +125,7 @@ pub mod event {
         pub source_data: Option<&'a str>,
     }
 
-    #[derive(Clone, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
-    #[serde(untagged)]
+    #[derive(Clone, Debug, Eq, Hash, PartialEq)]
     pub enum InjectionType<'a> {
         CommunityTweet,
         ForYouLocal,
@@ -97,6 +139,19 @@ pub mod event {
         WhoToSubscribe,
         Other(&'a str),
     }
+
+    known_or_other_str!(InjectionType {
+        CommunityTweet => "CommunityTweet",
+        ForYouLocal => "ForYouLocal",
+        ForYouPopularGeo => "ForYouPopularGeo",
+        ForYouPromoted => "ForYouPromoted",
+        ForYouSimclusters => "ForYouSimclusters",
+        ForYouTrends => "ForYouTrends",
+        OrganicListTweet => "OrganicListTweet",
+        RankedOrganicTweet => "RankedOrganicTweet",
+        WhoToFollow => "WhoToFollow",
+        WhoToSubscribe => "WhoToSubscribe",
+    });
 
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
@@ -178,5 +233,45 @@ pub mod feedback {
     pub struct Details {
         #[serde(rename = "conversationDetails")]
         pub conversation_details: Option<super::ConversationDetails>,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn deserializes_known_and_other_strings() {
+        assert_eq!(
+            serde_json::from_str::<Component<'_>>("\"trends\"").unwrap(),
+            Component::Trends
+        );
+        assert_eq!(
+            serde_json::from_str::<Component<'_>>("\"unknown_component\"").unwrap(),
+            Component::Other("unknown_component")
+        );
+        assert_eq!(
+            serde_json::from_str::<Element<'_>>("\"feedback\"").unwrap(),
+            Element::Feedback
+        );
+        assert_eq!(
+            serde_json::from_str::<event::InjectionType<'_>>("\"RankedOrganicTweet\"").unwrap(),
+            event::InjectionType::RankedOrganicTweet
+        );
+    }
+
+    #[test]
+    fn round_trips_through_strings() {
+        for value in [
+            Component::SuggestWhoToFollow,
+            Component::Trends,
+            Component::Tweet,
+            Component::UnifiedEvents,
+            Component::Other("unknown_component"),
+        ] {
+            let json = serde_json::to_string(&value).unwrap();
+            assert_eq!(json, format!("\"{}\"", value.as_str()));
+            assert_eq!(serde_json::from_str::<Component<'_>>(&json).unwrap(), value);
+        }
     }
 }
