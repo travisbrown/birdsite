@@ -24,25 +24,32 @@ impl FromStr for Color {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let err = || Self::Err::Invalid(s.to_string());
 
-        match s.len() {
-            3 => {
-                // CSS shorthand: each hex digit is doubled (e.g. "f0a" to "ff00aa").
-                let digit = |i| u16::from_str_radix(&s[i..=i], 16).map(|v| v * 17);
+        // Reject anything but ASCII hex digits up front: byte-indexing a `str` panics on multibyte
+        // UTF-8 boundaries (these strings come from untrusted archive data), and `from_str_radix`
+        // would otherwise accept a leading sign.
+        if s.bytes().all(|b| b.is_ascii_hexdigit()) {
+            match s.len() {
+                3 => {
+                    // CSS shorthand: each hex digit is doubled (e.g. "f0a" to "ff00aa").
+                    let digit = |i| u16::from_str_radix(&s[i..=i], 16).map(|v| v * 17);
 
-                Ok(Self {
-                    red: digit(0).map_err(|_| err())?,
-                    green: digit(1).map_err(|_| err())?,
-                    blue: digit(2).map_err(|_| err())?,
-                })
-            }
-            6 => u16::from_str_radix(&s[0..2], 16)
-                .and_then(|red| {
-                    u16::from_str_radix(&s[2..4], 16).and_then(|green| {
-                        u16::from_str_radix(&s[4..6], 16).map(|blue| Self { red, green, blue })
+                    Ok(Self {
+                        red: digit(0).map_err(|_| err())?,
+                        green: digit(1).map_err(|_| err())?,
+                        blue: digit(2).map_err(|_| err())?,
                     })
-                })
-                .map_err(|_| err()),
-            _ => Err(err()),
+                }
+                6 => u16::from_str_radix(&s[0..2], 16)
+                    .and_then(|red| {
+                        u16::from_str_radix(&s[2..4], 16).and_then(|green| {
+                            u16::from_str_radix(&s[4..6], 16).map(|blue| Self { red, green, blue })
+                        })
+                    })
+                    .map_err(|_| err()),
+                _ => Err(err()),
+            }
+        } else {
+            Err(err())
         }
     }
 }
@@ -104,5 +111,17 @@ mod tests {
         let reserialized = json!(deserialized);
 
         assert_eq!(reserialized, json);
+    }
+
+    #[test]
+    fn reject_invalid_color() {
+        // Multibyte input must error rather than panic on a byte-index slice
+        // (regression: "\u{e9}0" is three bytes, so it took the shorthand arm
+        // and panicked slicing mid-character).
+        assert!(serde_json::from_str::<Color>("\"\u{e9}0\"").is_err());
+        assert!(serde_json::from_str::<Color>("\"caf\u{e9}18\"").is_err());
+        // `from_str_radix` accepts a leading sign, which is not valid hex.
+        assert!(serde_json::from_str::<Color>("\"+f00aa\"").is_err());
+        assert!(serde_json::from_str::<Color>("\"6D5C1\"").is_err());
     }
 }
