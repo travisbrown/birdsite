@@ -33,6 +33,11 @@ impl Generator {
     }
 
     /// Generate an ID for a given endpoint using current site information.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `site_info` violates the invariants documented on
+    /// [`compute_for_path`](Self::compute_for_path).
     #[must_use]
     pub fn compute(
         &self,
@@ -50,6 +55,14 @@ impl Generator {
     }
 
     /// Generate an ID for a given endpoint using current site information.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any element of `site_info.indices` is out of bounds for
+    /// `site_info.verification_key`, or if `site_info.frame` has fewer than
+    /// eleven elements. [`SiteInfo`] values produced by
+    /// [`Client::get_site_info`](crate::client::Client::get_site_info) always
+    /// satisfy both invariants.
     #[must_use]
     pub fn compute_for_path(
         &self,
@@ -60,12 +73,16 @@ impl Generator {
     ) -> TransactionId {
         let key_bytes_indices = &site_info.indices[1..];
 
+        // Saturating: each factor is at most 15, but the index count is
+        // unbounded, so a plain `product` could overflow.
         let frame_time = key_bytes_indices
             .iter()
-            .map(|i| i32::from(site_info.verification_key[*i] % 16))
-            .product::<i32>();
+            .map(|i| i64::from(site_info.verification_key[*i] % 16))
+            .fold(1, i64::saturating_mul);
 
-        let frame_time = ((f64::from(frame_time) / 10.0).round() * 10.0) as usize;
+        // Round to the nearest ten (the product is non-negative, so integer
+        // division matches the reference implementation's float rounding).
+        let frame_time = (frame_time + 5) / 10 * 10;
         let total_time: f64 = 4096.0;
         let target_time = frame_time as f64 / total_time;
 

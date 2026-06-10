@@ -122,44 +122,49 @@ impl Client {
         let verification_key = home.site_verification_key()?;
         let ondemand = self.download_ondemand(&ondemand_url).await?;
         let indices = ondemand.indices()?;
-        let frame_index =
-            verification_key
-                .get(5)
-                .ok_or_else(|| Error::ShortSiteVerificationKey {
-                    length: verification_key.len(),
-                })?
-                % 4;
-        let frame_array = home.frame_array(frame_index as usize)?;
 
-        // Safe because we've already checked that there are at least two indices.
-        let key_index = indices[0];
-        let frame_index_from_key =
-            (verification_key
-                .get(key_index)
-                .ok_or_else(|| Error::ShortSiteVerificationKey {
-                    length: verification_key.len(),
-                })?
-                % 16) as usize;
-
-        let frame_array_length = frame_array.len();
-        let frame = frame_array
-            .into_iter()
-            .nth(frame_index_from_key)
-            .ok_or_else(|| Error::ShortFrameArray {
-                length: frame_array_length,
-                expected: frame_index_from_key,
-            })?;
-
-        if frame.len() < 11 {
-            Err(Error::ShortFrame {
-                length: frame.len(),
+        // Every index reads a byte of the verification key (the first below,
+        // the rest in the generator), and both values come from remote pages,
+        // so reject any out-of-bounds index up front rather than panicking
+        // later in `compute`.
+        if indices.iter().any(|index| *index >= verification_key.len()) {
+            Err(Error::ShortSiteVerificationKey {
+                length: verification_key.len(),
             })
         } else {
-            Ok(SiteInfo {
-                verification_key,
-                indices,
-                frame,
-            })
+            let frame_index =
+                verification_key
+                    .get(5)
+                    .ok_or_else(|| Error::ShortSiteVerificationKey {
+                        length: verification_key.len(),
+                    })?
+                    % 4;
+            let frame_array = home.frame_array(frame_index as usize)?;
+
+            // Safe because we've already checked that there are at least two
+            // indices and that every index is in bounds for the key.
+            let frame_index_from_key = (verification_key[indices[0]] % 16) as usize;
+
+            let frame_array_length = frame_array.len();
+            let frame = frame_array
+                .into_iter()
+                .nth(frame_index_from_key)
+                .ok_or_else(|| Error::ShortFrameArray {
+                    length: frame_array_length,
+                    expected: frame_index_from_key,
+                })?;
+
+            if frame.len() < 11 {
+                Err(Error::ShortFrame {
+                    length: frame.len(),
+                })
+            } else {
+                Ok(SiteInfo {
+                    verification_key,
+                    indices,
+                    frame,
+                })
+            }
         }
     }
 
