@@ -2,6 +2,9 @@ pub mod data;
 pub mod flat;
 pub mod metadata;
 
+// Boxing the larger variant would break the `const fn` accessors below (dereferencing a `Box` is
+// not allowed in const contexts).
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TweetSnapshot<'a> {
     Data(data::TweetSnapshot<'a>),

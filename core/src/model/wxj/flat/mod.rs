@@ -17,6 +17,8 @@ use std::ops::Range;
 pub mod entity;
 pub mod media;
 
+// The bools mirror the wire format.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TweetSnapshot<'a> {
@@ -121,6 +123,8 @@ pub struct ExtendedTweet<'a> {
     pub extended_entities: Option<entity::ExtendedTweetExtendedEntities<'a>>,
 }
 
+// The bools mirror the wire format.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct User<'a> {

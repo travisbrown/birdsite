@@ -17,15 +17,29 @@ pub static RANKED_LANGUAGE_VALUES: LazyLock<Vec<Language>> = LazyLock::new(|| {
         .collect()
 });
 
+/// The number of accounts using this language in the leak data.
+///
+/// # Panics
+///
+/// Panics if the count table is missing a [`Language`] value, which is a development error: the
+/// table is generated from the same data as the enum.
+#[must_use]
 pub fn count(value: &Language) -> usize {
-    // If the map doesn't contain this value, that's a development error.
     *LANGUAGE_VALUE_COUNTS.get(value).unwrap()
 }
 
+/// The share of accounts using this language in the leak data.
+///
+/// # Panics
+///
+/// Panics in the same (development error) case as [`count`].
 #[must_use]
 pub fn percentage(value: &Language) -> f32 {
-    // If the map doesn't contain this value, that's a development error.
-    count(value) as f32 / TOTAL_COUNT as f32
+    // The counts are approximations (see the module docs), so `f32` precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
+    {
+        count(value) as f32 / TOTAL_COUNT as f32
+    }
 }
 
 const RAW_DATA: &[(&str, usize)] = &[
@@ -286,6 +300,6 @@ mod test {
                 .difference(&super::RANKED_LANGUAGE_VALUES.iter().collect())
                 .collect::<HashSet<_>>(),
             HashSet::new()
-        )
+        );
     }
 }

@@ -672,6 +672,8 @@ pub enum SpanishLocale {
 }
 
 impl Language {
+    // One arm per language code; the length is the size of the data table.
+    #[allow(clippy::too_many_lines)]
     fn parse_str(input: &str) -> Option<Self> {
         match input {
             "&退" => Some(Self::Nonstandard(NonstandardCode::AmpHan)),
@@ -933,6 +935,8 @@ impl Language {
         }
     }
 
+    // One arm per language code; the length is the size of the data table.
+    #[allow(clippy::too_many_lines)]
     #[must_use]
     pub const fn as_str(&self) -> &'static str {
         match self {

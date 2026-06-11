@@ -211,6 +211,8 @@ mod internal {
     use chrono::{DateTime, Utc, serde::ts_milliseconds_option};
     use serde_field_attributes::{integer_str, optional_integer_str};
 
+    // Field names mirror the wire format (`is_media_note` etc.).
+    #[allow(clippy::struct_field_names)]
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub(super) struct Note<'a> {

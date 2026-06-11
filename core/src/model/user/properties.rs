@@ -158,6 +158,8 @@ pub struct Birthdate {
 mod internal {
     use serde_field_attributes::integer_str;
 
+    // Field names mirror the wire format (`professional_type`).
+    #[allow(clippy::struct_field_names)]
     #[derive(serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
     pub(super) struct Professional<'a> {
