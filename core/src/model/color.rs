@@ -22,23 +22,34 @@ impl FromStr for Color {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() == 6 {
-            u16::from_str_radix(&s[0..2], 16)
+        let err = || Self::Err::Invalid(s.to_string());
+
+        match s.len() {
+            3 => {
+                // CSS shorthand: each hex digit is doubled (e.g. "f0a" to "ff00aa").
+                let digit = |i| u16::from_str_radix(&s[i..=i], 16).map(|v| v * 17);
+
+                Ok(Self {
+                    red: digit(0).map_err(|_| err())?,
+                    green: digit(1).map_err(|_| err())?,
+                    blue: digit(2).map_err(|_| err())?,
+                })
+            }
+            6 => u16::from_str_radix(&s[0..2], 16)
                 .and_then(|red| {
                     u16::from_str_radix(&s[2..4], 16).and_then(|green| {
                         u16::from_str_radix(&s[4..6], 16).map(|blue| Self { red, green, blue })
                     })
                 })
-                .map_err(|_| Self::Err::Invalid(s.to_string()))
-        } else {
-            Err(Self::Err::Invalid(s.to_string()))
+                .map_err(|_| err()),
+            _ => Err(err()),
         }
     }
 }
 
 impl Display for Color {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:X}{:X}{:X}", self.red, self.green, self.blue)
+        write!(f, "{:02X}{:02X}{:02X}", self.red, self.green, self.blue)
     }
 }
 
