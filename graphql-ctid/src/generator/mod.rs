@@ -1,11 +1,14 @@
 use crate::{Endpoint, SiteInfo, TransactionId};
 use base64::prelude::*;
-use chrono::Utc;
+use chrono::{TimeZone, Utc};
 use rand::RngExt;
 use sha2::Digest;
 
 mod color;
 mod cubic;
+
+/// Seconds offset of the X transaction-id epoch (`2023-05-01T07:00:00Z`) from the Unix epoch.
+const TRANSACTION_ID_EPOCH_S: i64 = 1_682_924_400;
 
 const DEFAULT_METHOD: &str = "GET";
 const DEFAULT_KEYWORD: &str = "obfiowerehiring";
@@ -101,8 +104,7 @@ impl Generator {
                 .expect("Invalid system clock")
                 .as_millis() as i128;
 
-            // X transaction-id epoch (`2023-05-01T07:00:00Z`).
-            let base_ms = 1_682_924_400i128 * 1000;
+            let base_ms = i128::from(TRANSACTION_ID_EPOCH_S) * 1000;
             ((ms - base_ms) / 1000) as i64
         });
 
@@ -131,7 +133,13 @@ impl Generator {
         TransactionId {
             value: base64::engine::general_purpose::STANDARD_NO_PAD.encode(output),
             animation_key: Some(animation_key),
-            timestamp: Utc::now(),
+            // Derived from the same epoch-relative seconds encoded in `value`, so an explicit
+            // `timestamp_s` yields a timestamp that agrees with the ID's bytes. The fallback only
+            // fires for caller-provided values outside chrono's representable range.
+            timestamp: Utc
+                .timestamp_opt(TRANSACTION_ID_EPOCH_S.saturating_add(timestamp_s), 0)
+                .single()
+                .unwrap_or_else(Utc::now),
         }
     }
 
@@ -277,4 +285,35 @@ fn float_to_hex(x: f64) -> String {
 
 fn interpolate(a: f64, b: f64, f: f64) -> f64 {
     a.mul_add(1.0 - f, b * f)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn compute_for_path_uses_explicit_timestamp() {
+        // Regression: the returned `TransactionId.timestamp` was always `Utc::now()`, disagreeing
+        // with the explicit `timestamp_s` encoded in the value's bytes.
+        let site_info = SiteInfo {
+            verification_key: (0..=15).collect(),
+            indices: vec![0, 1],
+            frame: vec![0; 11],
+        };
+        let timestamp_s = 100_000_000;
+
+        let transaction_id = Generator::default().compute_for_path(
+            &site_info,
+            "/i/api/graphql/abc/Test",
+            Some(7),
+            Some(timestamp_s),
+        );
+
+        let expected = Utc
+            .timestamp_opt(TRANSACTION_ID_EPOCH_S + timestamp_s, 0)
+            .single()
+            .unwrap();
+        assert_eq!(transaction_id.timestamp, expected);
+        assert!(!transaction_id.value.is_empty());
+    }
 }
