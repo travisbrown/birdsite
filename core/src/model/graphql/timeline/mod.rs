@@ -104,7 +104,7 @@ pub enum ItemContent<'a, T, U> {
         description: Option<Cow<'a, str>>,
         social_context: Option<context::SocialContext<'a>>,
         is_ai_trend: Option<bool>,
-        trend_url: crate::model::graphql::trends::TrendUrl<'a>,
+        trend_url: crate::model::url::Url<'a>,
         trend_metadata: TrendMetadata<'a>,
         grouped_trends: Option<Vec<trends::Trend<'a>>>,
         rank: Option<Cow<'a, str>>,

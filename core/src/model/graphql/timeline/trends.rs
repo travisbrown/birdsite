@@ -5,7 +5,7 @@ use std::borrow::Cow;
 pub struct Trend<'a> {
     #[serde(borrow)]
     pub name: Cow<'a, str>,
-    pub url: crate::model::graphql::trends::TrendUrl<'a>,
+    pub url: crate::model::url::Url<'a>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
