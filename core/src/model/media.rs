@@ -100,9 +100,17 @@ pub struct Media<'a> {
     pub sizes: MediaSizes,
     /// Original tweet and user identifiers when this media was shared from another tweet.
     #[serde(flatten)]
-    pub source_metadata: Option<MediaSourceMetadata>,
+    source_metadata: internal::MaybeMediaSourceMetadata,
     /// Alt-text description of the media.
     pub description: Option<Cow<'a, str>>,
+}
+
+impl Media<'_> {
+    /// Original tweet and user identifiers when this media was shared from another tweet.
+    #[must_use]
+    pub const fn source_metadata(&self) -> Option<&MediaSourceMetadata> {
+        self.source_metadata.0.as_ref()
+    }
 }
 
 /// Embeddable-media metadata attached to certain video media items.
@@ -129,70 +137,203 @@ pub struct VideoInfo<'a> {
 }
 
 /// Source-tweet provenance for media reposted from another tweet.
-#[derive(Clone, Debug, Eq, Hash, PartialEq, serde::Serialize)]
-#[serde(deny_unknown_fields, into = "internal::MediaSourceMetadata")]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct MediaSourceMetadata {
     /// Numeric identifier of the tweet this media originally appeared in.
     pub status_id: u64,
-    /// Numeric identifier of the user who originally posted the media.
-    pub user_id: u64,
-}
-
-impl<'de> serde::de::Deserialize<'de> for MediaSourceMetadata {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let internal = internal::MediaSourceMetadata::deserialize(deserializer)?;
-
-        internal.validate()
-    }
+    /// Numeric identifier of the user who originally posted the media; absent in older (2015-era)
+    /// archives, which carry only the status pair.
+    pub user_id: Option<u64>,
 }
 
 mod internal {
     use serde::de::Unexpected;
-    use serde_field_attributes::integer_str;
+    use serde_field_attributes::optional_integer_str;
+
+    /// Validating wrapper for the flattened `source_*` wire fields.
+    ///
+    /// A derived `Option<MediaSourceMetadata>` flatten would treat a partial set of keys as
+    /// `None`, silently dropping the present values; this wrapper reads the four fields as
+    /// individually optional and requires each `id`/`id_str` pair to be complete and consistent.
+    /// The status pair may appear without the user pair (2015-era archives), but not vice versa.
+    #[derive(Clone, Debug, Eq, PartialEq)]
+    pub(super) struct MaybeMediaSourceMetadata(pub(super) Option<super::MediaSourceMetadata>);
 
     #[allow(clippy::struct_field_names)]
     #[derive(serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
-    pub struct MediaSourceMetadata {
-        source_status_id: u64,
-        #[serde(with = "integer_str")]
-        source_status_id_str: u64,
-        source_user_id: u64,
-        #[serde(with = "integer_str")]
-        source_user_id_str: u64,
+    struct Fields {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        source_status_id: Option<u64>,
+        #[serde(
+            with = "optional_integer_str",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        source_status_id_str: Option<u64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        source_user_id: Option<u64>,
+        #[serde(
+            with = "optional_integer_str",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
+        source_user_id_str: Option<u64>,
     }
 
-    impl MediaSourceMetadata {
-        pub fn validate<E: serde::de::Error>(self) -> Result<super::MediaSourceMetadata, E> {
-            if self.source_status_id == self.source_status_id_str {
-                if self.source_user_id == self.source_user_id_str {
-                    Ok(super::MediaSourceMetadata {
-                        status_id: self.source_status_id,
-                        user_id: self.source_user_id,
-                    })
-                } else {
-                    Err(E::invalid_value(
-                        Unexpected::Unsigned(self.source_user_id),
-                        &self.source_user_id_str.to_string().as_str(),
-                    ))
-                }
-            } else {
-                Err(E::invalid_value(
-                    Unexpected::Unsigned(self.source_status_id),
-                    &self.source_status_id_str.to_string().as_str(),
-                ))
+    /// Collapses an optional `id`/`id_str` pair, requiring both-or-neither and equal values.
+    fn validate_id_pair<E: serde::de::Error>(
+        id: Option<u64>,
+        id_str: Option<u64>,
+        name: &str,
+    ) -> Result<Option<u64>, E> {
+        match (id, id_str) {
+            (None, None) => Ok(None),
+            (Some(id), Some(from_str)) if id == from_str => Ok(Some(id)),
+            (Some(id), Some(from_str)) => Err(E::invalid_value(
+                Unexpected::Unsigned(id),
+                &from_str.to_string().as_str(),
+            )),
+            _ => Err(E::custom(format!(
+                "expected both of the {name} media fields or neither"
+            ))),
+        }
+    }
+
+    impl<'de> serde::de::Deserialize<'de> for MaybeMediaSourceMetadata {
+        fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            let fields = Fields::deserialize(deserializer)?;
+
+            let status_id = validate_id_pair(
+                fields.source_status_id,
+                fields.source_status_id_str,
+                "source_status_id",
+            )?;
+            let user_id = validate_id_pair(
+                fields.source_user_id,
+                fields.source_user_id_str,
+                "source_user_id",
+            )?;
+
+            match (status_id, user_id) {
+                (None, None) => Ok(Self(None)),
+                (Some(status_id), user_id) => Ok(Self(Some(super::MediaSourceMetadata {
+                    status_id,
+                    user_id,
+                }))),
+                (None, Some(_)) => Err(serde::de::Error::custom(
+                    "expected source_status_id media fields alongside source_user_id",
+                )),
             }
         }
     }
 
-    impl From<super::MediaSourceMetadata> for MediaSourceMetadata {
-        fn from(value: super::MediaSourceMetadata) -> Self {
-            Self {
-                source_status_id: value.status_id,
-                source_status_id_str: value.status_id,
-                source_user_id: value.user_id,
-                source_user_id_str: value.user_id,
-            }
+    impl serde::ser::Serialize for MaybeMediaSourceMetadata {
+        fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            let fields = self.0.map_or(
+                Fields {
+                    source_status_id: None,
+                    source_status_id_str: None,
+                    source_user_id: None,
+                    source_user_id_str: None,
+                },
+                |value| Fields {
+                    source_status_id: Some(value.status_id),
+                    source_status_id_str: Some(value.status_id),
+                    source_user_id: value.user_id,
+                    source_user_id_str: value.user_id,
+                },
+            );
+
+            fields.serialize(serializer)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const BASE_FIELDS: &str = concat!(
+        r#""id":1,"id_str":"1","indices":[0,1],"media_url":"http://example.com/a.jpg","#,
+        r#""media_url_https":"https://example.com/a.jpg","url":"https://t.co/a","#,
+        r#""display_url":"pic.twitter.com/a","expanded_url":"https://twitter.com/x","type":"photo","#,
+        r#""sizes":{"thumb":{"w":1,"h":1,"resize":"crop"},"small":{"w":1,"h":1,"resize":"fit"},"#,
+        r#""medium":{"w":1,"h":1,"resize":"fit"},"large":{"w":1,"h":1,"resize":"fit"}}"#
+    );
+
+    fn media_json(extra: &str) -> String {
+        format!("{{{BASE_FIELDS}{extra}}}")
+    }
+
+    #[test]
+    fn round_trips_source_metadata() {
+        let json = media_json(
+            r#","source_status_id":12,"source_status_id_str":"12","source_user_id":34,"source_user_id_str":"34""#,
+        );
+
+        let media = serde_json::from_str::<Media<'_>>(&json).unwrap();
+        let expected = MediaSourceMetadata {
+            status_id: 12,
+            user_id: Some(34),
+        };
+        assert_eq!(media.source_metadata(), Some(&expected));
+
+        let reserialized = serde_json::to_string(&media).unwrap();
+        let reparsed = serde_json::from_str::<Media<'_>>(&reserialized).unwrap();
+        assert_eq!(reparsed, media);
+    }
+
+    #[test]
+    fn omits_absent_source_metadata() {
+        let json = media_json("");
+        let media = serde_json::from_str::<Media<'_>>(&json).unwrap();
+        assert_eq!(media.source_metadata(), None);
+
+        let reserialized = serde_json::to_string(&media).unwrap();
+        assert!(!reserialized.contains("source_status_id"));
+        assert_eq!(
+            serde_json::from_str::<Media<'_>>(&reserialized).unwrap(),
+            media
+        );
+    }
+
+    #[test]
+    fn round_trips_source_metadata_without_user_pair() {
+        // 2015-era archives carry only the status pair (see `examples/tsg/2015-errors.ndjson`).
+        let json = media_json(r#","source_status_id":12,"source_status_id_str":"12""#);
+
+        let media = serde_json::from_str::<Media<'_>>(&json).unwrap();
+        let expected = MediaSourceMetadata {
+            status_id: 12,
+            user_id: None,
+        };
+        assert_eq!(media.source_metadata(), Some(&expected));
+
+        let reserialized = serde_json::to_string(&media).unwrap();
+        assert!(!reserialized.contains("source_user_id"));
+        assert_eq!(
+            serde_json::from_str::<Media<'_>>(&reserialized).unwrap(),
+            media
+        );
+    }
+
+    #[test]
+    fn rejects_partial_source_metadata() {
+        // Regression: a partial set of `source_*` fields used to deserialize successfully as
+        // `None`, silently dropping the present values.
+        let half_pair = media_json(r#","source_status_id":12"#);
+        assert!(serde_json::from_str::<Media<'_>>(&half_pair).is_err());
+
+        let user_without_status = media_json(r#","source_user_id":34,"source_user_id_str":"34""#);
+        assert!(serde_json::from_str::<Media<'_>>(&user_without_status).is_err());
+    }
+
+    #[test]
+    fn rejects_mismatched_source_metadata() {
+        let json = media_json(
+            r#","source_status_id":12,"source_status_id_str":"13","source_user_id":34,"source_user_id_str":"34""#,
+        );
+        assert!(serde_json::from_str::<Media<'_>>(&json).is_err());
     }
 }
