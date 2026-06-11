@@ -139,8 +139,9 @@ impl RateLimit {
         let mut reset = None;
         let mut remaining = None;
 
+        // Header names are case-insensitive, matching the `HeaderMap`-based `parse_headers`.
         for (key, value) in headers {
-            if reset.is_none() && key == reset_header_name {
+            if reset.is_none() && key.eq_ignore_ascii_case(reset_header_name) {
                 reset = Some(
                     value
                         .parse::<i64>()
@@ -148,7 +149,7 @@ impl RateLimit {
                         .and_then(|seconds| Utc.timestamp_opt(seconds, 0).single())
                         .ok_or_else(|| Error::InvalidHeader(reset_header_name.to_string()))?,
                 );
-            } else if remaining.is_none() && key == remaining_header_name {
+            } else if remaining.is_none() && key.eq_ignore_ascii_case(remaining_header_name) {
                 remaining = Some(
                     value
                         .parse::<usize>()
@@ -292,6 +293,26 @@ mod tests {
     use super::*;
     use chrono::{SubsecRound, Utc};
     use std::collections::HashSet;
+
+    #[test]
+    fn parse_headers_iter_ignores_header_name_case() {
+        // Regression: header names were compared case-sensitively, unlike the case-insensitive
+        // `HeaderMap`-based `parse_headers`.
+        let headers = [
+            ("X-Rate-Limit-Reset", "1245946721"),
+            ("X-Rate-Limit-Remaining", "42"),
+        ];
+
+        let rate_limit = RateLimit::parse_headers_iter(
+            "x-rate-limit-reset",
+            "x-rate-limit-remaining",
+            headers.into_iter(),
+        )
+        .unwrap();
+
+        assert_eq!(rate_limit.remaining, 42);
+        assert_eq!(rate_limit.reset.timestamp(), 1_245_946_721);
+    }
 
     #[test]
     fn rate_limits() {
