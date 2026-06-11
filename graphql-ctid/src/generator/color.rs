@@ -18,6 +18,8 @@ impl Color {
         Self::new(r, g, b)
     }
 
+    // The cast cannot truncate or lose sign: the value is clamped to `[0, 255]` before rounding.
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn interpolate_value(a: u8, b: u8, f: f64) -> u8 {
         math::round::half_to_even(
             interpolate(f64::from(a), f64::from(b), f).clamp(0.0, 255.0),

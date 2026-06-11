@@ -8,8 +8,10 @@ use std::path::PathBuf;
 
 mod db;
 
-#[tokio::main]
-async fn main() -> Result<(), Error> {
+/// Author whose tweets the `wxj extract` command selects (the Grok account).
+const GROK_USER_ID: u64 = 1_720_665_183_188_922_368;
+
+fn main() -> Result<(), Error> {
     let opts: Opts = Opts::parse();
     opts.verbose.init_logging()?;
 
@@ -85,68 +87,7 @@ async fn main() -> Result<(), Error> {
                     }
                 }
             }
-            WxjCommand::Extract { input } => {
-                let mut paths = std::fs::read_dir(input)?
-                    .map(|entry| entry.map(|entry| entry.path()))
-                    .collect::<Result<Vec<_>, _>>()?;
-
-                paths.sort();
-
-                log::info!("Loaded {} paths", paths.len());
-
-                for (i, path) in paths.iter().enumerate() {
-                    match std::fs::read_to_string(path) {
-                        Ok(contents) => {
-                            if let Ok(snapshot) = serde_json::from_str::<
-                                birdsite::model::wxj::data::TweetSnapshot<'_>,
-                            >(&contents)
-                            {
-                                //let snapshot = wrapper.content;
-
-                                for tweet in snapshot.includes.tweets.clone().unwrap_or_default() {
-                                    /*if tweet.text.to_lowercase().contains("@grok") {*/
-                                    if tweet.author_id == 1720665183188922368 {
-                                        let user = snapshot.lookup_user(1720665183188922368);
-
-                                        let in_reply_to_user_id = tweet.in_reply_to_user_id;
-
-                                        let in_reply_to_info =
-                                            in_reply_to_user_id.and_then(|user_id| {
-                                                snapshot.lookup_user(user_id).map(|user| {
-                                                    (user.username.to_string(), user.verified)
-                                                })
-                                            });
-
-                                        println!(
-                                            "{},{},{},{},{},{},{}",
-                                            tweet.author_id,
-                                            tweet.id,
-                                            tweet.created_at,
-                                            in_reply_to_user_id
-                                                .map(|user_id| user_id.to_string())
-                                                .unwrap_or_default(),
-                                            in_reply_to_info
-                                                .as_ref()
-                                                .map(|(screen_name, _)| screen_name.to_string())
-                                                .unwrap_or_default(),
-                                            in_reply_to_info
-                                                .as_ref()
-                                                .map(|(_, verified)| verified.to_string())
-                                                .unwrap_or_default(),
-                                            user.and_then(|user| user.public_metrics.tweet_count)
-                                                .map(|tweet_count| tweet_count.to_string())
-                                                .unwrap_or_default()
-                                        );
-                                    }
-                                }
-                            }
-                        }
-                        Err(error) => {
-                            log::error!("{}: {}", path.as_os_str().to_string_lossy(), error);
-                        }
-                    }
-                }
-            }
+            WxjCommand::Extract { input } => extract_tweets(input, GROK_USER_ID)?,
         },
     }
 
@@ -216,6 +157,68 @@ enum WxjCommand {
     },
 }
 
+/// Prints one CSV row for each tweet by `author_id` found in the directory of WXJ snapshot files at
+/// `input`.
+fn extract_tweets(input: PathBuf, author_id: u64) -> Result<(), Error> {
+    let mut paths = std::fs::read_dir(input)?
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    paths.sort();
+
+    log::info!("Loaded {} paths", paths.len());
+
+    for path in &paths {
+        match std::fs::read_to_string(path) {
+            Ok(contents) => {
+                if let Ok(snapshot) =
+                    serde_json::from_str::<birdsite::model::wxj::data::TweetSnapshot<'_>>(&contents)
+                {
+                    for tweet in snapshot.includes.tweets.iter().flatten() {
+                        if tweet.author_id == author_id {
+                            let user = snapshot.lookup_user(author_id);
+
+                            let in_reply_to_user_id = tweet.in_reply_to_user_id;
+
+                            let in_reply_to_info = in_reply_to_user_id.and_then(|user_id| {
+                                snapshot
+                                    .lookup_user(user_id)
+                                    .map(|user| (user.username.clone(), user.verified))
+                            });
+
+                            println!(
+                                "{},{},{},{},{},{},{}",
+                                tweet.author_id,
+                                tweet.id,
+                                tweet.created_at,
+                                in_reply_to_user_id
+                                    .map(|user_id| user_id.to_string())
+                                    .unwrap_or_default(),
+                                in_reply_to_info
+                                    .as_ref()
+                                    .map(|(screen_name, _)| screen_name.to_string())
+                                    .unwrap_or_default(),
+                                in_reply_to_info
+                                    .as_ref()
+                                    .map(|(_, verified)| verified.to_string())
+                                    .unwrap_or_default(),
+                                user.and_then(|user| user.public_metrics.tweet_count)
+                                    .map(|tweet_count| tweet_count.to_string())
+                                    .unwrap_or_default()
+                            );
+                        }
+                    }
+                }
+            }
+            Err(error) => {
+                log::error!("{}: {}", path.as_os_str().to_string_lossy(), error);
+            }
+        }
+    }
+
+    Ok(())
+}
+
 #[derive(serde::Deserialize)]
 struct IdPair {
     user_id: u64,
@@ -224,5 +227,7 @@ struct IdPair {
 
 #[derive(serde::Deserialize)]
 struct WxjWrapper<S> {
+    // Never read: deserializing it is the validation.
+    #[allow(dead_code)]
     content: S,
 }

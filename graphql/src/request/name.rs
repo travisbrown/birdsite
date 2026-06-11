@@ -335,7 +335,7 @@ mod tests {
     fn request_names_order() {
         let as_strings = super::REQUEST_NAME_VALUES
             .iter()
-            .map(|name| name.to_string())
+            .map(std::string::ToString::to_string)
             .collect::<Vec<_>>();
 
         let mut as_strings_sorted = as_strings.clone();

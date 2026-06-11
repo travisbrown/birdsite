@@ -1637,7 +1637,7 @@ mod test {
     #[test]
     fn language_codes_sorted() {
         let mut codes = super::LANGUAGE_CODES.to_vec();
-        codes.sort();
+        codes.sort_unstable();
 
         assert_eq!(super::LANGUAGE_CODES, codes.as_slice());
     }
@@ -1653,7 +1653,7 @@ mod test {
     #[test]
     fn special_codes_sorted() {
         let mut codes = super::SPECIAL_CODES.to_vec();
-        codes.sort();
+        codes.sort_unstable();
 
         assert_eq!(super::SPECIAL_CODES, codes.as_slice());
     }
@@ -1722,7 +1722,7 @@ mod test {
 
         let deduped_from_values = super::LANG_VALUES
             .iter()
-            .map(|value| value.as_str())
+            .map(super::Lang::as_str)
             .collect::<std::collections::HashSet<_>>();
 
         assert_eq!(

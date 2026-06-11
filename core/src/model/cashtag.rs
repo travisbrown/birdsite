@@ -408,8 +408,8 @@ mod tests {
         let mut sorted = symbols.clone();
         sorted.sort();
 
-        let mut sorted_by_string = symbols.clone();
-        sorted_by_string.sort_by_key(|s| s.to_string());
+        let mut sorted_by_string = symbols;
+        sorted_by_string.sort_by_key(std::string::ToString::to_string);
 
         assert_eq!(sorted, sorted_by_string);
     }
@@ -421,8 +421,8 @@ mod tests {
         let mut sorted = symbols.clone();
         sorted.sort();
 
-        let mut sorted_by_string = symbols.clone();
-        sorted_by_string.sort_by_key(|s| s.to_string());
+        let mut sorted_by_string = symbols;
+        sorted_by_string.sort_by_key(std::string::ToString::to_string);
 
         assert_eq!(sorted, sorted_by_string);
     }
@@ -434,8 +434,8 @@ mod tests {
         let mut sorted = symbols.clone();
         sorted.sort();
 
-        let mut sorted_by_string = symbols.clone();
-        sorted_by_string.sort_by_key(|s| s.to_string());
+        let mut sorted_by_string = symbols;
+        sorted_by_string.sort_by_key(std::string::ToString::to_string);
 
         assert_eq!(sorted, sorted_by_string);
     }

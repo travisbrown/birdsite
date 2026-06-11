@@ -63,6 +63,13 @@ impl Generator {
     /// eleven elements. [`SiteInfo`] values produced by
     /// [`Client::get_site_info`](crate::client::Client::get_site_info) always
     /// satisfy both invariants.
+    // The casts truncate deliberately, matching the reference implementation.
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_possible_wrap,
+        clippy::cast_precision_loss,
+        clippy::cast_sign_loss
+    )]
     #[must_use]
     pub fn compute_for_path(
         &self,
@@ -143,6 +150,8 @@ fn solve(value: f64, min_value: f64, max_value: f64, rounding: bool) -> f64 {
     }
 }
 
+// The casts truncate deliberately, matching the reference implementation.
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn animation_key(frames: &[i32], target_time: f64) -> String {
     let from_color = color::Color::new(frames[0] as u8, frames[1] as u8, frames[2] as u8);
     let to_color = color::Color::new(frames[3] as u8, frames[4] as u8, frames[5] as u8);
@@ -211,7 +220,13 @@ fn convert_rotation_to_matrix(rotation_degrees: f64) -> [f64; 4] {
     [radians.cos(), -radians.sin(), radians.sin(), radians.cos()]
 }
 
-// Uppercase hex string, matches Python implementation.
+// Uppercase hex string, matches Python implementation. Callers pass small non-negative values, so
+// the casts truncate deliberately.
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss
+)]
 fn float_to_hex(x: f64) -> String {
     let int_part = x.trunc() as u128;
     let frac = x - int_part as f64;

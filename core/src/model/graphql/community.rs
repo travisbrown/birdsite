@@ -8,7 +8,7 @@ use std::borrow::Cow;
 pub enum CommunityResult<'a, U> {
     Community {
         #[serde(flatten)]
-        community: Community<'a, U>,
+        community: Box<Community<'a, U>>,
     },
     CommunityUnavailable {},
 }

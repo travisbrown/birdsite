@@ -15,7 +15,7 @@ const EXPIRE_CTID: &str = "UPDATE ctid SET expired = 1 WHERE value = ?";
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("SQLite error")]
+    #[error("`SQLite` error")]
     Sqlite(#[from] rusqlite::Error),
     #[error("I/O error")]
     Io(#[from] std::io::Error),
@@ -39,10 +39,21 @@ impl Store {
         }
     }
 
+    /// Opens a store backed by the `SQLite` database at `path`.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`rusqlite::Error`] if the database cannot be opened.
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, rusqlite::Error> {
         Ok(Self::new(Connection::open(path)?, Client::default()))
     }
 
+    /// Creates a new `SQLite` database at `path` and loads the schema.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::PathExists`] if `path` already exists, or an I/O or `SQLite` error if the
+    /// database cannot be created.
     pub fn create<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         if path.as_ref().exists() {
             Err(Error::PathExists(path.as_ref().to_path_buf()))
@@ -58,6 +69,11 @@ impl Store {
         }
     }
 
+    /// Opens the store at `path`, creating it first if it does not exist.
+    ///
+    /// # Errors
+    ///
+    /// Returns the same errors as [`open`](Self::open) and [`create`](Self::create).
     pub fn open_or_create<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         if path.as_ref().exists() {
             Ok(Self::open(path)?)
@@ -66,6 +82,11 @@ impl Store {
         }
     }
 
+    /// Creates an in-memory store (primarily for testing).
+    ///
+    /// # Errors
+    ///
+    /// Returns a `SQLite` error if the database cannot be initialized.
     pub fn create_in_memory() -> Result<Self, Error> {
         let store = Self::new(Connection::open_in_memory()?, Client::default());
         store.load_schema()?;
@@ -86,6 +107,11 @@ impl Store {
             .unwrap_or_else(PoisonError::into_inner)
     }
 
+    /// Initializes the database schema.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`rusqlite::Error`] if the schema statements fail.
     pub fn load_schema(&self) -> Result<(), rusqlite::Error> {
         let schema = include_str!("schemas/ctid.sql");
         let connection = self.connection();
@@ -93,6 +119,13 @@ impl Store {
         connection.execute_batch(schema)
     }
 
+    /// Returns a stored transaction ID for the endpoint, generating and storing a new one if none
+    /// is cached.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `SQLite` error if the lookup or insert fails, or a client error if a new ID has to
+    /// be generated and the download fails.
     pub async fn get_ctid(&self, endpoint: &Endpoint<'_>) -> Result<TransactionId, Error> {
         if let Some(transaction_id) = self.lookup_ctid(endpoint)? {
             Ok(transaction_id)
@@ -105,6 +138,12 @@ impl Store {
         }
     }
 
+    /// Returns a stored transaction ID no older than `max_age`, generating and storing a new one
+    /// otherwise.
+    ///
+    /// # Errors
+    ///
+    /// Returns the same errors as [`get_ctid`](Self::get_ctid).
     pub async fn get_ctid_with_max_age(
         &self,
         endpoint: &Endpoint<'_>,
@@ -131,6 +170,11 @@ impl Store {
         }
     }
 
+    /// Looks up the most recent unexpired transaction ID for the endpoint.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`rusqlite::Error`] if the query fails.
     pub fn lookup_ctid(
         &self,
         endpoint: &Endpoint<'_>,
@@ -138,16 +182,27 @@ impl Store {
         let connection = self.connection();
         let mut statement = connection.prepare_cached(LOOKUP_CTID_FOR_ENDPOINT)?;
 
-        statement
+        let result = statement
             .query_one((&endpoint.name, &endpoint.version), |row| {
                 let value = row.get(0)?;
                 let added: types::Timestamp = row.get(1)?;
 
                 Ok(TransactionId::new(value, added.into()))
             })
-            .optional()
+            .optional();
+
+        // Release the shared connection as soon as the query has run.
+        drop(statement);
+        drop(connection);
+
+        result
     }
 
+    /// Stores a transaction ID for the endpoint, returning its row ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`rusqlite::Error`] if the insert fails.
     pub fn add_ctid(
         &self,
         endpoint: &Endpoint<'_>,
@@ -156,19 +211,35 @@ impl Store {
         let connection = self.connection();
         let mut statement = connection.prepare_cached(ADD_CTID)?;
 
-        statement.query_one(
+        let result = statement.query_one(
             (&endpoint.name, &endpoint.version, &transaction_id.value),
             |row| row.get(0),
-        )
+        );
+
+        // Release the shared connection as soon as the query has run.
+        drop(statement);
+        drop(connection);
+
+        result
     }
 
+    /// Marks the transaction ID with the given value as expired, returning whether a row was
+    /// updated.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`rusqlite::Error`] if the update fails.
     pub fn expire_ctid(&self, value: &str) -> Result<bool, rusqlite::Error> {
         let connection = self.connection();
         let mut statement = connection.prepare_cached(EXPIRE_CTID)?;
 
-        let result = statement.execute((value,))?;
+        let result = statement.execute((value,));
 
-        Ok(result == 1)
+        // Release the shared connection as soon as the statement has run.
+        drop(statement);
+        drop(connection);
+
+        Ok(result? == 1)
     }
 }
 

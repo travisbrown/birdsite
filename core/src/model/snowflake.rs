@@ -33,7 +33,7 @@ fn known_snowflake_to_date_time(id: u64) -> Option<DateTime<Utc>> {
 mod test {
     #[test]
     fn pre_snowflake_is_none() {
-        assert_eq!(super::snowflake_to_date_time(44196397), None);
+        assert_eq!(super::snowflake_to_date_time(44_196_397), None);
     }
 
     #[test]

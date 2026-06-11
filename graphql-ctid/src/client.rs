@@ -80,6 +80,11 @@ impl Client {
     }
 
     /// Download site information and generate a transaction ID for the given endpoint.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if downloading or parsing the site information fails (see
+    /// [`get_site_info`](Self::get_site_info)).
     pub async fn generate(
         &self,
         endpoint: &Endpoint<'_>,
@@ -90,6 +95,11 @@ impl Client {
     }
 
     /// Download site information and generate a transaction ID for the given endpoint.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if downloading or parsing the site information fails (see
+    /// [`get_site_info`](Self::get_site_info)).
     pub async fn generate_for_path(
         &self,
         path: &str,
@@ -104,6 +114,11 @@ impl Client {
     /// Download site information and generate transaction IDs for the given endpoints.
     ///
     /// This function only downloads the necessary files once.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if downloading or parsing the site information fails (see
+    /// [`get_site_info`](Self::get_site_info)).
     pub async fn generate_batch(
         &self,
         endpoints: &[&Endpoint<'_>],
@@ -116,6 +131,13 @@ impl Client {
             .collect())
     }
 
+    /// Download and parse the site information needed to generate transaction IDs.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if a download fails or returns a non-OK status, or if the home page or
+    /// ondemand file does not have the expected shape (missing or malformed verification key,
+    /// indices, or animation frames).
     pub async fn get_site_info(&self) -> Result<SiteInfo, Error> {
         // `Home` holds a `scraper::Html`, which is not `Sync`; its scope must
         // end before the next await (an explicit `drop` is not enough for the

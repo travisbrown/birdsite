@@ -51,6 +51,12 @@ impl RateLimit {
         }
     }
 
+    /// Parses a rate limit from a reqwest header map.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::MissingHeader`] if either header is absent, or [`Error::InvalidHeader`] if
+    /// a value is not a valid integer (or, for the reset header, not a valid epoch second).
     pub fn parse_headers(
         reset_header_name: &str,
         remaining_header_name: &str,
@@ -84,6 +90,11 @@ impl RateLimit {
         Ok(Self { reset, remaining })
     }
 
+    /// Parses a rate limit from headers represented as a JSON object.
+    ///
+    /// # Errors
+    ///
+    /// Returns the same errors as [`parse_headers`](Self::parse_headers).
     pub fn parse_headers_json(
         reset_header_name: &str,
         remaining_header_name: &str,
@@ -115,6 +126,11 @@ impl RateLimit {
         Ok(Self { reset, remaining })
     }
 
+    /// Parses a rate limit from an iterator of header name-value pairs.
+    ///
+    /// # Errors
+    ///
+    /// Returns the same errors as [`parse_headers`](Self::parse_headers).
     pub fn parse_headers_iter<'a, I: Iterator<Item = (&'a str, &'a str)>>(
         reset_header_name: &str,
         remaining_header_name: &str,
@@ -228,6 +244,15 @@ impl<S: Clone + Eq + Hash> RateLimits<S> {
     }
 }
 
+impl<'a, S: Clone + Eq + Hash> IntoIterator for &'a RateLimits<S> {
+    type Item = (S, Option<RateLimit>);
+    type IntoIter = RateLimitsIterator<'a, S>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 pub struct RateLimitsIterator<'a, S> {
     underlying: dashmap::iter::Iter<'a, S, AtomicU64>,
 }
@@ -272,7 +297,7 @@ mod tests {
     fn rate_limits() {
         let scope_a = "A".to_string();
         let scope_b = "BBBBBB".to_string();
-        let scope_c = "".to_string();
+        let scope_c = String::new();
         let rate_limits = RateLimits::default();
 
         assert_eq!(rate_limits.get(&scope_a.as_str()), None);
@@ -325,6 +350,6 @@ mod tests {
             ]
             .into_iter()
             .collect()
-        )
+        );
     }
 }

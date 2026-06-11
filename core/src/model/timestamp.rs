@@ -61,7 +61,7 @@ mod tests {
     use std::io::Cursor;
 
     const SAMPLE_TEXT_TIMESTAMP: &str = "Thu Jun 25 16:18:41 +0000 2009";
-    const SAMPLE_EPOCH_S: i64 = 1245946721;
+    const SAMPLE_EPOCH_S: i64 = 1_245_946_721;
 
     #[test]
     fn parse_text_timestamp() {
@@ -82,15 +82,13 @@ mod tests {
         let expected = TextTimestamp(Utc.timestamp_opt(SAMPLE_EPOCH_S, 0).single().unwrap());
 
         assert_eq!(
-            serde_json::from_str::<TextTimestamp>(&format!("\"{}\"", SAMPLE_TEXT_TIMESTAMP))
-                .unwrap(),
+            serde_json::from_str::<TextTimestamp>(&format!("\"{SAMPLE_TEXT_TIMESTAMP}\"")).unwrap(),
             expected
         );
 
         assert_eq!(
             serde_json::from_reader::<_, TextTimestamp>(Cursor::new(&format!(
-                "\"{}\"",
-                SAMPLE_TEXT_TIMESTAMP
+                "\"{SAMPLE_TEXT_TIMESTAMP}\""
             )))
             .unwrap(),
             expected

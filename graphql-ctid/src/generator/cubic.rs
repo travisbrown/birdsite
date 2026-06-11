@@ -10,6 +10,9 @@ impl Cubic {
         Self { values }
     }
 
+    // The exact float comparisons (`y1 == 0.0`, `x2 == 1.0`) match the reference implementation's
+    // endpoint handling.
+    #[allow(clippy::float_cmp)]
     pub(super) fn value(&self, time: f64) -> f64 {
         let [x1, y1, x2, y2] = self.values;
 

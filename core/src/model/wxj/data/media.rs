@@ -164,7 +164,7 @@ mod tests {
     #[test]
     fn deserialize_media_examples() {
         let lines = include_str!("../../../../../examples/wxj/media.ndjson")
-            .split("\n")
+            .split('\n')
             .filter(|line| !line.is_empty());
 
         for (i, line) in lines.enumerate() {

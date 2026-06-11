@@ -2,7 +2,7 @@
 //!
 //! Adapted from Sarabjit Dhiman's [Python implementation][python-generator],
 //! with additional reference to [an excellent blog post series][generator-blog-1]
-//! by ["obfio"](https://github.com/obfio).
+//! by [obfio](https://github.com/obfio).
 //!
 //! [generator-blog-1]: https://antibot.blog/posts/1741552025433
 //! [python-generator]: https://github.com/iSarabjitDhiman/XClientTransaction
@@ -18,6 +18,10 @@ pub mod generator;
 /// Generate a transaction ID for an endpoint.
 ///
 /// This is a convenience method. Use a `Client` if you're making multiple requests.
+///
+/// # Errors
+///
+/// Returns a [`client::Error`] if downloading or parsing the site information fails.
 pub async fn generate(endpoint: &Endpoint<'_>) -> Result<TransactionId, client::Error> {
     let client = client::Client::default();
 
