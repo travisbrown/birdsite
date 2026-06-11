@@ -75,6 +75,8 @@ impl Database {
         }
     }
 
+    // Not yet called from the CLI; kept for future liveness updates.
+    #[allow(dead_code)]
     pub fn mark_dead(&self, user_id: u64, tweet_id: u64) -> Result<bool, Error> {
         let key = Self::key(user_id, tweet_id);
 
@@ -88,6 +90,7 @@ impl Database {
         }
     }
 
+    #[allow(dead_code)]
     pub fn mark_live(&self, user_id: u64, tweet_id: u64) -> Result<bool, Error> {
         let key = Self::key(user_id, tweet_id);
 
