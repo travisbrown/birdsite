@@ -78,7 +78,7 @@ pub struct TweetSnapshot<'a> {
 
 impl<'a> TweetSnapshot<'a> {
     #[must_use]
-    pub fn users(&self) -> Vec<User<'a>> {
+    pub fn users(&self) -> Vec<&User<'a>> {
         let mut users = Vec::with_capacity(1);
 
         self.add_users(&mut users);
@@ -86,8 +86,8 @@ impl<'a> TweetSnapshot<'a> {
         users
     }
 
-    fn add_users(&self, acc: &mut Vec<User<'a>>) {
-        acc.push(self.user.clone());
+    fn add_users<'s>(&'s self, acc: &mut Vec<&'s User<'a>>) {
+        acc.push(&self.user);
 
         if let Some(quoted_status) = &self.quoted_status {
             quoted_status.add_users(acc);

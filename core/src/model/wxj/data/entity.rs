@@ -132,11 +132,13 @@ pub struct Cashtag {
 
 pub mod possible_u64 {
     use serde::de::Deserializer;
+    use std::borrow::Cow;
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
         deserializer: D,
     ) -> Result<Option<u64>, D::Error> {
-        let content: &str = serde::de::Deserialize::deserialize(deserializer)?;
+        // `Cow` rather than `&str`, so escaped input and `from_reader` work.
+        let content: Cow<'de, str> = serde::de::Deserialize::deserialize(deserializer)?;
 
         if content == "-1" {
             Ok(None)
@@ -145,7 +147,7 @@ pub mod possible_u64 {
                 .parse::<u64>()
                 .map_err(|_| {
                     serde::de::Error::invalid_value(
-                        serde::de::Unexpected::Str(content),
+                        serde::de::Unexpected::Str(&content),
                         &"u64 or -1",
                     )
                 })

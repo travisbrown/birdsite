@@ -39,14 +39,12 @@ impl<'a, 'de: 'a> serde::de::Deserialize<'de> for Entity<'a> {
 
 impl serde::ser::Serialize for Entity<'_> {
     fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        internal::Entity::serialize(
-            &internal::Entity {
-                from_index: self.indices.start,
-                to_index: self.indices.end,
-                reference: self.reference.clone(),
-            },
-            serializer,
-        )
+        internal::Entity {
+            from_index: self.indices.start,
+            to_index: self.indices.end,
+            reference: &self.reference,
+        }
+        .serialize(serializer)
     }
 }
 
@@ -69,14 +67,12 @@ impl<'a, 'de: 'a> serde::de::Deserialize<'de> for TypedEntity<'a> {
 
 impl serde::ser::Serialize for TypedEntity<'_> {
     fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        internal::TypedEntity::serialize(
-            &internal::TypedEntity {
-                from_index: self.indices.start,
-                to_index: self.indices.end,
-                reference: self.reference.clone(),
-            },
-            serializer,
-        )
+        internal::TypedEntity {
+            from_index: self.indices.start,
+            to_index: self.indices.end,
+            reference: &self.reference,
+        }
+        .serialize(serializer)
     }
 }
 
@@ -95,23 +91,25 @@ pub enum TypedEntityReference<'a> {
     },
 }
 
+// Generic over the reference payload, so deserialization can instantiate it owned while
+// serialization instantiates it borrowed (avoiding a clone per entity).
 mod internal {
     #[derive(serde::Deserialize, serde::Serialize)]
-    pub(super) struct Entity<'a> {
+    pub(super) struct Entity<R> {
         pub from_index: usize,
         pub to_index: usize,
         #[serde(rename = "ref")]
-        pub reference: super::LegacyUrl<'a>,
+        pub reference: R,
     }
 
     #[derive(serde::Deserialize, serde::Serialize)]
-    pub(super) struct TypedEntity<'a> {
+    pub(super) struct TypedEntity<R> {
         #[serde(rename = "fromIndex")]
         pub from_index: usize,
         #[serde(rename = "toIndex")]
         pub to_index: usize,
         #[serde(rename = "ref")]
-        pub reference: super::TypedEntityReference<'a>,
+        pub reference: R,
     }
 }
 

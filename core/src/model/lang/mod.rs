@@ -1209,10 +1209,11 @@ impl Display for Language {
 
 impl<'de> serde::de::Deserialize<'de> for Language {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let code = serde::de::Deserialize::deserialize(deserializer)?;
+        // `Cow` rather than `&str`, so escaped input and `from_reader` work (see `Lang` above).
+        let code: Cow<'de, str> = serde::de::Deserialize::deserialize(deserializer)?;
 
-        Self::parse_str(code)
-            .ok_or_else(|| serde::de::Error::unknown_variant(code, &LANGUAGE_CODES))
+        Self::parse_str(&code)
+            .ok_or_else(|| serde::de::Error::unknown_variant(&code, &LANGUAGE_CODES))
     }
 }
 
@@ -1305,9 +1306,11 @@ impl Display for Special {
 
 impl<'de> serde::de::Deserialize<'de> for Special {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let code = serde::de::Deserialize::deserialize(deserializer)?;
+        // `Cow` rather than `&str`, so escaped input and `from_reader` work (see `Lang` above).
+        let code: Cow<'de, str> = serde::de::Deserialize::deserialize(deserializer)?;
 
-        Self::parse_str(code).ok_or_else(|| serde::de::Error::unknown_variant(code, &SPECIAL_CODES))
+        Self::parse_str(&code)
+            .ok_or_else(|| serde::de::Error::unknown_variant(&code, &SPECIAL_CODES))
     }
 }
 
@@ -1567,7 +1570,7 @@ const SPECIAL_VALUES: [Special; 9] = [
 
 #[cfg(test)]
 mod test {
-    use super::{Lang, Language, SelectionLanguage, Special};
+    use super::{Lang, Language, NonstandardCode, SelectionLanguage, Special};
 
     #[test]
     fn parses_selection_placeholders() {
@@ -1636,6 +1639,17 @@ mod test {
         let lang: Lang = serde_json::from_str(json).unwrap();
 
         assert_eq!(lang, Lang::Selection(SelectionLanguage::French));
+    }
+
+    #[test]
+    fn language_and_special_deserialize_unborrowable_input() {
+        // Regression: `Language` and `Special` deserialized `&str`, rejecting any string that
+        // serde_json must unescape into an owned buffer (and all `from_reader` input).
+        let language: Language = serde_json::from_str(r#""&退""#).unwrap();
+        assert_eq!(language, Language::Nonstandard(NonstandardCode::AmpHan));
+
+        let special: Special = serde_json::from_str(r#""art""#).unwrap();
+        assert_eq!(special, Special::Art);
     }
 
     #[test]

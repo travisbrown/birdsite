@@ -72,7 +72,7 @@ impl TweetMetadata {
             .retweeted_id()?
             .and_then(|id| snapshot.lookup_tweet(id))
         {
-            tweets.push(Self::extract_data_tweet(snapshot, &tweet)?);
+            tweets.push(Self::extract_data_tweet(snapshot, tweet)?);
         }
 
         if let Some(tweet) = snapshot
@@ -80,7 +80,7 @@ impl TweetMetadata {
             .replied_to_id()?
             .and_then(|id| snapshot.lookup_tweet(id))
         {
-            tweets.push(Self::extract_data_tweet(snapshot, &tweet)?);
+            tweets.push(Self::extract_data_tweet(snapshot, tweet)?);
         }
 
         if let Some(tweet) = snapshot
@@ -88,7 +88,7 @@ impl TweetMetadata {
             .quoted_id()?
             .and_then(|id| snapshot.lookup_tweet(id))
         {
-            tweets.push(Self::extract_data_tweet(snapshot, &tweet)?);
+            tweets.push(Self::extract_data_tweet(snapshot, tweet)?);
         }
 
         Ok(tweets)

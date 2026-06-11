@@ -36,7 +36,7 @@ pub enum Classification {
 pub struct NoteStatusHistoryEntry<'a> {
     #[serde(rename = "noteId")]
     pub note_id: u64,
-    #[serde(rename = "noteAuthorParticipantId")]
+    #[serde(rename = "noteAuthorParticipantId", borrow)]
     pub participant_id: Cow<'a, str>,
     #[serde(rename = "createdAtMillis", with = "ts_milliseconds")]
     pub created_at: DateTime<Utc>,
@@ -48,7 +48,7 @@ pub struct NoteStatusHistoryEntry<'a> {
 pub struct NoteEntry<'a> {
     #[serde(rename = "noteId")]
     pub note_id: u64,
-    #[serde(rename = "noteAuthorParticipantId")]
+    #[serde(rename = "noteAuthorParticipantId", borrow)]
     pub participant_id: Cow<'a, str>,
     #[serde(rename = "createdAtMillis", with = "ts_milliseconds")]
     pub created_at: DateTime<Utc>,
@@ -57,4 +57,23 @@ pub struct NoteEntry<'a> {
     pub tweet_id: i64,
     #[serde(rename = "classification")]
     pub classification: Classification,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn borrows_participant_id() {
+        // Regression: without `#[serde(borrow)]`, serde's blanket `Cow` impl always produces
+        // `Cow::Owned`, heap-allocating every participant id.
+        let json = concat!(
+            r#"{"noteId":1,"noteAuthorParticipantId":"4874E27F86D8AC0AC3AB85FF754C25BE","#,
+            r#""createdAtMillis":1245946721000,"currentStatus":"CURRENTLY_RATED_HELPFUL"}"#
+        );
+
+        let entry = serde_json::from_str::<NoteStatusHistoryEntry<'_>>(json).unwrap();
+
+        assert!(matches!(entry.participant_id, Cow::Borrowed(_)));
+    }
 }

@@ -46,23 +46,22 @@ impl<'a> TweetSnapshot<'a> {
     }
 
     #[must_use]
-    pub fn lookup_tweet(&self, id: u64) -> Option<Tweet<'a>> {
+    pub fn lookup_tweet(&self, id: u64) -> Option<&Tweet<'a>> {
         self.includes
             .tweets
             .as_ref()
             .and_then(|tweets| tweets.iter().find(|tweet| tweet.id == id))
-            .cloned()
     }
 
-    pub fn retweeted(&self) -> Result<Option<Tweet<'a>>, FormatError> {
+    pub fn retweeted(&self) -> Result<Option<&Tweet<'a>>, FormatError> {
         self.referenced_tweet(ReferenceType::Retweeted)
     }
 
-    pub fn replied_to(&self) -> Result<Option<Tweet<'a>>, FormatError> {
+    pub fn replied_to(&self) -> Result<Option<&Tweet<'a>>, FormatError> {
         self.referenced_tweet(ReferenceType::RepliedTo)
     }
 
-    pub fn quoted(&self) -> Result<Option<Tweet<'a>>, FormatError> {
+    pub fn quoted(&self) -> Result<Option<&Tweet<'a>>, FormatError> {
         self.referenced_tweet(ReferenceType::Quoted)
     }
 
@@ -70,7 +69,7 @@ impl<'a> TweetSnapshot<'a> {
     fn referenced_tweet(
         &self,
         reference_type: ReferenceType,
-    ) -> Result<Option<Tweet<'a>>, FormatError> {
+    ) -> Result<Option<&Tweet<'a>>, FormatError> {
         self.data
             .referenced_tweet_id(reference_type)?
             .map(|id| {

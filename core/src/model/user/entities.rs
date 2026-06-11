@@ -76,44 +76,41 @@ impl<'a, 'de: 'a> serde::de::Deserialize<'de> for Entities<'a> {
 
 impl serde::ser::Serialize for Entities<'_> {
     fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        internal::Entities::serialize(
-            &internal::Entities {
-                description: internal::DescriptionUrls {
-                    urls: self.description_urls.clone(),
-                },
-                url: self.url.as_ref().map(|url| internal::UrlUrls {
-                    urls: (url.clone(),),
-                }),
+        internal::Entities {
+            description: internal::DescriptionUrls {
+                urls: self.description_urls.as_ref(),
             },
-            serializer,
-        )
+            url: self
+                .url
+                .as_ref()
+                .map(|url| internal::UrlUrls { urls: (url,) }),
+        }
+        .serialize(serializer)
     }
 }
 
+// Generic over the payload types, so deserialization can instantiate them owned while
+// serialization instantiates them borrowed (avoiding a deep clone of the URL lists). The
+// payloads contain no directly borrowable JSON (arrays and structs), so dropping the former
+// `#[serde(borrow)]` attributes does not change what gets borrowed.
 mod internal {
-    use std::borrow::Cow;
-
     #[derive(serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
-    pub(super) struct Entities<'a> {
-        #[serde(borrow)]
-        pub description: DescriptionUrls<'a>,
-        #[serde(borrow)]
-        pub url: Option<UrlUrls<'a>>,
+    pub(super) struct Entities<D, U> {
+        pub description: DescriptionUrls<D>,
+        pub url: Option<UrlUrls<U>>,
     }
 
     #[derive(serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
-    pub(super) struct DescriptionUrls<'a> {
-        #[serde(borrow)]
-        pub urls: Option<Cow<'a, [super::Url<'a>]>>,
+    pub(super) struct DescriptionUrls<D> {
+        pub urls: Option<D>,
     }
 
     #[derive(serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
-    pub(super) struct UrlUrls<'a> {
-        #[serde(borrow)]
-        pub urls: (super::Url<'a>,),
+    pub(super) struct UrlUrls<U> {
+        pub urls: (U,),
     }
 }
 
