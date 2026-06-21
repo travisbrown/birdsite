@@ -1,3 +1,4 @@
+use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc, serde::ts_milliseconds};
 use std::borrow::Cow;
 
@@ -32,7 +33,7 @@ pub enum Classification {
     Empty,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize)]
 pub struct NoteStatusHistoryEntry<'a> {
     #[serde(rename = "noteId")]
     pub note_id: u64,
@@ -44,7 +45,7 @@ pub struct NoteStatusHistoryEntry<'a> {
     pub current_status: Status,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize)]
 pub struct NoteEntry<'a> {
     #[serde(rename = "noteId")]
     pub note_id: u64,
