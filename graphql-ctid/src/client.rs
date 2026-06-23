@@ -12,11 +12,16 @@ static SITE_VERIFICATION_CONTENT_SEL: LazyLock<Selector> =
     LazyLock::new(|| Selector::parse("meta[name='twitter-site-verification']").unwrap());
 static SITE_VERIFICATION_CONTENT_ATTR: &str = "content";
 
-static ONDEMAND_NAME_V1_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"['"]ondemand\.s['"]:\s*['"]([\w]*)['"]"#).unwrap());
+// The transaction-id chunk that the home page preloads. It dynamically imports the sign module
+// (below), whose hashed name isn't referenced anywhere else on the page.
+static TRANSACTION_MODULE_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"https://abs\.twimg\.com/[\w./-]*?sentry-filter-[\w-]+\.js").unwrap()
+});
 
-static ONDEMAND_NAME_V2_INDEX_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#",\s*(\d+)\s*:\s*['"]ondemand\.s['"]"#).unwrap());
+// The sign module (`sign.o-<hash>.js`), which contains the key-byte indices. It replaced the old
+// `ondemand.s.<name>a.js` file when X migrated to `x-web` (June 2026).
+static SIGN_MODULE_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"sign\.o-[\w-]+\.js").unwrap());
 
 static ONDEMAND_INDICES_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\(\w\[(\d{1,2})\],\s*16\)").unwrap());
@@ -39,8 +44,10 @@ pub enum Error {
     MissingSiteVerificationContent,
     #[error("Invalid site verification content")]
     InvalidSiteVerificationContent,
-    #[error("Missing ondemand file name")]
-    MissingOndemand,
+    #[error("Missing transaction module URL")]
+    MissingTransactionModule,
+    #[error("Missing sign module name")]
+    MissingSignModule,
     #[error("Invalid indices")]
     InvalidIndices,
     #[error("Invalid frames")]
@@ -136,7 +143,7 @@ impl Client {
     /// # Errors
     ///
     /// Returns an [`Error`] if a download fails or returns a non-OK status, or if the home page or
-    /// ondemand file does not have the expected shape (missing or malformed verification key,
+    /// sign module does not have the expected shape (missing or malformed verification key,
     /// indices, or animation frames).
     pub async fn get_site_info(&self) -> Result<SiteInfo, Error> {
         // `Home` holds a `scraper::Html`, which is not `Sync`; its scope must
@@ -144,9 +151,9 @@ impl Client {
         // compiler's capture analysis) so that this future (and every
         // `generate` future built on it) stays `Send` and usable with
         // `tokio::spawn`.
-        let (ondemand_url, verification_key, frame_array) = {
+        let (module_url, verification_key, frame_array) = {
             let home = self.download_home().await?;
-            let ondemand_url = home.ondemand_url()?;
+            let module_url = home.transaction_module_url()?;
             let verification_key = home.site_verification_key()?;
             let frame_index =
                 verification_key
@@ -157,11 +164,10 @@ impl Client {
                     % 4;
             let frame_array = home.frame_array(frame_index as usize)?;
 
-            (ondemand_url, verification_key, frame_array)
+            (module_url, verification_key, frame_array)
         };
 
-        let ondemand = self.download_ondemand(&ondemand_url).await?;
-        let indices = ondemand.indices()?;
+        let indices = self.download_indices(&module_url).await?;
 
         // Every index reads a byte of the verification key (the first below,
         // the rest in the generator), and both values come from remote pages,
@@ -217,13 +223,25 @@ impl Client {
         }
     }
 
-    async fn download_ondemand(&self, url: &str) -> Result<Ondemand, Error> {
-        let response = self.underlying.get(url).send().await?;
+    /// Download the key-byte indices used by the generator.
+    async fn download_indices(&self, module_url: &str) -> Result<Vec<usize>, Error> {
+        let module = self.download_script(module_url).await?;
+        let sign_url = sign_module_url(module_url, &module)?;
+        let sign = self.download_script(&sign_url).await?;
+
+        Ondemand { content: sign }.indices()
+    }
+
+    async fn download_script(&self, url: &str) -> Result<String, Error> {
+        let response = self
+            .underlying
+            .get(url)
+            .header("User-Agent", &self.user_agent)
+            .send()
+            .await?;
 
         if response.status() == StatusCode::OK {
-            let body = response.text().await?;
-
-            Ok(Ondemand { content: body })
+            Ok(response.text().await?)
         } else {
             Err(Error::Response(response.status()))
         }
@@ -236,38 +254,16 @@ struct Home {
 }
 
 impl Home {
-    fn ondemand_url(&self) -> Result<String, Error> {
-        let name = Self::find_ondemand_name_v2(&self.body)
-            .or_else(|| Self::find_ondemand_name_v1(&self.body))
-            .ok_or_else(|| Error::MissingOndemand)?;
-
-        Ok(format!(
-            "https://abs.twimg.com/responsive-web/client-web/ondemand.s.{name}a.js"
-        ))
-    }
-
-    // Older format, seen until around 2026-03-17.
-    fn find_ondemand_name_v1(content: &str) -> Option<&str> {
-        ONDEMAND_NAME_V1_RE
-            .captures(&content)
-            .and_then(|captures| captures.get(1))
-            .map(|name_match| name_match.as_str())
-    }
-
-    // Newer format, first seen 2026-03-18.
-    fn find_ondemand_name_v2(content: &str) -> Option<&str> {
-        let index = ONDEMAND_NAME_V2_INDEX_RE
-            .captures(&content)
-            .and_then(|captures| captures.get(1))
-            .and_then(|index_match| index_match.as_str().parse::<u32>().ok())?;
-
-        let name_re = Regex::new(&format!(r#",\s*{index}\s*:\s*['"]([a-f0-9]+)['"]"#))
-            .expect("Invalid regex (should never happen)");
-
-        name_re
-            .captures(&content)
-            .and_then(|captures| captures.get(1))
-            .map(|name_match| name_match.as_str())
+    // X migrated from the webpack `client-web` build (which referenced an
+    // `ondemand.s.<name>a.js` file directly in the home page, in formats seen until
+    // 2026-03-17 and from 2026-03-18) to the Vite-based `x-web` build on 2026-06-23.
+    // The indices now live in a `sign.o-<hash>.js` module that's only reachable via
+    // the preloaded transaction-id chunk.
+    fn transaction_module_url(&self) -> Result<String, Error> {
+        TRANSACTION_MODULE_RE
+            .find(&self.body)
+            .map(|module_match| module_match.as_str().to_string())
+            .ok_or(Error::MissingTransactionModule)
     }
 
     fn site_verification_key(&self) -> Result<Vec<u8>, Error> {
@@ -314,6 +310,23 @@ impl Home {
             Err(Error::InvalidFrames)
         }
     }
+}
+
+/// Resolve the absolute URL of the sign module (`sign.o-<hash>.js`) given the transaction chunk
+/// it's imported from and that chunk's source. The module is a sibling of the chunk, so we reuse
+/// the chunk URL's directory.
+fn sign_module_url(module_url: &str, module: &str) -> Result<String, Error> {
+    let name = SIGN_MODULE_RE
+        .find(module)
+        .map(|name_match| name_match.as_str())
+        .ok_or(Error::MissingSignModule)?;
+
+    let base = module_url
+        .rfind('/')
+        .map(|index| &module_url[..=index])
+        .ok_or(Error::MissingSignModule)?;
+
+    Ok(format!("{base}{name}"))
 }
 
 struct Ondemand {
