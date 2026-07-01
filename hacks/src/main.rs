@@ -1,6 +1,7 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
 #![allow(clippy::missing_errors_doc)]
 #![forbid(unsafe_code)]
+use archivindex_wbm_json::{context::Context, format::Format, io::write::SnapshotWriter};
 use cli_helpers::prelude::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -10,6 +11,13 @@ mod db;
 
 /// Author whose tweets the `wxj extract` command selects (the Grok account).
 const GROK_USER_ID: u64 = 1_720_665_183_188_922_368;
+
+/// Default closing whitespace for Twitter JSON snapshots served by the Wayback Machine.
+///
+/// Twitter tweet snapshots almost always end with `\r\r\n` after the closing brace; this is the
+/// default the [`Context`] uses to strip trailing whitespace from stored content and to reconstruct
+/// the exact bytes when confirming a snapshot's digest.
+const TWITTER_CLOSING_WHITESPACE: [char; 3] = ['\r', '\r', '\n'];
 
 fn main() -> Result<(), Error> {
     let opts: Opts = Opts::parse();
@@ -89,6 +97,11 @@ fn main() -> Result<(), Error> {
             }
             WxjCommand::Extract { input } => extract_tweets(input, GROK_USER_ID)?,
         },
+        Command::Compact {
+            input,
+            output,
+            level,
+        } => compact_snapshots(&input, &output, level)?,
     }
 
     Ok(())
@@ -131,6 +144,18 @@ enum Command {
     Wxj {
         #[clap(subcommand)]
         command: WxjCommand,
+    },
+    /// Compact a directory of digest-named Twitter JSON snapshots into a Zstandard NDJSON file.
+    Compact {
+        /// Directory whose files are Twitter JSON snapshots named by their Base32 SHA-1 digest.
+        #[clap(long)]
+        input: PathBuf,
+        /// Output path for the compact (Zstandard-compressed NDJSON) file.
+        #[clap(long)]
+        output: PathBuf,
+        /// Zstandard compression level.
+        #[clap(long, default_value_t = 14)]
+        level: u16,
     },
 }
 
@@ -215,6 +240,90 @@ fn extract_tweets(input: PathBuf, author_id: u64) -> Result<(), Error> {
             }
         }
     }
+
+    Ok(())
+}
+
+/// Compacts a directory of digest-named Twitter JSON snapshot files into a single Zstandard NDJSON
+/// file at `output`.
+///
+/// Each file in `input` is read and kept only if it clears two checks:
+///
+/// 1. Its contents hash to the Base32 SHA-1 digest it is named by (computed under the default
+///    Twitter closing whitespace), and
+/// 2. Its contents parse as the WXJ data-model tweet snapshot
+///    ([`birdsite::model::wxj::data::TweetSnapshot`]).
+///
+/// Qualifying snapshots are serialized as canonical NDJSON (one per line) into the Zstandard stream
+/// via [`SnapshotWriter`] at the given `level`. Files are processed in digest-sorted order so the
+/// output is sorted and the writer's consecutive-digest deduplication removes duplicates.
+///
+/// # Errors
+///
+/// Returns [`Error::Io`] if the directory cannot be read or if writing the output fails.
+fn compact_snapshots(input: &PathBuf, output: &PathBuf, level: u16) -> Result<(), Error> {
+    let context = Context::from_static(&TWITTER_CLOSING_WHITESPACE);
+
+    let mut paths = std::fs::read_dir(input)?
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    // Sorting by digest-named filename yields a digest-sorted output and lets the writer skip
+    // consecutive duplicate digests.
+    paths.sort();
+
+    log::info!("Loaded {} paths", paths.len());
+
+    // The writer owns the context; `create_new` refuses to overwrite an existing output file.
+    let mut writer = SnapshotWriter::create(output, level, context)?;
+
+    let mut written: u64 = 0;
+
+    for path in &paths {
+        // "Matches the digest" is only meaningful for files named by a digest; anything else cannot
+        // match and is skipped.
+        let Some(expected_digest) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+
+        let bytes = std::fs::read(path)?;
+
+        // Building an unprocessed snapshot computes the digest over the raw bytes and strips the
+        // default Twitter closing whitespace (`\r\r\n`) into the content field.
+        let snapshot = match writer.context().unprocessed_snapshot(&Format::Utf8, &bytes) {
+            Ok(snapshot) => snapshot,
+            Err(error) => {
+                log::warn!("{}: {}", path.as_os_str().to_string_lossy(), error);
+                continue;
+            }
+        };
+
+        // Check 1: the computed digest must equal the digest the file is named by. `Sha1Digest`'s
+        // `Display` is canonical uppercase Base32, matching Wayback Machine content-store filenames.
+        if snapshot.digest.to_string() != expected_digest {
+            continue;
+        }
+
+        // Check 2: the content must deserialize as a WXJ data-model tweet snapshot.
+        if serde_json::from_str::<birdsite::model::wxj::data::TweetSnapshot<'_>>(
+            snapshot.content.as_str(),
+        )
+        .is_err()
+        {
+            continue;
+        }
+
+        if writer.write_snapshot(&snapshot)? {
+            written += 1;
+        }
+    }
+
+    writer.finish()?;
+
+    log::info!(
+        "Wrote {written} snapshots to {}",
+        output.as_os_str().to_string_lossy()
+    );
 
     Ok(())
 }
