@@ -10,7 +10,7 @@ license.workspace = true
 publish = false
 
 [dependencies]
-archivindex-wbm = { git = "https://github.com/travisbrown/archivindex.git" }
+archivindex-wbm = { git = "ssh://git@github.com/travisbrown/archivindex.git" }
 archivindex-wbm-json = { git = "ssh://git@github.com/travisbrown/archivindex.git" }
 birdsite = { path = "../core/" }
 bounded-static = { workspace = true }

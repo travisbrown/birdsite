@@ -1,6 +1,7 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
 #![allow(clippy::missing_errors_doc)]
 #![forbid(unsafe_code)]
+use archivindex_wbm::digest::Sha1Digest;
 use archivindex_wbm_json::{context::Context, format::Format, io::write::SnapshotWriter};
 use cli_helpers::prelude::*;
 use std::fs::File;
@@ -264,28 +265,34 @@ fn extract_tweets(input: PathBuf, author_id: u64) -> Result<(), Error> {
 fn compact_snapshots(input: &PathBuf, output: &PathBuf, level: u16) -> Result<(), Error> {
     let context = Context::from_static(&TWITTER_CLOSING_WHITESPACE);
 
-    let mut paths = std::fs::read_dir(input)?
+    // Keep only files whose name is a valid Base32 SHA-1 digest, pairing each with its decoded
+    // digest. Anything not named by a digest cannot "match the digest", so it is dropped here.
+    let mut files = std::fs::read_dir(input)?
         .map(|entry| entry.map(|entry| entry.path()))
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .filter_map(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .and_then(|name| name.parse::<Sha1Digest>().ok())
+                .map(|digest| (digest, path))
+        })
+        .collect::<Vec<_>>();
 
-    // Sorting by digest-named filename yields a digest-sorted output and lets the writer skip
-    // consecutive duplicate digests.
-    paths.sort();
+    // Sort by the decoded digest, whose `Ord` compares the raw `[u8; 20]` (binary SHA-1 order).
+    // Base32's ASCII order differs from binary order, so sorting the encoded filenames would not
+    // match the digest order the rest of the ecosystem uses. Sorting here yields a digest-sorted
+    // output and lets the writer skip consecutive duplicate digests.
+    files.sort_by_key(|(digest, _)| *digest);
 
-    log::info!("Loaded {} paths", paths.len());
+    log::info!("Loaded {} paths", files.len());
 
     // The writer owns the context; `create_new` refuses to overwrite an existing output file.
     let mut writer = SnapshotWriter::create(output, level, context)?;
 
     let mut written: u64 = 0;
 
-    for path in &paths {
-        // "Matches the digest" is only meaningful for files named by a digest; anything else cannot
-        // match and is skipped.
-        let Some(expected_digest) = path.file_name().and_then(|name| name.to_str()) else {
-            continue;
-        };
-
+    for (expected_digest, path) in &files {
         let bytes = std::fs::read(path)?;
 
         // Building an unprocessed snapshot computes the digest over the raw bytes and strips the
@@ -298,9 +305,8 @@ fn compact_snapshots(input: &PathBuf, output: &PathBuf, level: u16) -> Result<()
             }
         };
 
-        // Check 1: the computed digest must equal the digest the file is named by. `Sha1Digest`'s
-        // `Display` is canonical uppercase Base32, matching Wayback Machine content-store filenames.
-        if snapshot.digest.to_string() != expected_digest {
+        // Check 1: the contents must hash to the digest the file is named by.
+        if snapshot.digest != *expected_digest {
             continue;
         }
 
