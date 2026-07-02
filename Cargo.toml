@@ -2,6 +2,17 @@
 resolver = "2"
 members = [
     "core",
+    "hacks",
+    "rate-limits",
+    "creds",
+    "graphql",
+    "graphql-ctid",
+    "graphql-xpff",
+    "graphql-creds",
+    "birdwatch",
+]
+default-members = [
+    "core",
     "rate-limits",
     "creds",
     "graphql",
