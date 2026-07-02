@@ -1,0 +1,17 @@
+[package]
+name = "birdsite-cli"
+description = "CLI for processing Wayback Machine Twitter snapshot data"
+authors.workspace = true
+repository.workspace = true
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+archivindex-wbm-cdx-index = { workspace = true }
+archivindex-wbm-json = { workspace = true }
+cli-helpers = "0.1"
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+toml = "1"

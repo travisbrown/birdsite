@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "core",
+    "cli",
     "hacks",
     "rate-limits",
     "creds",
@@ -13,6 +14,7 @@ members = [
 ]
 default-members = [
     "core",
+    "cli",
     "rate-limits",
     "creds",
     "graphql",
@@ -32,6 +34,8 @@ license = "AGPL-3.0-only"
 version = "0.1.0"
 
 [workspace.dependencies]
+archivindex-wbm-cdx-index = { git = "https://github.com/travisbrown/archivindex.git" }
+archivindex-wbm-json = { git = "https://github.com/travisbrown/archivindex.git" }
 bounded-static = "0.8"
 bounded-static-derive-more = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
@@ -48,3 +52,10 @@ tempfile = "3"
 test-strategy = "0.4"
 thiserror = "2"
 url = { version = "2", features = ["serde"] }
+
+# Use the local archivindex checkout until its pack/enhance/check operations are pushed; remove this
+# section once they are.
+[patch."https://github.com/travisbrown/archivindex.git"]
+archivindex-wbm = { path = "../archivindex/wbm" }
+archivindex-wbm-cdx-index = { path = "../archivindex/wbm-cdx-index" }
+archivindex-wbm-json = { path = "../archivindex/wbm-json" }
