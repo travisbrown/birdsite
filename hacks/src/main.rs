@@ -311,11 +311,10 @@ fn compact_snapshots(input: &PathBuf, output: &PathBuf, level: u16) -> Result<()
         }
 
         // Check 2: the content must deserialize as a WXJ data-model tweet snapshot.
-        if serde_json::from_str::<birdsite::model::wxj::data::TweetSnapshot<'_>>(
+        if let Err(error) = serde_json::from_str::<birdsite::model::wxj::data::TweetSnapshot<'_>>(
             snapshot.content.as_str(),
-        )
-        .is_err()
-        {
+        ) {
+            log::info!("{expected_digest}: not a valid tweet snapshot: {error}");
             continue;
         }
 
