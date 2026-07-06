@@ -40,6 +40,8 @@ pub enum Model {
     GroupModel13,
     #[serde(rename = "GroupModel14 (v1.1)")]
     GroupModel14,
+    #[serde(rename = "GroupModel15NMR (v1.1)")]
+    GroupModel15Nmr,
     #[serde(rename = "GroupModel18NMR (v1.1)")]
     GroupModel18Nmr,
     #[serde(rename = "GroupModel33 (v1.1)")]
