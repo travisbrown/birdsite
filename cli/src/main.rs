@@ -1,9 +1,9 @@
 //! CLI for processing Wayback Machine Twitter snapshot data.
 //!
 //! Packs digest-named tweet files into compact zstd NDJSON, enhances compact files with CDX
-//! metadata from a CDX index database, and checks compact files for digest, schema, and metadata
-//! problems. The Twitter-specific pieces (the default closing whitespace and the CEL query that
-//! infers a tweet's canonical URL) live in the bundled `twitter.toml` context configuration; the
+//! metadata from a CDX index database, and validates compact files against wxj schemas. The
+//! Twitter-specific pieces (the default closing whitespace and the CEL query that infers a
+//! tweet's canonical URL) live in the bundled `twitter.toml` context configuration; the
 //! operations themselves come from `archivindex-wbm-json`.
 #![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
 #![allow(clippy::missing_errors_doc)]
@@ -11,6 +11,8 @@
 use archivindex_wbm_json::context::Context;
 use cli_helpers::prelude::*;
 use std::path::PathBuf;
+
+mod validate;
 
 fn main() -> Result<(), Error> {
     let opts: Opts = Opts::parse();
@@ -69,23 +71,18 @@ fn main() -> Result<(), Error> {
 
             println!("{}", serde_json::json!(summary));
         }
-        Command::Check { input } => {
-            let context = twitter_context();
-            let summary = archivindex_wbm_json::process::check::check(&input, &context)?;
+        Command::Validate { input, flat } => {
+            let summary = validate::validate(&input, flat)?;
 
             log::info!(
-                "Checked {} lines: {} valid digests, {} schema errors, {} digest mismatches, \
-                 {} missing timestamps, {} with a URL but no timestamp",
+                "Validated {} lines: {} valid, {} schema errors",
                 summary.line_count,
-                summary.valid_digest_count,
-                summary.schema_errors.len(),
-                summary.digest_mismatches.len(),
-                summary.missing_timestamp_count,
-                summary.url_without_timestamp.len()
+                summary.valid_count,
+                summary.schema_errors.len()
             );
 
             if !summary.is_successful() {
-                log::warn!("Check found problems (see the summary for details)");
+                log::warn!("Validation found problems (see the summary for details)");
             }
 
             println!("{}", serde_json::json!(summary));
@@ -117,8 +114,8 @@ pub enum Error {
     Enhance(
         #[from] archivindex_wbm_json::process::enhance::Error<archivindex_wbm_cdx_index::Error>,
     ),
-    #[error("check error")]
-    Check(#[from] archivindex_wbm_json::process::check::Error),
+    #[error("validation error")]
+    Validate(#[from] validate::Error),
     #[error("CDX index error")]
     CdxIndex(#[from] archivindex_wbm_cdx_index::Error),
     #[error("I/O error")]
@@ -170,10 +167,13 @@ enum Command {
         #[clap(long, default_value = "14")]
         level: u16,
     },
-    /// Check a compact snapshot file: schema, digests, ordering, and metadata consistency.
-    Check {
+    /// Validate a compact snapshot file against wxj schemas.
+    Validate {
         /// Path to a zstd-compressed compact snapshot file.
         #[clap(long)]
         input: PathBuf,
+        /// Validate against wxj/flat schema instead of wxj/data.
+        #[clap(long)]
+        flat: bool,
     },
 }

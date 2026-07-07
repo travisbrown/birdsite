@@ -11,7 +11,10 @@ publish = false
 [dependencies]
 archivindex-wbm-cdx-index = { workspace = true }
 archivindex-wbm-json = { workspace = true }
+birdsite = { path = "../core" }
 cli-helpers = "0.1"
+serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 toml = "1"
+zstd = "0.13"
