@@ -37,4 +37,6 @@ pub enum TweetErrorType {
     NotAuthorizedForResource,
     #[serde(rename = "https://api.twitter.com/2/problems/resource-not-found")]
     ResourceNotFound,
+    #[serde(rename = "https://api.twitter.com/2/problems/resource-unavailable")]
+    ResourceUnavailable,
 }
