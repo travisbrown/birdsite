@@ -1,10 +1,11 @@
-//! Validate a compact snapshot file: digests, digest order, and wxj schemas.
+//! Validate a compact snapshot file: digests, digest order, metadata, and wxj schemas.
 //!
 //! Each line's stored digest is validated against its content (via
 //! [`Context::validate`](archivindex_wbm_json::context::Context::validate)), the digests are
-//! required to be in strictly ascending SHA-1 byte order (no duplicates), and each line's content
-//! is deserialized with the `birdsite` wxj model types (which reject unknown fields), so
-//! validation checks the full schema rather than the presence of a few fields.
+//! required to be in strictly ascending SHA-1 byte order (no duplicates), a line with a URL is
+//! required to also have a timestamp (lines with no timestamp at all are tallied but allowed), and
+//! each line's content is deserialized with the `birdsite` wxj model types (which reject unknown
+//! fields), so validation checks the full schema rather than the presence of a few fields.
 
 use archivindex_wbm_json::{context::Context, exact::ExactSnapshot, io::read::SnapshotReader};
 use birdsite::model::wxj;
@@ -14,7 +15,8 @@ use std::path::Path;
 /// Validation error.
 ///
 /// Only I/O failures abort validation; per-line problems (unparseable lines, digest mismatches,
-/// out-of-order digests, and schema mismatches) are recorded in the summary instead.
+/// out-of-order digests, invalid metadata, and schema mismatches) are recorded in the summary
+/// instead.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("I/O error")]
@@ -28,6 +30,10 @@ pub struct ValidationSummary {
     pub line_count: usize,
     /// Number of lines that passed every check.
     pub valid_count: usize,
+    /// Number of lines with no timestamp (with or without a URL).
+    pub missing_metadata_count: usize,
+    /// Number of lines with invalid metadata (a URL but no timestamp).
+    pub invalid_metadata_count: usize,
     /// Lines that could not be parsed or whose content did not match the schema.
     pub schema_errors: Vec<LineError>,
     /// Lines whose stored digest did not match their content (or whose format was unsupported).
@@ -37,11 +43,15 @@ pub struct ValidationSummary {
 }
 
 impl ValidationSummary {
-    /// Whether every line parsed, matched its digest, was in ascending digest order, and matched
-    /// the schema.
+    /// Whether every line parsed, matched its digest, was in ascending digest order, had valid
+    /// metadata, and matched the schema.
+    ///
+    /// Missing metadata (no timestamp and no URL) does not count against success; it is only
+    /// tallied in [`missing_metadata_count`](Self::missing_metadata_count).
     #[must_use]
     pub const fn is_successful(&self) -> bool {
-        self.schema_errors.is_empty()
+        self.invalid_metadata_count == 0
+            && self.schema_errors.is_empty()
             && self.digest_errors.is_empty()
             && self.order_errors.is_empty()
     }
@@ -68,7 +78,8 @@ fn schema_error(content: &str, flat: bool) -> Option<serde_json::Error> {
     }
 }
 
-/// Validate parsed snapshot lines: digest correctness, ascending digest order, and the schema.
+/// Validate parsed snapshot lines: digest correctness, ascending digest order, metadata, and the
+/// schema.
 ///
 /// This is the core of [`validate`], separated from file I/O so it can be tested directly.
 fn validate_results<
@@ -94,6 +105,17 @@ fn validate_results<
         match result {
             Ok(snapshot) => {
                 let mut valid = true;
+
+                // A URL is only meaningful alongside a timestamp, so a line with a URL but no
+                // timestamp is invalid; a line with neither is merely missing metadata.
+                if snapshot.timestamp.is_none() {
+                    summary.missing_metadata_count += 1;
+
+                    if snapshot.url.is_some() {
+                        summary.invalid_metadata_count += 1;
+                        valid = false;
+                    }
+                }
 
                 match max_digest {
                     Some(max) if snapshot.digest <= max => {
@@ -145,8 +167,9 @@ fn validate_results<
 
 /// Validate a zstd-compressed compact snapshot file.
 ///
-/// Each line is checked three ways: its stored digest must match its content under `context`, the
-/// digests must be strictly ascending by SHA-1 bytes (which also forbids duplicates), and its
+/// Each line is checked four ways: its stored digest must match its content under `context`, the
+/// digests must be strictly ascending by SHA-1 bytes (which also forbids duplicates), a line with
+/// a URL must also have a timestamp (lines with no timestamp at all are only counted), and its
 /// content must match a wxj schema.
 ///
 /// # Arguments
@@ -223,6 +246,40 @@ mod tests {
         assert!(summary.digest_errors.is_empty());
         assert!(summary.order_errors.is_empty());
         assert_eq!(summary.line_count, 2);
+        // Unprocessed snapshots carry no timestamp, so both lines are missing metadata (which
+        // does not make them invalid).
+        assert_eq!(summary.missing_metadata_count, 2);
+        assert_eq!(summary.invalid_metadata_count, 0);
+    }
+
+    #[test]
+    fn validate_results_rejects_url_without_timestamp() {
+        let context = Context::default();
+        let mut snapshot = example_snapshot(EXAMPLE_A, &context);
+        snapshot.url = Some("https://twitter.com/example/status/1".into());
+
+        let summary = validate_results([Ok(snapshot)], &context, false)
+            .expect("validation should not fail on I/O");
+
+        assert_eq!(summary.invalid_metadata_count, 1);
+        assert_eq!(summary.missing_metadata_count, 1);
+        assert_eq!(summary.valid_count, 0);
+        assert!(!summary.is_successful());
+    }
+
+    #[test]
+    fn validate_results_accepts_url_with_timestamp() {
+        let context = Context::default();
+        let mut snapshot = example_snapshot(EXAMPLE_A, &context);
+        snapshot.url = Some("https://twitter.com/example/status/1".into());
+        snapshot.timestamp = Some("20230101000000".parse().expect("valid timestamp"));
+
+        let summary = validate_results([Ok(snapshot)], &context, false)
+            .expect("validation should not fail on I/O");
+
+        assert_eq!(summary.invalid_metadata_count, 0);
+        assert_eq!(summary.missing_metadata_count, 0);
+        assert_eq!(summary.valid_count, 1);
     }
 
     #[test]

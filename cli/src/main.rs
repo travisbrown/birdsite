@@ -75,9 +75,12 @@ fn main() -> Result<(), Error> {
             let summary = validate::validate(&input, &twitter_context(), flat)?;
 
             log::info!(
-                "Validated {} lines: {} valid, {} schema errors, {} digest errors, {} order errors",
+                "Validated {} lines: {} valid, {} missing metadata, {} invalid metadata, \
+                 {} schema errors, {} digest errors, {} order errors",
                 summary.line_count,
                 summary.valid_count,
+                summary.missing_metadata_count,
+                summary.invalid_metadata_count,
                 summary.schema_errors.len(),
                 summary.digest_errors.len(),
                 summary.order_errors.len()
