@@ -9,7 +9,7 @@ pub struct TweetError<'a> {
     pub resource_type: TweetErrorResourceType,
     pub section: Option<TweetErrorSection>,
     pub title: Cow<'a, str>,
-    pub value: Cow<'a, str>,
+    pub value: Option<Cow<'a, str>>,
     pub detail: Cow<'a, str>,
     #[serde(rename = "type")]
     pub error_type: TweetErrorType,
