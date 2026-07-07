@@ -72,13 +72,15 @@ fn main() -> Result<(), Error> {
             println!("{}", serde_json::json!(summary));
         }
         Command::Validate { input, flat } => {
-            let summary = validate::validate(&input, flat)?;
+            let summary = validate::validate(&input, &twitter_context(), flat)?;
 
             log::info!(
-                "Validated {} lines: {} valid, {} schema errors",
+                "Validated {} lines: {} valid, {} schema errors, {} digest errors, {} order errors",
                 summary.line_count,
                 summary.valid_count,
-                summary.schema_errors.len()
+                summary.schema_errors.len(),
+                summary.digest_errors.len(),
+                summary.order_errors.len()
             );
 
             if !summary.is_successful() {
