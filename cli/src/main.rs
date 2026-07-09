@@ -1,7 +1,7 @@
 //! CLI for processing Wayback Machine Twitter snapshot data.
 //!
 //! Packs digest-named tweet files into compact zstd NDJSON, enhances compact files with CDX
-//! metadata from a CDX index database, and validates compact files against wxj schemas. The
+//! metadata from a capture metadata database, and validates compact files against wxj schemas. The
 //! Twitter-specific pieces (the default closing whitespace and the CEL query that infers a
 //! tweet's canonical URL) live in the bundled `twitter.toml` context configuration; the
 //! operations themselves come from `archivindex-wbm-json`.
@@ -47,18 +47,20 @@ fn main() -> Result<(), Error> {
         }
         Command::Enhance {
             input,
-            cdx_index,
+            metadata_db,
             output,
             level,
+            batch_size,
         } => {
             let context = twitter_context();
-            let index = archivindex_wbm_cdx_index::CdxIndex::open(&cdx_index)?;
+            let metadata = archivindex_wbm_cdx_index::metadata::MetadataDb::open(&metadata_db)?;
             let summary = archivindex_wbm_json::process::enhance::enhance(
                 &input,
                 &output,
                 level,
+                batch_size,
                 &context,
-                |digest| index.captures_by_digest(digest),
+                |digests| metadata.multi_get(digests),
             )?;
 
             log::info!(
@@ -117,12 +119,13 @@ pub enum Error {
     Pack(#[from] archivindex_wbm_json::process::pack::Error),
     #[error("enhance error")]
     Enhance(
-        #[from] archivindex_wbm_json::process::enhance::Error<archivindex_wbm_cdx_index::Error>,
+        #[from]
+        archivindex_wbm_json::process::enhance::Error<archivindex_wbm_cdx_index::metadata::Error>,
     ),
     #[error("validation error")]
     Validate(#[from] validate::Error),
-    #[error("CDX index error")]
-    CdxIndex(#[from] archivindex_wbm_cdx_index::Error),
+    #[error("capture metadata database error")]
+    Metadata(#[from] archivindex_wbm_cdx_index::metadata::Error),
     #[error("I/O error")]
     Io(#[from] std::io::Error),
 }
@@ -157,20 +160,24 @@ enum Command {
         level: u16,
     },
     /// Enhance a compact snapshot file with CDX metadata (timestamp, and a URL when the content
-    /// does not infer it) from a CDX index database.
+    /// does not infer it) from a capture metadata database.
     Enhance {
         /// Path to a zstd-compressed compact snapshot file.
         #[clap(long)]
         input: PathBuf,
-        /// Path to the CDX index database.
+        #[allow(clippy::doc_markdown)]
+        /// Path to the capture metadata RocksDB database.
         #[clap(long)]
-        cdx_index: PathBuf,
+        metadata_db: PathBuf,
         /// Output path for the enhanced zstd NDJSON file (must not already exist).
         #[clap(long)]
         output: PathBuf,
         /// Zstandard compression level.
         #[clap(long, default_value = "14")]
         level: u16,
+        /// Number of snapshots buffered per capture lookup batch.
+        #[clap(long, default_value = "1024")]
+        batch_size: std::num::NonZeroUsize,
     },
     /// Validate a compact snapshot file against wxj schemas.
     Validate {
