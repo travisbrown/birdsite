@@ -48,6 +48,7 @@ fn main() -> Result<(), Error> {
         Command::Enhance {
             input,
             metadata_db,
+            invalid_db,
             output,
             level,
             batch_size,
@@ -56,6 +57,7 @@ fn main() -> Result<(), Error> {
             let metadata = archivindex_wbm_cdx_index::metadata::MetadataDb::open(&metadata_db)?;
             let summary = archivindex_wbm_json::process::enhance::enhance(
                 &input,
+                &invalid_db,
                 &output,
                 level,
                 batch_size,
@@ -160,7 +162,8 @@ enum Command {
         level: u16,
     },
     /// Enhance a compact snapshot file with CDX metadata (timestamp, and a URL when the content
-    /// does not infer it) from a capture metadata database.
+    /// does not infer it) from a capture metadata database, retrying under the expected digest
+    /// from the invalid-digest log where the content digest has no captures.
     Enhance {
         /// Path to a zstd-compressed compact snapshot file.
         #[clap(long)]
@@ -169,6 +172,10 @@ enum Command {
         /// Path to the capture metadata RocksDB database.
         #[clap(long)]
         metadata_db: PathBuf,
+        #[allow(clippy::doc_markdown)]
+        /// Path to the SQLite database of known-invalid digests.
+        #[clap(long)]
+        invalid_db: PathBuf,
         /// Output path for the enhanced zstd NDJSON file (must not already exist).
         #[clap(long)]
         output: PathBuf,
