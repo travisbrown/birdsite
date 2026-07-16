@@ -1,4 +1,7 @@
-use aes_gcm::{AeadCore, Aes256Gcm, KeyInit, aead::AeadMutInPlace};
+use aes_gcm::{
+    Aes256Gcm, KeyInit,
+    aead::{AeadInOut, Generate, Nonce},
+};
 use chrono::{DateTime, Utc};
 use sha2::Digest;
 use std::borrow::Cow;
@@ -103,12 +106,12 @@ impl Generator {
     }
 
     pub fn encode_raw(&self, guest_id: &str, text: &[u8]) -> Result<Vec<u8>, aes_gcm::Error> {
-        let nonce = Aes256Gcm::generate_nonce(&mut aes_gcm::aead::OsRng);
+        let nonce = Nonce::<Aes256Gcm>::generate();
 
         let mut buffer = Vec::with_capacity(128);
         buffer.extend_from_slice(text);
 
-        let mut cipher = self.cipher(guest_id);
+        let cipher = self.cipher(guest_id);
 
         cipher.encrypt_in_place(&nonce, &[], &mut buffer)?;
 
@@ -121,15 +124,17 @@ impl Generator {
         if bytes.len() < 12 {
             Err(Error::InputTooShort(bytes.len()))
         } else {
-            let nonce = bytes[0..12].into();
+            // The length guard above guarantees a full 12-byte prefix.
+            let nonce = Nonce::<Aes256Gcm>::try_from(&bytes[0..12])
+                .expect("nonce slice is exactly 12 bytes");
 
             let mut buffer = Vec::with_capacity(128);
             buffer.extend_from_slice(&bytes[12..]);
 
-            let mut cipher = self.cipher(guest_id);
+            let cipher = self.cipher(guest_id);
 
             cipher
-                .decrypt_in_place(nonce, &[], &mut buffer)
+                .decrypt_in_place(&nonce, &[], &mut buffer)
                 .map_err(Error::AesGcm)?;
 
             Ok(buffer)
