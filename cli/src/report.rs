@@ -122,7 +122,8 @@ where
 {
     let mut summary = Summary::default();
     // Keyed by (ID, screen name) so a renamed user gets one row per name; the map orders the
-    // output rows and each set dedups and orders one user's timestamps as they are inserted.
+    // output rows and each set dedups and orders one user's timestamps as they are inserted. In
+    // range-only mode each set is capped at its earliest and latest values (see the insert below).
     let mut observations = BTreeMap::<(u64, String), BTreeSet<i64>>::new();
 
     for (index, result) in results.into_iter().enumerate() {
@@ -139,10 +140,22 @@ where
                 .map_err(|error| Error::Json { line_number, error })?;
 
             for (id, screen_name) in content_users(&content) {
-                observations
+                let timestamps = observations
                     .entry((id, screen_name.to_string()))
-                    .or_default()
-                    .insert(seconds);
+                    .or_default();
+                timestamps.insert(seconds);
+
+                // In range-only mode only the earliest and latest observations are ever reported,
+                // so the set is capped at those two: after each insert into a full {min, max} set
+                // the lone interior value is dropped, bounding memory to two entries per user
+                // regardless of how many times the user is observed.
+                if range_only && timestamps.len() > 2 {
+                    let interior = *timestamps
+                        .iter()
+                        .nth(1)
+                        .expect("a set of more than two values has an interior element");
+                    timestamps.remove(&interior);
+                }
             }
         }
     }
@@ -344,6 +357,33 @@ mod tests {
             String::from_utf8(output).expect("UTF-8 output"),
             "627778780,Wildharv,1672531200,1672531202\n\
              2903110717,FrLillie,1672531200,1672531202\n"
+        );
+    }
+
+    #[test]
+    fn write_user_observations_range_only_keeps_extremes_under_reordering() {
+        let context = Context::default();
+        let mut output = Vec::new();
+
+        // Timestamps arrive out of order and include values that become the new minimum and
+        // maximum only after interior values have already been dropped by the two-value cap, so
+        // this exercises that capping still preserves the true earliest and latest.
+        let results = [
+            Ok(observed_example(&context, "20230101000005")),
+            Ok(observed_example(&context, "20230101000003")),
+            Ok(observed_example(&context, "20230101000009")),
+            Ok(observed_example(&context, "20230101000001")),
+            Ok(observed_example(&context, "20230101000007")),
+        ];
+
+        let summary = write_user_observations(results, false, true, &mut output)
+            .expect("user observations succeed");
+
+        assert_eq!(summary.written_count, 2);
+        assert_eq!(
+            String::from_utf8(output).expect("UTF-8 output"),
+            "627778780,Wildharv,1672531201,1672531209\n\
+             2903110717,FrLillie,1672531201,1672531209\n"
         );
     }
 
