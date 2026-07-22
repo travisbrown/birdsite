@@ -6,6 +6,11 @@ use scraper::{Html, Selector};
 use std::sync::LazyLock;
 
 const HOME_URL: &str = "https://x.com/";
+
+// Upper bound on the number of chunks we download while walking the `x-web` import chain from the
+// entry chunk to the sign module (home to entry to sentry filter to sign, so a few hops in
+// practice); a backstop against an unexpected build shape looping indefinitely.
+const MAX_MODULE_HOPS: usize = 4;
 const USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36";
 
 static SITE_VERIFICATION_CONTENT_SEL: LazyLock<Selector> =
@@ -24,15 +29,29 @@ static ONDEMAND_NAME_V1_RE: LazyLock<Regex> =
 static ONDEMAND_NAME_V2_INDEX_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#",\s*(\d+)\s*:\s*['"]ondemand\.s['"]"#).unwrap());
 
-// 2. The Vite `x-web` build (first seen 2026-06-23) instead preloads a transaction-id chunk that
-//    dynamically imports a `sign.o-<hash>.js` module, whose hashed name isn't referenced anywhere
-//    else on the page.
-static TRANSACTION_MODULE_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"https://abs\.twimg\.com/[\w./-]*?sentry-filter-[\w-]+\.js").unwrap()
+// 2. The Vite `x-web` build (first seen 2026-06-23) instead names an entry chunk on the home page
+//    that, directly or through intermediate chunks, dynamically imports a `sign.o-<hash>.js` module
+//    holding the indices. Two shapes have been seen: until around June 2026 the home page named the
+//    `sentry-filter` chunk (which imports `sign.o`) directly; since around July 2026 it names an
+//    `entry-client-logged-out` chunk that imports `sentry-filter`, which imports `sign.o`. We match
+//    either as the entry point and follow the import chain to the sign module (see
+//    `resolve_sign_module`). Note that this depends on those chunk source names, which may change
+//    across builds.
+static TRANSACTION_ENTRY_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"https://abs\.twimg\.com/[\w./-]*?(?:entry-client-logged-out|sentry-filter)-[\w-]+\.js",
+    )
+    .unwrap()
 });
 
+// Relative module specifiers as written in an `import(...)` and `from` inside a chunk, e.g.
+// `./sign.o-<hash>.js` or `./assets/sentry-filter-<hash>.js`. Captured whole (leading `./`/`../`
+// and any subdirectory) so `join_url` can resolve them against the importing chunk's URL.
 static SIGN_MODULE_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"sign\.o-[\w-]+\.js").unwrap());
+    LazyLock::new(|| Regex::new(r"\.\.?/[\w./-]*?sign\.o-[\w-]+\.js").unwrap());
+
+static SENTRY_FILTER_IMPORT_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\.\.?/[\w./-]*?sentry-filter-[\w-]+\.js").unwrap());
 
 static ONDEMAND_INDICES_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\(\w\[(\d{1,2})\],\s*16\)").unwrap());
@@ -157,10 +176,9 @@ impl Client {
     /// sign module does not have the expected shape (missing or malformed verification key,
     /// indices, or animation frames).
     pub async fn get_site_info(&self) -> Result<SiteInfo, Error> {
-        // `Home` holds a `scraper::Html`, which is not `Sync`; its scope must
-        // end before the next await (an explicit `drop` is not enough for the
-        // compiler's capture analysis) so that this future (and every
-        // `generate` future built on it) stays `Send` and usable with
+        // `Home` holds a `scraper::Html`, which is not `Sync`; its scope must end before the next
+        // await (an explicit `drop` is not enough for the compiler's capture analysis) so that this
+        // future (and every `generate` future built on it) stays `Send` and usable with
         // `tokio::spawn`.
         let (index_source, verification_key, frame_array) = {
             let home = self.download_home().await?;
@@ -180,17 +198,16 @@ impl Client {
 
         let indices = self.download_indices(&index_source).await?;
 
-        // Every index reads a byte of the verification key (the first below,
-        // the rest in the generator), and both values come from remote pages,
-        // so reject any out-of-bounds index up front rather than panicking
-        // later in `compute`.
+        // Every index reads a byte of the verification key (the first below, the rest in the
+        // generator), and both values come from remote pages, so reject any out-of-bounds index up
+        // front rather than panicking later in `compute`.
         if indices.iter().any(|index| *index >= verification_key.len()) {
             Err(Error::ShortSiteVerificationKey {
                 length: verification_key.len(),
             })
         } else {
-            // Safe because we've already checked that there are at least two
-            // indices and that every index is in bounds for the key.
+            // Safe because we've already checked that there are at least two indices and that every
+            // index is in bounds for the key.
             let frame_index_from_key = (verification_key[indices[0]] % 16) as usize;
 
             let frame_array_length = frame_array.len();
@@ -237,20 +254,49 @@ impl Client {
     /// Download the key-byte indices used by the generator.
     ///
     /// For the `client-web` build the indices file URL is already known. For the `x-web` build we
-    /// first download the transaction-id chunk to discover the hashed name of the sign module that
-    /// holds them.
+    /// follow the entry chunk named on the home page through the import chain to the sign module
+    /// that holds them (see [`resolve_sign_module`](Self::resolve_sign_module)).
     async fn download_indices(&self, source: &IndexSource) -> Result<Vec<usize>, Error> {
         let indices_url = match source {
             IndexSource::Direct(url) => url.clone(),
-            IndexSource::ViaModule(module_url) => {
-                let module = self.download_script(module_url).await?;
-                sign_module_url(module_url, &module)?
-            }
+            IndexSource::ViaModule(entry_url) => self.resolve_sign_module(entry_url).await?,
         };
 
         let content = self.download_script(&indices_url).await?;
 
         Ondemand { content }.indices()
+    }
+
+    /// Follow the `x-web` module graph from the entry chunk named on the home page to the
+    /// `sign.o-<hash>.js` module that holds the key-byte indices.
+    ///
+    /// Depending on the build the entry chunk imports the sign module directly or through an
+    /// intermediate `sentry-filter` chunk, so at each hop we return the sign module if it's
+    /// imported and otherwise follow the `sentry-filter` import. The hop count is bounded so an
+    /// unexpected build shape fails with [`Error::MissingSignModule`] rather than looping.
+    async fn resolve_sign_module(&self, entry_url: &str) -> Result<String, Error> {
+        let mut current_url = entry_url.to_string();
+
+        for _ in 0..MAX_MODULE_HOPS {
+            let content = self.download_script(&current_url).await?;
+
+            if let Some(url) = SIGN_MODULE_RE
+                .find(&content)
+                .and_then(|module_match| join_url(&current_url, module_match.as_str()))
+            {
+                return Ok(url);
+            }
+
+            match SENTRY_FILTER_IMPORT_RE
+                .find(&content)
+                .and_then(|module_match| join_url(&current_url, module_match.as_str()))
+            {
+                Some(next_url) => current_url = next_url,
+                None => return Err(Error::MissingSignModule),
+            }
+        }
+
+        Err(Error::MissingSignModule)
     }
 
     async fn download_script(&self, url: &str) -> Result<String, Error> {
@@ -295,8 +341,8 @@ impl Home {
 
     // `client-web`: the indices file is named directly in the home page.
     fn ondemand_url(&self) -> Option<String> {
-        let name =
-            Self::find_ondemand_name_v2(&self.body).or_else(|| Self::find_ondemand_name_v1(&self.body))?;
+        let name = Self::find_ondemand_name_v2(&self.body)
+            .or_else(|| Self::find_ondemand_name_v1(&self.body))?;
 
         Some(format!(
             "https://abs.twimg.com/responsive-web/client-web/ondemand.s.{name}a.js"
@@ -327,11 +373,10 @@ impl Home {
             .map(|name_match| name_match.as_str())
     }
 
-    // `x-web`: the indices file (`sign.o-<hash>.js`) is imported by a preloaded transaction-id
-    // chunk, whose URL we return here. NB: this depends on that chunk's source name
-    // (`sentry-filter`), which may change across builds.
+    // `x-web`: the entry chunk that (directly or through intermediate chunks) imports the sign
+    // module holding the indices. We return its URL; the chain is walked in `resolve_sign_module`.
     fn transaction_module_url(&self) -> Option<String> {
-        TRANSACTION_MODULE_RE
+        TRANSACTION_ENTRY_RE
             .find(&self.body)
             .map(|module_match| module_match.as_str().to_string())
     }
@@ -382,21 +427,33 @@ impl Home {
     }
 }
 
-/// Resolve the absolute URL of the sign module (`sign.o-<hash>.js`) given the transaction chunk
-/// it's imported from and that chunk's source. The module is a sibling of the chunk, so we reuse
-/// the chunk URL's directory.
-fn sign_module_url(module_url: &str, module: &str) -> Result<String, Error> {
-    let name = SIGN_MODULE_RE
-        .find(module)
-        .map(|name_match| name_match.as_str())
-        .ok_or(Error::MissingSignModule)?;
-
-    let base = module_url
+/// Resolve a relative module specifier (as written in an `import(...)`) against the URL of the
+/// chunk that imports it, e.g. `./assets/sentry-filter-<hash>.js` relative to the entry chunk, or
+/// `./sign.o-<hash>.js` relative to the `sentry-filter` chunk. Handles `./`, `../`, and
+/// subdirectory segments. Returns `None` if the base has no path to resolve against.
+fn join_url(base_url: &str, relative: &str) -> Option<String> {
+    let mut resolved = base_url
         .rfind('/')
-        .map(|index| &module_url[..=index])
-        .ok_or(Error::MissingSignModule)?;
+        .map(|index| base_url[..=index].to_string())?;
 
-    Ok(format!("{base}{name}"))
+    for segment in relative.split('/') {
+        match segment {
+            "" | "." => {}
+            ".." => {
+                let parent = resolved.trim_end_matches('/');
+                if let Some(index) = parent.rfind('/') {
+                    resolved.truncate(index + 1);
+                }
+            }
+            name => {
+                resolved.push_str(name);
+                resolved.push('/');
+            }
+        }
+    }
+
+    // The final segment is the file itself; drop the trailing separator we appended for it.
+    Some(resolved.trim_end_matches('/').to_string())
 }
 
 struct Ondemand {
@@ -427,9 +484,9 @@ impl Ondemand {
 mod tests {
     use super::*;
 
-    // Compile-time regression check: `scraper::Html` is not `Sync`, so holding
-    // it across an await would make every `generate` future `!Send` and
-    // unusable with `tokio::spawn` on a multithreaded runtime.
+    // Compile-time regression check: `scraper::Html` is not `Sync`, so holding it across an await
+    // would make every `generate` future `!Send` and unusable with `tokio::spawn` on a
+    // multithreaded runtime.
     #[test]
     fn generate_futures_are_send() {
         fn assert_send<T: Send>(_value: &T) {}
@@ -446,7 +503,6 @@ mod tests {
     // X serves either the `client-web` or `x-web` build depending on the day, so the index source
     // must be located from both home-page shapes. These guard the parsing offline, since the live
     // integration test only ever exercises whichever build is currently served.
-
     #[test]
     fn client_web_index_source() {
         // The `ondemand.s` chunk is named directly in the home page (newer "v2" format): an index
@@ -467,8 +523,9 @@ mod tests {
     }
 
     #[test]
-    fn x_web_index_source() {
-        // No `ondemand.s`; instead a preloaded transaction-id chunk that imports the sign module.
+    fn x_web_sentry_filter_index_source() {
+        // Older x-web shape: the home page names the `sentry-filter` chunk directly, and that chunk
+        // imports the sign module as a sibling.
         let body = r#"<link rel="modulepreload" href="https://abs.twimg.com/x-web/x-web/assets/sentry-filter-B3LxlQus.js"/>"#;
         let home = Home {
             body: body.to_string(),
@@ -486,11 +543,58 @@ mod tests {
             IndexSource::Direct(url) => panic!("expected x-web module URL, got {url}"),
         };
 
-        // The sign module is resolved as a sibling of the chunk, from the chunk's `import(...)`.
         let chunk = r"...import(`./sign.o-DZxHycaM.js`).then(e=>e.default())...";
+        let sign_url = SIGN_MODULE_RE
+            .find(chunk)
+            .and_then(|module_match| join_url(&module_url, module_match.as_str()))
+            .unwrap();
         assert_eq!(
-            sign_module_url(&module_url, chunk).unwrap(),
+            sign_url,
             "https://abs.twimg.com/x-web/x-web/assets/sign.o-DZxHycaM.js"
+        );
+    }
+
+    #[test]
+    fn x_web_entry_index_source() {
+        // Newer x-web shape: the home page names an `entry-client-logged-out` chunk, which imports
+        // the `sentry-filter` chunk from an `assets/` subdirectory, which imports the sign module.
+        let body = r#"<script src="https://abs.twimg.com/x-web/x-web/entry-client-logged-out-waNGGANL.js" nonce="x"></script>"#;
+        let home = Home {
+            body: body.to_string(),
+            html: Html::parse_document(body),
+        };
+
+        let entry_url = match home.index_source().unwrap() {
+            IndexSource::ViaModule(url) => {
+                assert_eq!(
+                    url,
+                    "https://abs.twimg.com/x-web/x-web/entry-client-logged-out-waNGGANL.js"
+                );
+                url
+            }
+            IndexSource::Direct(url) => panic!("expected x-web module URL, got {url}"),
+        };
+
+        // The entry chunk imports the `sentry-filter` chunk from an `assets/` subdirectory.
+        let entry_chunk = r#"...be,z as xe}from"./assets/sentry-filter-5XCpxgG0.js";imp..."#;
+        let sentry_url = SENTRY_FILTER_IMPORT_RE
+            .find(entry_chunk)
+            .and_then(|module_match| join_url(&entry_url, module_match.as_str()))
+            .unwrap();
+        assert_eq!(
+            sentry_url,
+            "https://abs.twimg.com/x-web/x-web/assets/sentry-filter-5XCpxgG0.js"
+        );
+
+        // The `sentry-filter` chunk in turn imports the sign module as a sibling.
+        let sentry_chunk = r"...c??=k(()=>import(`./sign.o-B8kyqbDd.js`).th...";
+        let sign_url = SIGN_MODULE_RE
+            .find(sentry_chunk)
+            .and_then(|module_match| join_url(&sentry_url, module_match.as_str()))
+            .unwrap();
+        assert_eq!(
+            sign_url,
+            "https://abs.twimg.com/x-web/x-web/assets/sign.o-B8kyqbDd.js"
         );
     }
 
