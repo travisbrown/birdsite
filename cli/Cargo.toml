@@ -16,7 +16,7 @@ cli-helpers = "0.1"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 # Must stay version-compatible with the `sha1` used by `archivindex-wbm-json`, since its hasher is
-# passed to `Context::validate`.
+# passed to `Context::verify`.
 sha1 = "0.11"
 thiserror = { workspace = true }
 toml = "1"

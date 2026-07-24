@@ -1,7 +1,7 @@
 //! Validate a compact snapshot file: digests, digest order, metadata, and wxj schemas.
 //!
-//! Each line's stored digest is validated against its content (via
-//! [`Context::validate`](archivindex_wbm_json::context::Context::validate)), the digests are
+//! Each line's stored digest is verified against its content (via
+//! [`Context::verify`](archivindex_wbm_json::context::Context::verify)), the digests are
 //! required to be in strictly ascending SHA-1 byte order (no duplicates), a line with a URL is
 //! required to also have a timestamp (lines with no timestamp at all are tallied but allowed), and
 //! each line's content is deserialized with the `birdsite` wxj model types (which reject unknown
@@ -91,7 +91,7 @@ fn validate_results<
     flat: bool,
 ) -> Result<ValidationSummary, Error> {
     let mut summary = ValidationSummary::default();
-    // The hasher is reused across lines; `Context::validate` resets it after each use.
+    // The hasher is reused across lines; `Context::verify` resets it after each use.
     let mut hasher = Sha1::default();
     // The running maximum digest. Comparing each line against the maximum (rather than only the
     // immediately preceding line) also catches a duplicate of any earlier digest that follows an
@@ -129,7 +129,7 @@ fn validate_results<
                     _ => max_digest = Some(snapshot.digest),
                 }
 
-                if let Err(error) = context.validate(&snapshot, &mut hasher) {
+                if let Err(error) = context.verify(&snapshot, &mut hasher) {
                     summary.digest_errors.push(LineError {
                         line_number,
                         digest: Some(snapshot.digest.to_string()),
@@ -175,7 +175,7 @@ fn validate_results<
 /// # Arguments
 ///
 /// * `input` - Path to a zstd-compressed compact snapshot NDJSON file
-/// * `context` - The site context used to validate digests
+/// * `context` - The site context used to verify digests
 /// * `flat` - Validate content against the wxj/flat schema instead of wxj/data
 ///
 /// # Errors
