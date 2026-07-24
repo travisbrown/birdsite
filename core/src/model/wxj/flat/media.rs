@@ -5,6 +5,8 @@ use serde_field_attributes::range;
 use std::borrow::Cow;
 use std::ops::Range;
 
+// Field names intentionally mirror the Twitter API schema.
+#[allow(clippy::struct_field_names)]
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Media<'a> {
