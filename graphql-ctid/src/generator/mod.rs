@@ -201,7 +201,8 @@ fn animation_key(frames: &[i32], target_time: f64) -> String {
     let matrix = convert_rotation_to_matrix(rotation);
 
     for value in matrix {
-        let rounded = math::round::half_to_even(value, 2).abs();
+        // Banker's rounding to two decimal places, mirroring the reference implementation.
+        let rounded = ((value * 100.0).round_ties_even() / 100.0).abs();
 
         let hex_value = float_to_hex(rounded);
         if hex_value.is_empty() {
@@ -283,7 +284,8 @@ fn float_to_hex(x: f64) -> String {
     }
 }
 
-fn interpolate(a: f64, b: f64, f: f64) -> f64 {
+/// Linearly interpolates between `a` and `b` by fraction `f`.
+pub(super) fn interpolate(a: f64, b: f64, f: f64) -> f64 {
     a.mul_add(1.0 - f, b * f)
 }
 

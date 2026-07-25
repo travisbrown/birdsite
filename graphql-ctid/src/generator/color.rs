@@ -1,4 +1,6 @@
-#[derive(Clone, Copy)]
+use super::interpolate;
+
+#[derive(Clone, Copy, Debug)]
 pub struct Color {
     r: u8,
     g: u8,
@@ -21,10 +23,9 @@ impl Color {
     // The cast cannot truncate or lose sign: the value is clamped to `[0, 255]` before rounding.
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn interpolate_value(a: u8, b: u8, f: f64) -> u8 {
-        math::round::half_to_even(
-            interpolate(f64::from(a), f64::from(b), f).clamp(0.0, 255.0),
-            0,
-        ) as u8
+        interpolate(f64::from(a), f64::from(b), f)
+            .clamp(0.0, 255.0)
+            .round_ties_even() as u8
     }
 }
 
@@ -32,8 +33,4 @@ impl std::fmt::Display for Color {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:x}{:x}{:x}", self.r, self.g, self.b)
     }
-}
-
-fn interpolate(a: f64, b: f64, f: f64) -> f64 {
-    a.mul_add(1.0 - f, b * f)
 }

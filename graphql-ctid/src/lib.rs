@@ -28,6 +28,7 @@ pub async fn generate(endpoint: &Endpoint<'_>) -> Result<TransactionId, client::
     client.generate(endpoint).await
 }
 
+/// A GraphQL endpoint, identified by its operation name and query-ID version.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Endpoint<'a> {
     pub name: Cow<'a, str>,
@@ -35,7 +36,8 @@ pub struct Endpoint<'a> {
 }
 
 impl<'a> Endpoint<'a> {
-    pub fn new<S: Into<Cow<'a, str>>>(name: S, version: S) -> Self {
+    /// Creates an endpoint from a name and version, each accepting any string-like value.
+    pub fn new<N: Into<Cow<'a, str>>, V: Into<Cow<'a, str>>>(name: N, version: V) -> Self {
         Self {
             name: name.into(),
             version: version.into(),
@@ -43,6 +45,7 @@ impl<'a> Endpoint<'a> {
     }
 }
 
+/// A generated client transaction ID, along with the timestamp it encodes.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct TransactionId {
     pub value: String,
@@ -52,6 +55,7 @@ pub struct TransactionId {
 }
 
 impl TransactionId {
+    /// Creates a transaction ID from its value and timestamp (truncated to whole seconds).
     #[must_use]
     pub fn new(value: String, timestamp: DateTime<Utc>) -> Self {
         Self {
@@ -62,6 +66,7 @@ impl TransactionId {
     }
 }
 
+/// Verification material extracted from the X home page, used to generate transaction IDs.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SiteInfo {
     pub verification_key: Vec<u8>,

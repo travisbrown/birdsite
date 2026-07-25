@@ -13,8 +13,9 @@ const HOME_URL: &str = "https://x.com/";
 const MAX_MODULE_HOPS: usize = 4;
 const USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36";
 
-static SITE_VERIFICATION_CONTENT_SEL: LazyLock<Selector> =
-    LazyLock::new(|| Selector::parse("meta[name='twitter-site-verification']").unwrap());
+static SITE_VERIFICATION_CONTENT_SEL: LazyLock<Selector> = LazyLock::new(|| {
+    Selector::parse("meta[name='twitter-site-verification']").expect("valid selector")
+});
 static SITE_VERIFICATION_CONTENT_ATTR: &str = "content";
 
 // X serves two different web clients (which one varies day to day), so we support both ways of
@@ -24,10 +25,10 @@ static SITE_VERIFICATION_CONTENT_ATTR: &str = "content";
 //    page, in two formats: an older one seen until around 2026-03-17, and a newer one since
 //    2026-03-18.
 static ONDEMAND_NAME_V1_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"['"]ondemand\.s['"]:\s*['"]([\w]*)['"]"#).unwrap());
+    LazyLock::new(|| Regex::new(r#"['"]ondemand\.s['"]:\s*['"]([\w]*)['"]"#).expect("valid regex"));
 
 static ONDEMAND_NAME_V2_INDEX_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#",\s*(\d+)\s*:\s*['"]ondemand\.s['"]"#).unwrap());
+    LazyLock::new(|| Regex::new(r#",\s*(\d+)\s*:\s*['"]ondemand\.s['"]"#).expect("valid regex"));
 
 // 2. The Vite `x-web` build (first seen 2026-06-23) instead names an entry chunk on the home page
 //    that, directly or through intermediate chunks, dynamically imports a `sign.o-<hash>.js` module
@@ -41,26 +42,26 @@ static TRANSACTION_ENTRY_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"https://abs\.twimg\.com/[\w./-]*?(?:entry-client-logged-out|sentry-filter)-[\w-]+\.js",
     )
-    .unwrap()
+    .expect("valid regex")
 });
 
 // Relative module specifiers as written in an `import(...)` and `from` inside a chunk, e.g.
 // `./sign.o-<hash>.js` or `./assets/sentry-filter-<hash>.js`. Captured whole (leading `./`/`../`
 // and any subdirectory) so `join_url` can resolve them against the importing chunk's URL.
 static SIGN_MODULE_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"\.\.?/[\w./-]*?sign\.o-[\w-]+\.js").unwrap());
+    LazyLock::new(|| Regex::new(r"\.\.?/[\w./-]*?sign\.o-[\w-]+\.js").expect("valid regex"));
 
 static SENTRY_FILTER_IMPORT_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"\.\.?/[\w./-]*?sentry-filter-[\w-]+\.js").unwrap());
+    LazyLock::new(|| Regex::new(r"\.\.?/[\w./-]*?sentry-filter-[\w-]+\.js").expect("valid regex"));
 
 static ONDEMAND_INDICES_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"\(\w\[(\d{1,2})\],\s*16\)").unwrap());
+    LazyLock::new(|| Regex::new(r"\(\w\[(\d{1,2})\],\s*16\)").expect("valid regex"));
 
 static FRAME_SVG_SEL: LazyLock<Selector> =
-    LazyLock::new(|| Selector::parse("svg[id^='loading-x-anim']").unwrap());
+    LazyLock::new(|| Selector::parse("svg[id^='loading-x-anim']").expect("valid selector"));
 
 static SECOND_PATH_SEL: LazyLock<Selector> =
-    LazyLock::new(|| Selector::parse("g > path:nth-of-type(2)").unwrap());
+    LazyLock::new(|| Selector::parse("g > path:nth-of-type(2)").expect("valid selector"));
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -409,7 +410,11 @@ impl Home {
         if second_paths.len() == 1 {
             let second_path = second_paths[0];
             let d = second_path.attr("d").ok_or_else(|| Error::InvalidFrames)?;
-            let array = d[9..]
+            // The remote `d` attribute is untrusted; a value shorter than the 9-byte prefix (or with
+            // a multibyte boundary at byte 9) must error rather than panic on the slice.
+            let array = d
+                .get(9..)
+                .ok_or(Error::InvalidFrames)?
                 .split('C')
                 .map(|part| {
                     part.replace([',', 'h', 's'], " ")
