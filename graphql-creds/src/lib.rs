@@ -1,5 +1,9 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
 #![forbid(unsafe_code)]
+//! `SQLite`-backed credential and transaction-ID storage for the X (Twitter) GraphQL API.
+//!
+//! The [`Store`] type caches generated client transaction IDs per endpoint, regenerating them on
+//! demand when none is cached or the cached value has aged out.
 use birdsite_graphql_ctid::{Endpoint, TransactionId, client::Client};
 use chrono::Utc;
 use rusqlite::{Connection, OptionalExtension};

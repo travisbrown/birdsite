@@ -1,8 +1,10 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
 #![forbid(unsafe_code)]
+//! Parsing of X (Twitter) API credentials, including extraction from a copied `curl` command.
 use regex::Regex;
 use std::sync::LazyLock;
 
+/// A set of X (Twitter) API credentials.
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Creds {
@@ -11,18 +13,20 @@ pub struct Creds {
     pub cookie: String,
 }
 
-static BEARER_TOKEN_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"(?i)\-H ['"]authorization: Bearer ([\w%]+)['"]"#).unwrap());
+static BEARER_TOKEN_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r#"(?i)\-H ['"]authorization: Bearer ([\w%]+)['"]"#).expect("valid regex")
+});
 static CSRF_TOKEN_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"(?i)\-H ['"]x-csrf-token: ([\w]+)['"]"#).unwrap());
+    LazyLock::new(|| Regex::new(r#"(?i)\-H ['"]x-csrf-token: ([\w]+)['"]"#).expect("valid regex"));
 // The closing quote must be followed by whitespace or the end of the command
 // (cookie values may contain quote characters, e.g. `personalization_id=".."`,
 // so the boundary cannot be the quote alone); a bare `\s` here used to reject
 // commands whose cookie header was the final token.
-static COOKIE_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"(?i)\-H ['"]Cookie: ([^'\n]+)['"](?:\s|$)"#).unwrap());
+static COOKIE_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r#"(?i)\-H ['"]Cookie: ([^'\n]+)['"](?:\s|$)"#).expect("valid regex")
+});
 static COOKIE_SHORT_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"\-b ['"]([^'\n]+)['"](?:\s|$)"#).unwrap());
+    LazyLock::new(|| Regex::new(r#"\-b ['"]([^'\n]+)['"](?:\s|$)"#).expect("valid regex"));
 
 impl Creds {
     #[must_use]
