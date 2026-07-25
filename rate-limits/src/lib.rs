@@ -1,34 +1,47 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
 #![forbid(unsafe_code)]
+//! Parsing and concurrent tracking of X (Twitter) API rate-limit headers.
+//!
+//! [`RateLimit`] parses the `x-rate-limit-reset` and `x-rate-limit-remaining` headers from a
+//! [`reqwest::header::HeaderMap`], a JSON object, or any iterator of name-value pairs, and
+//! [`RateLimits`] is a cheaply cloneable concurrent map that tracks the current limit per scope.
 use chrono::{DateTime, TimeDelta, TimeZone, Utc};
 use std::hash::Hash;
 use std::sync::{Arc, atomic::AtomicU64};
 use std::time::Duration;
 
+/// Default name of the header carrying the rate-limit reset time (epoch seconds).
 pub const DEFAULT_RATE_LIMIT_RESET_HEADER_NAME: &str = "x-rate-limit-reset";
+/// Default name of the header carrying the number of remaining requests.
 pub const DEFAULT_RATE_LIMIT_REMAINING_HEADER_NAME: &str = "x-rate-limit-remaining";
+/// Fallback wait applied when a reset time cannot be converted to a [`Duration`].
 pub const DEFAULT_RATE_LIMIT_ERROR_WAIT: Duration = Duration::from_mins(15);
 
 const DEFAULT_RATE_LIMIT_WAIT_BUFFER: TimeDelta = TimeDelta::seconds(10);
 const DEFAULT_RATE_LIMITS_MAP_CAPACITY: usize = 16;
 
-pub type RateLimitResult = Result<RateLimit, Error>;
-
+/// Errors that can occur while parsing rate-limit headers.
 #[derive(thiserror::Error, Clone, Debug, Eq, PartialEq)]
 pub enum Error {
-    #[error("Missing header")]
+    /// A required header was not present. Contains the header name.
+    #[error("Missing header: {0}")]
     MissingHeader(String),
-    #[error("Invalid header value")]
+    /// A header was present but its value could not be parsed. Contains the header name.
+    #[error("Invalid header value: {0}")]
     InvalidHeader(String),
 }
 
+/// A rate limit for a single scope: when the window resets and how many requests remain.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct RateLimit {
+    /// Time at which the current rate-limit window resets.
     pub reset: DateTime<Utc>,
+    /// Number of requests remaining in the current window.
     pub remaining: usize,
 }
 
 impl RateLimit {
+    /// Creates a new rate limit from a reset time and a remaining count.
     #[must_use]
     pub const fn new(reset: DateTime<Utc>, remaining: usize) -> Self {
         Self { reset, remaining }
@@ -40,7 +53,7 @@ impl RateLimit {
             let timestamp = Utc::now();
             let wait = self.reset - timestamp + DEFAULT_RATE_LIMIT_WAIT_BUFFER;
 
-            if wait.num_seconds() > 0 {
+            if wait > TimeDelta::zero() {
                 // If somehow the time delta is out of range, we use our default error wait.
                 Some(wait.to_std().unwrap_or(DEFAULT_RATE_LIMIT_ERROR_WAIT))
             } else {
@@ -215,28 +228,42 @@ impl<S: Eq + Hash> Default for RateLimits<S> {
 }
 
 impl<S: Eq + Hash> RateLimits<S> {
+    /// Returns how long to wait for the given scope, if it is currently rate-limited.
     pub fn wait(&self, scope: &S) -> Option<Duration> {
         self.get(scope).and_then(|rate_limit| rate_limit.wait())
     }
 
+    /// Returns the most recently recorded rate limit for the given scope, if any.
     pub fn get(&self, scope: &S) -> Option<RateLimit> {
         rate_limit_from_atomic64(self.underlying.get(scope)?.value())
     }
 
+    /// Records the rate limit for the given scope.
+    ///
+    /// If the reset time's epoch second does not fit into a `u32` (before 1970 or after 2106), or
+    /// the remaining count exceeds `u32::MAX`, the value cannot be encoded and this is a no-op.
     pub fn put(&self, scope: S, value: RateLimit) {
-        // If we're given a timestamp where the epoch second doesn't fit into a `u32`, we simply do nothing.
         if let Ok(reset_s) = u32::try_from(value.reset.timestamp())
             && let Ok(remaining) = u32::try_from(value.remaining)
         {
             let encoded: u64 = bytemuck::cast([reset_s, remaining]);
 
-            let entry = self.underlying.entry(scope).or_default();
-            entry.store(encoded, std::sync::atomic::Ordering::Relaxed);
+            // Insert the fully-encoded value atomically so a concurrent reader never observes a
+            // transient zeroed (`or_default`) entry for a scope that was just recorded.
+            self.underlying
+                .entry(scope)
+                .and_modify(|current| current.store(encoded, std::sync::atomic::Ordering::Relaxed))
+                .or_insert_with(|| AtomicU64::new(encoded));
         }
     }
 }
 
 impl<S: Clone + Eq + Hash> RateLimits<S> {
+    /// Returns an iterator over the recorded scopes and their rate limits.
+    ///
+    /// The iterator holds shard read locks for its lifetime, so calling [`RateLimits::put`] on the
+    /// same map from the same thread while iterating may deadlock; collect the iterator first if
+    /// you need to mutate concurrently.
     #[must_use]
     pub fn iter(&self) -> RateLimitsIterator<'_, S> {
         RateLimitsIterator {
@@ -254,6 +281,7 @@ impl<'a, S: Clone + Eq + Hash> IntoIterator for &'a RateLimits<S> {
     }
 }
 
+/// Iterator over the scopes and rate limits recorded in a [`RateLimits`] map.
 pub struct RateLimitsIterator<'a, S> {
     underlying: dashmap::iter::Iter<'a, S, AtomicU64>,
 }
