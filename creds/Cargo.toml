@@ -1,10 +1,12 @@
 [package]
 name = "birdsite-creds"
+description = "Credential parsing for the X (Twitter) API"
 authors = { workspace = true }
 repository = { workspace = true }
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
+keywords = { workspace = true }
 
 [dependencies]
 regex = { workspace = true }

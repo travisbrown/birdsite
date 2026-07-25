@@ -1,9 +1,12 @@
 [package]
 name = "birdsite-rate-limits"
+description = "Parsing and tracking of X (Twitter) API rate-limit headers"
 authors = { workspace = true }
 repository = { workspace = true }
 version = { workspace = true }
 edition = { workspace = true }
+license = { workspace = true }
+keywords = { workspace = true }
 
 [dependencies]
 bytemuck = "1"

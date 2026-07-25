@@ -1,10 +1,12 @@
 [package]
 name = "birdsite-birdwatch"
+description = "Data models for X (Twitter) Community Notes (Birdwatch)"
 authors = { workspace = true }
 repository = { workspace = true }
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
+keywords = { workspace = true }
 
 [dependencies]
 bounded-static = { workspace = true }

@@ -1,13 +1,15 @@
 [package]
 name = "birdsite-graphql-creds"
+description = "SQLite-backed credential and transaction ID storage for the X (Twitter) GraphQL API"
 authors = { workspace = true }
 repository = { workspace = true }
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
+keywords = { workspace = true }
 
 [dependencies]
-birdsite-graphql-ctid = { path = "../graphql-ctid/" }
+birdsite-graphql-ctid = { path = "../graphql-ctid/", version = "0.1.0" }
 chrono = { workspace = true }
 rusqlite = "0.40"
 thiserror = { workspace = true }
