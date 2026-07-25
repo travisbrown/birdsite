@@ -1,3 +1,8 @@
+#![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
+#![allow(clippy::missing_errors_doc)]
+#![forbid(unsafe_code)]
+//! Encoding and decoding of the `x-xp-forwarded-for` header used by the X (Twitter) GraphQL API.
+
 use aes_gcm::{
     Aes256Gcm, KeyInit,
     aead::{AeadInOut, Generate, Nonce},
@@ -11,8 +16,8 @@ const BASE_KEY: &str = "0e6be1f1e21ffc33590b888fd4dc81b19713e570e805d4e5df80a493
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("AES-GCM error")]
-    AesGcm(aes_gcm::Error),
-    #[error("Decoding input too short")]
+    AesGcm(#[from] aes_gcm::Error),
+    #[error("Decoding input too short: {0} bytes")]
     InputTooShort(usize),
     #[error("Invalid hex string")]
     Hex(#[from] hex::FromHexError),
@@ -48,8 +53,9 @@ enum BooleanString {
     False,
 }
 
+/// Encoder and decoder for the `x-xp-forwarded-for` header, parameterized by a base key.
 pub struct Generator {
-    base_key: &'static str,
+    base_key: Cow<'static, str>,
 }
 
 impl Default for Generator {
@@ -59,10 +65,14 @@ impl Default for Generator {
 }
 
 impl Generator {
-    pub fn new(base_key: &'static str) -> Self {
-        Self { base_key }
+    /// Creates a generator from a base key (borrowed or owned).
+    pub fn new(base_key: impl Into<Cow<'static, str>>) -> Self {
+        Self {
+            base_key: base_key.into(),
+        }
     }
 
+    /// Encodes the navigator payload for the given guest ID into the hex-encoded header value.
     pub fn encode(
         &self,
         guest_id: &str,
@@ -79,11 +89,12 @@ impl Generator {
         };
 
         let json = serde_json::to_vec(&payload)?;
-        let bytes = self.encode_raw(guest_id, &json).map_err(Error::AesGcm)?;
+        let bytes = self.encode_raw(guest_id, &json)?;
 
         Ok(hex::encode(bytes))
     }
 
+    /// Decodes a hex-encoded header value for the given guest ID into its user agent and timestamp.
     pub fn decode(&self, guest_id: &str, value: &str) -> Result<(String, DateTime<Utc>), Error> {
         let bytes = hex::decode(value)?;
         let decoded_bytes = self.decode_raw(guest_id, &bytes)?;
@@ -97,7 +108,11 @@ impl Generator {
     }
 
     fn derive_key(&self, guest_id: &str) -> [u8; 32] {
-        sha2::Sha256::digest(format!("{}{}", self.base_key, guest_id).as_bytes()).into()
+        // Feed the hasher incrementally to avoid allocating a joined `String` per call.
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(self.base_key.as_bytes());
+        hasher.update(guest_id.as_bytes());
+        hasher.finalize().into()
     }
 
     fn cipher(&self, guest_id: &str) -> Aes256Gcm {
@@ -105,10 +120,11 @@ impl Generator {
         Aes256Gcm::new(&key_bytes.into())
     }
 
+    /// Encrypts `text` for the given guest ID, returning the nonce-prefixed ciphertext.
     pub fn encode_raw(&self, guest_id: &str, text: &[u8]) -> Result<Vec<u8>, aes_gcm::Error> {
         let nonce = Nonce::<Aes256Gcm>::generate();
 
-        let mut buffer = Vec::with_capacity(128);
+        let mut buffer = Vec::with_capacity(nonce.len() + text.len() + 16);
         buffer.extend_from_slice(text);
 
         let cipher = self.cipher(guest_id);
@@ -120,25 +136,22 @@ impl Generator {
         Ok(buffer)
     }
 
+    /// Decrypts a nonce-prefixed ciphertext for the given guest ID, returning the plaintext.
     pub fn decode_raw(&self, guest_id: &str, bytes: &[u8]) -> Result<Vec<u8>, Error> {
-        if bytes.len() < 12 {
-            Err(Error::InputTooShort(bytes.len()))
-        } else {
-            // The length guard above guarantees a full 12-byte prefix.
-            let nonce = Nonce::<Aes256Gcm>::try_from(&bytes[0..12])
-                .expect("nonce slice is exactly 12 bytes");
+        // `first_chunk` splits off the fixed-size nonce prefix without any fallible slicing.
+        let nonce_bytes = *bytes
+            .first_chunk::<12>()
+            .ok_or(Error::InputTooShort(bytes.len()))?;
+        let nonce = Nonce::<Aes256Gcm>::from(nonce_bytes);
 
-            let mut buffer = Vec::with_capacity(128);
-            buffer.extend_from_slice(&bytes[12..]);
+        let mut buffer = Vec::with_capacity(bytes.len() - nonce_bytes.len());
+        buffer.extend_from_slice(&bytes[nonce_bytes.len()..]);
 
-            let cipher = self.cipher(guest_id);
+        let cipher = self.cipher(guest_id);
 
-            cipher
-                .decrypt_in_place(&nonce, &[], &mut buffer)
-                .map_err(Error::AesGcm)?;
+        cipher.decrypt_in_place(&nonce, &[], &mut buffer)?;
 
-            Ok(buffer)
-        }
+        Ok(buffer)
     }
 }
 
