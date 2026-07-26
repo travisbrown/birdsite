@@ -439,4 +439,44 @@ mod tests {
 
         assert_eq!(sorted, sorted_by_string);
     }
+
+    /// Property: every known symbol round-trips through its string form (in particular, no stock
+    /// symbol shadows a crypto symbol in `from_uppercase_str`'s lookup order).
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_cashtag_symbol_string(symbol: CashtagSymbol) {
+        let parsed = symbol.to_string().parse::<CashtagSymbol>().unwrap();
+
+        proptest::prop_assert_eq!(parsed, symbol);
+    }
+
+    /// Property: every standard-cased symbol round-trips through JSON as `Cashtag::Symbol`.
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_cashtag_json(symbol: CashtagSymbol) {
+        let json = serde_json::to_string(&Cashtag::Symbol(symbol)).unwrap();
+        let parsed: Cashtag = serde_json::from_str(&json).unwrap();
+
+        proptest::prop_assert_eq!(parsed, Cashtag::Symbol(symbol));
+    }
+
+    /// Property: a lowercased symbol is recognized as non-standard but preserves its wire form,
+    /// so the source JSON round-trips exactly.
+    #[test_strategy::proptest]
+    fn lowercased_symbol_preserves_form(symbol: CashtagSymbol) {
+        let json = serde_json::to_string(&symbol.as_str().to_ascii_lowercase()).unwrap();
+        let parsed: Cashtag = serde_json::from_str(&json).unwrap();
+
+        proptest::prop_assert_eq!(parsed.symbol(), Some(symbol));
+        proptest::prop_assert_eq!(serde_json::to_string(&parsed).unwrap(), json);
+    }
+
+    // This `Arbitrary` impl draws uniformly from the canonical value list instead of deriving a
+    // strategy structurally, so generated values always satisfy the crate's invariants.
+    impl proptest::arbitrary::Arbitrary for CashtagSymbol {
+        type Parameters = ();
+        type Strategy = proptest::sample::Select<Self>;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            proptest::sample::select(Self::values())
+        }
+    }
 }

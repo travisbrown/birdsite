@@ -2723,4 +2723,87 @@ mod tests {
         assert!(!parse("Asia/Tokyo").same_zone(parse("Europe/London")));
         assert!(!parse("PST").same_zone(parse("EST")));
     }
+
+    /// Property: every IANA identifier round-trips through its derived JSON representation.
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_iana_time_zone_json(zone: IanaTimeZone) {
+        let json = serde_json::to_string(&zone).expect("should serialize");
+        let back: IanaTimeZone = serde_json::from_str(&json).expect("should deserialize");
+
+        proptest::prop_assert_eq!(back, zone);
+    }
+
+    /// Property: every deprecated alias round-trips through its derived JSON representation.
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_deprecated_json(zone: Deprecated) {
+        let json = serde_json::to_string(&zone).expect("should serialize");
+        let back: Deprecated = serde_json::from_str(&json).expect("should deserialize");
+
+        proptest::prop_assert_eq!(back, zone);
+    }
+
+    /// Property: every abbreviation round-trips through its derived JSON representation.
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_abbreviation_json(zone: Abbreviation) {
+        let json = serde_json::to_string(&zone).expect("should serialize");
+        let back: Abbreviation = serde_json::from_str(&json).expect("should deserialize");
+
+        proptest::prop_assert_eq!(back, zone);
+    }
+
+    /// Property: every display name round-trips through its derived JSON representation.
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_named_json(zone: Named) {
+        let json = serde_json::to_string(&zone).expect("should serialize");
+        let back: Named = serde_json::from_str(&json).expect("should deserialize");
+
+        proptest::prop_assert_eq!(back, zone);
+    }
+
+    // These `Arbitrary` implementations draw uniformly from the canonical value lists instead of
+    // deriving strategies structurally, so generated values always satisfy the crate's invariants.
+    impl proptest::arbitrary::Arbitrary for TimeZone {
+        type Parameters = ();
+        type Strategy = proptest::sample::Select<Self>;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            proptest::sample::select(TIME_ZONE_VALUES.as_slice())
+        }
+    }
+
+    impl proptest::arbitrary::Arbitrary for IanaTimeZone {
+        type Parameters = ();
+        type Strategy = proptest::sample::Select<Self>;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            proptest::sample::select(Self::ALL.as_slice())
+        }
+    }
+
+    impl proptest::arbitrary::Arbitrary for Deprecated {
+        type Parameters = ();
+        type Strategy = proptest::sample::Select<Self>;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            proptest::sample::select(Self::ALL.as_slice())
+        }
+    }
+
+    impl proptest::arbitrary::Arbitrary for Abbreviation {
+        type Parameters = ();
+        type Strategy = proptest::sample::Select<Self>;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            proptest::sample::select(Self::ALL.as_slice())
+        }
+    }
+
+    impl proptest::arbitrary::Arbitrary for Named {
+        type Parameters = ();
+        type Strategy = proptest::sample::Select<Self>;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            proptest::sample::select(Self::ALL.as_slice())
+        }
+    }
 }

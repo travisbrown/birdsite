@@ -104,4 +104,38 @@ mod tests {
             serde_json::json!(SAMPLE_TEXT_TIMESTAMP)
         );
     }
+
+    /// Property: every second-precision timestamp round-trips through its JSON representation
+    /// (which exercises both `Display` and `FromStr`, since the Serde implementations delegate to
+    /// them).
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_text_timestamp_json(timestamp: TextTimestamp) {
+        let json = serde_json::to_string(&timestamp).unwrap();
+        let parsed: TextTimestamp = serde_json::from_str(&json).unwrap();
+
+        proptest::prop_assert_eq!(timestamp, parsed);
+    }
+
+    impl proptest::arbitrary::Arbitrary for TextTimestamp {
+        type Parameters = ();
+        type Strategy = proptest::strategy::Map<std::ops::RangeInclusive<i64>, fn(i64) -> Self>;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            use proptest::strategy::Strategy;
+
+            // The annotation coerces the closure to a plain function pointer so that the concrete
+            // strategy type above can name it (closures otherwise have unnameable types).
+            let make: fn(i64) -> Self = |seconds| {
+                Self(
+                    Utc.timestamp_opt(seconds, 0)
+                        .single()
+                        .expect("seconds are within the representable range"),
+                )
+            };
+
+            // The format's `%a %b %d` fields only exist at second precision, and `%Y` writes a
+            // four-digit year, so cover 1970-01-01 through 9999-12-31 at second precision.
+            (0..=253_402_300_799_i64).prop_map(make)
+        }
+    }
 }

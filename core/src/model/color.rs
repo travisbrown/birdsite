@@ -125,4 +125,53 @@ mod tests {
         assert!(serde_json::from_str::<Color>("\"+f00aa\"").is_err());
         assert!(serde_json::from_str::<Color>("\"6D5C1\"").is_err());
     }
+
+    /// Property: every 24-bit color round-trips through its JSON representation.
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_color_json(color: Color) {
+        let json = serde_json::to_string(&color).unwrap();
+        let parsed: Color = serde_json::from_str(&json).unwrap();
+
+        proptest::prop_assert_eq!(color, parsed);
+    }
+
+    /// Property: three-digit CSS shorthand parses identically to its six-digit expansion.
+    #[test_strategy::proptest]
+    fn shorthand_matches_expanded_form(#[strategy("[0-9A-Fa-f]{3}")] shorthand: String) {
+        let expanded: String = shorthand.chars().flat_map(|digit| [digit, digit]).collect();
+
+        proptest::prop_assert_eq!(
+            shorthand.parse::<Color>().unwrap(),
+            expanded.parse::<Color>().unwrap()
+        );
+    }
+
+    /// Property: parsing never panics on arbitrary input (regression: multibyte input used to
+    /// panic on a byte-index slice), and any accepted input's canonical form round-trips.
+    #[test_strategy::proptest]
+    fn parse_arbitrary_string_never_panics(input: String) {
+        if let Ok(color) = input.parse::<Color>() {
+            proptest::prop_assert_eq!(color.to_string().parse::<Color>().unwrap(), color);
+        }
+    }
+
+    // Unlike the value-list types elsewhere in the crate, every combination of channel values is
+    // a valid color, so the strategy covers the full 24-bit space.
+    impl proptest::arbitrary::Arbitrary for Color {
+        type Parameters = ();
+        type Strategy = proptest::strategy::Map<
+            proptest::arbitrary::StrategyFor<(u8, u8, u8)>,
+            fn((u8, u8, u8)) -> Self,
+        >;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            use proptest::strategy::Strategy;
+
+            // The annotation coerces the closure to a plain function pointer so that the concrete
+            // strategy type above can name it (closures otherwise have unnameable types).
+            let make: fn((u8, u8, u8)) -> Self = |(red, green, blue)| Self { red, green, blue };
+
+            proptest::arbitrary::any::<(u8, u8, u8)>().prop_map(make)
+        }
+    }
 }

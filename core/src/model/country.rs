@@ -904,4 +904,24 @@ mod test {
             assert_eq!(value, parsed);
         }
     }
+
+    /// Property: every country code round-trips through its JSON representation.
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_country_json(country: super::Country) {
+        let json = serde_json::to_string(&country).unwrap();
+        let parsed: super::Country = serde_json::from_str(&json).unwrap();
+
+        proptest::prop_assert_eq!(country, parsed);
+    }
+
+    // This `Arbitrary` impl draws uniformly from the canonical value list instead of deriving a
+    // strategy structurally, so generated values always satisfy the crate's invariants.
+    impl proptest::arbitrary::Arbitrary for super::Country {
+        type Parameters = ();
+        type Strategy = proptest::sample::Select<Self>;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            proptest::sample::select(super::COUNTRY_VALUES.as_slice())
+        }
+    }
 }

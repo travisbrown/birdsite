@@ -1749,24 +1749,59 @@ mod test {
         );
     }
 
-    impl quickcheck::Arbitrary for Lang {
-        fn arbitrary(g: &mut quickcheck::Gen) -> Self {
-            // Safe because we know the slice is non-empty.
-            *g.choose(&super::LANG_VALUES).unwrap()
+    /// Property: every `Lang` value round-trips through its JSON representation.
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_lang_json(lang: Lang) {
+        let json = serde_json::to_string(&lang).unwrap();
+        let parsed: Lang = serde_json::from_str(&json).unwrap();
+
+        proptest::prop_assert_eq!(lang, parsed);
+    }
+
+    /// Property: every `Language` value round-trips through its JSON representation.
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_language_json(language: Language) {
+        let json = serde_json::to_string(&language).unwrap();
+        let parsed: Language = serde_json::from_str(&json).unwrap();
+
+        proptest::prop_assert_eq!(language, parsed);
+    }
+
+    /// Property: every `Special` value round-trips through its JSON representation.
+    #[test_strategy::proptest]
+    fn round_trip_arbitrary_special_json(special: Special) {
+        let json = serde_json::to_string(&special).unwrap();
+        let parsed: Special = serde_json::from_str(&json).unwrap();
+
+        proptest::prop_assert_eq!(special, parsed);
+    }
+
+    // These `Arbitrary` implementations draw uniformly from the canonical value lists instead of
+    // deriving strategies structurally, so generated values always satisfy the crate's invariants.
+    impl proptest::arbitrary::Arbitrary for Lang {
+        type Parameters = ();
+        type Strategy = proptest::sample::Select<Self>;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            proptest::sample::select(super::LANG_VALUES.as_slice())
         }
     }
 
-    impl quickcheck::Arbitrary for Language {
-        fn arbitrary(g: &mut quickcheck::Gen) -> Self {
-            // Safe because we know the slice is non-empty.
-            *g.choose(&super::LANGUAGE_VALUES).unwrap()
+    impl proptest::arbitrary::Arbitrary for Language {
+        type Parameters = ();
+        type Strategy = proptest::sample::Select<Self>;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            proptest::sample::select(super::LANGUAGE_VALUES.as_slice())
         }
     }
 
-    impl quickcheck::Arbitrary for Special {
-        fn arbitrary(g: &mut quickcheck::Gen) -> Self {
-            // Safe because we know the slice is non-empty.
-            *g.choose(&super::SPECIAL_VALUES).unwrap()
+    impl proptest::arbitrary::Arbitrary for Special {
+        type Parameters = ();
+        type Strategy = proptest::sample::Select<Self>;
+
+        fn arbitrary_with((): Self::Parameters) -> Self::Strategy {
+            proptest::sample::select(super::SPECIAL_VALUES.as_slice())
         }
     }
 }
