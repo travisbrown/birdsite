@@ -325,6 +325,8 @@ pub struct User<'a> {
     pub protected: bool,
     pub public_metrics: UserPublicMetrics,
     pub withheld: Option<Withheld>,
+    #[serde(borrow)]
+    pub derived: Option<Derived<'a>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
