@@ -7,11 +7,11 @@ pub mod stats;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("Invalid lang")]
+    #[error("Invalid lang: {0}")]
     Invalid(String),
-    #[error("Invalid language code")]
+    #[error("Invalid language code: {0}")]
     InvalidLanguage(String),
-    #[error("Invalid special language code")]
+    #[error("Invalid special language code: {0}")]
     InvalidSpecial(String),
 }
 

@@ -65,13 +65,21 @@ pub enum ProfileInterstitialType {
 #[serde(deny_unknown_fields)]
 pub struct TipjarSettings<'a> {
     pub is_enabled: Option<bool>,
+    #[serde(borrow)]
     pub bandcamp_handle: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub bitcoin_handle: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub cash_app_handle: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub ethereum_handle: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub gofundme_handle: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub patreon_handle: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub pay_pal_handle: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub venmo_handle: Option<Cow<'a, str>>,
 }
 

@@ -187,12 +187,12 @@ pub enum Source {
 
 impl Source {
     #[must_use]
-    pub const fn url(&self) -> &str {
+    pub const fn url(&self) -> &'static str {
         SOURCE_MAPPINGS[*self as usize].1
     }
 
     #[must_use]
-    pub const fn name(&self) -> &str {
+    pub const fn name(&self) -> &'static str {
         SOURCE_MAPPINGS[*self as usize].2
     }
 
@@ -295,8 +295,9 @@ static BY_NAME: LazyLock<HashMap<String, Source>> = LazyLock::new(|| {
         .collect()
 });
 
-static SOURCE_ANCHOR_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"^<a href="([^"]+)" rel="nofollow">([^<]+)</a>$"#).unwrap());
+static SOURCE_ANCHOR_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r#"^<a href="([^"]+)" rel="nofollow">([^<]+)</a>$"#).expect("valid regex")
+});
 
 #[cfg(test)]
 mod tests {

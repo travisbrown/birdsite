@@ -6,8 +6,11 @@ use std::ops::Range;
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Url<'a> {
+    #[serde(borrow)]
     pub expanded_url: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub url: Cow<'a, str>,
+    #[serde(borrow)]
     pub display_url: Option<Cow<'a, str>>,
     #[serde(with = "range")]
     pub indices: Range<usize>,

@@ -5,6 +5,7 @@ use std::borrow::Cow;
 pub struct TrendMetadata<'a> {
     #[serde(borrow)]
     pub domain_context: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub meta_description: Option<Cow<'a, str>>,
     pub url: Option<crate::model::url::Url<'a>>,
 }

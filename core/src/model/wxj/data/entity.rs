@@ -30,8 +30,11 @@ pub struct Urls<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct UrlDetails<'a> {
+    #[serde(borrow)]
     pub url: Cow<'a, str>,
+    #[serde(borrow)]
     pub display_url: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub expanded_url: Option<Cow<'a, str>>,
     pub start: usize,
     pub end: usize,
@@ -59,6 +62,7 @@ pub struct Annotation<'a> {
     pub end: isize,
     #[serde(with = "ratio_u64")]
     pub probability: num_rational::Ratio<u64>,
+    #[serde(borrow)]
     pub normalized_text: Cow<'a, str>,
 }
 
@@ -76,6 +80,7 @@ pub enum AnnotationType {
 pub struct UserMention<'a> {
     pub start: usize,
     pub end: usize,
+    #[serde(borrow)]
     pub username: Cow<'a, str>,
 }
 
@@ -84,6 +89,7 @@ pub struct UserMention<'a> {
 pub struct TweetMention<'a> {
     pub start: usize,
     pub end: usize,
+    #[serde(borrow)]
     pub username: Cow<'a, str>,
     #[serde(with = "possible_u64")]
     pub id: Option<u64>,
@@ -94,14 +100,21 @@ pub struct TweetMention<'a> {
 pub struct Url<'a> {
     pub start: usize,
     pub end: usize,
+    #[serde(borrow)]
     pub title: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub description: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub url: Cow<'a, str>,
+    #[serde(borrow)]
     pub expanded_url: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub display_url: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub media_key: Option<Cow<'a, str>>,
     // TODO: Use a proper status code representation here.
     pub status: Option<usize>,
+    #[serde(borrow)]
     pub unwound_url: Option<Cow<'a, str>>,
     pub images: Option<Vec<UrlImage<'a>>>,
 }
@@ -109,6 +122,7 @@ pub struct Url<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct UrlImage<'a> {
+    #[serde(borrow)]
     pub url: Cow<'a, str>,
     pub width: usize,
     pub height: usize,
@@ -119,6 +133,7 @@ pub struct UrlImage<'a> {
 pub struct Hashtag<'a> {
     pub start: usize,
     pub end: usize,
+    #[serde(borrow)]
     pub tag: Cow<'a, str>,
 }
 
@@ -130,7 +145,7 @@ pub struct Cashtag {
     pub tag: crate::model::cashtag::Cashtag,
 }
 
-pub mod possible_u64 {
+mod possible_u64 {
     use serde::de::Deserializer;
     use std::borrow::Cow;
 
@@ -155,6 +170,8 @@ pub mod possible_u64 {
         }
     }
 
+    // serde's `serialize_with` requires the `&Option<_>` shape.
+    #[allow(clippy::ref_option)]
     pub fn serialize<S: serde::ser::Serializer>(
         value: &Option<u64>,
         serializer: S,

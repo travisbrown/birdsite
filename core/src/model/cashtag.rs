@@ -105,10 +105,10 @@ impl serde::ser::Serialize for Cashtag {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("Invalid case")]
-    InvalidCase,
-    #[error("Unknown symbol")]
-    UnknownSymbol,
+    #[error("Invalid case: {0}")]
+    InvalidCase(String),
+    #[error("Unknown symbol: {0}")]
+    UnknownSymbol(String),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -179,9 +179,9 @@ impl FromStr for CashtagSymbol {
         if s.chars()
             .any(|char| !char.is_ascii_uppercase() && char != '.')
         {
-            Err(Error::InvalidCase)
+            Err(Error::InvalidCase(s.to_string()))
         } else {
-            Self::from_uppercase_str(s).ok_or(Error::UnknownSymbol)
+            Self::from_uppercase_str(s).ok_or_else(|| Error::UnknownSymbol(s.to_string()))
         }
     }
 }
@@ -285,7 +285,7 @@ impl FromStr for StockSymbol {
         STOCK_SYMBOL_FROM
             .get(s)
             .copied()
-            .ok_or(Error::UnknownSymbol)
+            .ok_or_else(|| Error::UnknownSymbol(s.to_string()))
     }
 }
 
@@ -359,7 +359,7 @@ impl FromStr for CryptoSymbol {
         CRYPTO_SYMBOL_FROM
             .get(s)
             .copied()
-            .ok_or(Error::UnknownSymbol)
+            .ok_or_else(|| Error::UnknownSymbol(s.to_string()))
     }
 }
 

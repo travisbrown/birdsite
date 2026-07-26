@@ -21,13 +21,16 @@ pub enum UserResult<'a, U> {
 pub struct User<'a> {
     #[serde(with = "integer_str")]
     pub rest_id: u64,
+    #[serde(borrow)]
     pub legacy: Legacy<'a>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 //#[serde(deny_unknown_fields)]
 pub struct Legacy<'a> {
+    #[serde(borrow)]
     pub screen_name: Cow<'a, str>,
+    #[serde(borrow)]
     pub name: Cow<'a, str>,
 }
 

@@ -23,6 +23,8 @@ pub mod wxj;
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct KeyValuePair<'a> {
+    #[serde(borrow)]
     pub key: Cow<'a, str>,
+    #[serde(borrow)]
     pub value: Cow<'a, str>,
 }

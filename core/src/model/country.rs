@@ -5,7 +5,7 @@ use std::sync::LazyLock;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("Invalid country code")]
+    #[error("Invalid country code: {0}")]
     Invalid(String),
 }
 

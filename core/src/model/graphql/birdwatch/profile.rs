@@ -4,6 +4,7 @@ use std::borrow::Cow;
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Profile<'a> {
+    #[serde(borrow)]
     pub alias: Option<Cow<'a, str>>,
     pub ratings_count: Option<RatingsCount>,
     pub notes_count: Option<NotesCount>,

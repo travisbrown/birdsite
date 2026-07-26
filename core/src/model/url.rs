@@ -12,6 +12,7 @@ pub enum UrlType {
 pub struct Url<'a> {
     #[serde(rename = "urlType")]
     pub url_type: UrlType,
+    #[serde(borrow)]
     pub url: Cow<'a, str>,
     #[serde(rename = "urtEndpointOptions")]
     pub urt_endpoint_options: Option<UrtEndpointOptions<'a>>,
@@ -23,5 +24,6 @@ pub struct Url<'a> {
 pub struct UrtEndpointOptions<'a> {
     #[serde(rename = "requestParams")]
     pub request_params: Vec<crate::model::KeyValuePair<'a>>,
+    #[serde(borrow)]
     pub title: Option<Cow<'a, str>>,
 }

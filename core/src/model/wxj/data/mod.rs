@@ -19,11 +19,11 @@ pub mod place;
 
 #[derive(Clone, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum FormatError {
-    #[error("Multiple referenced IDs")]
+    #[error("Multiple referenced IDs: {0:?}")]
     MultipleReferencedIds(Vec<u64>),
-    #[error("Missing referenced tweet")]
+    #[error("Missing referenced tweet: {0}")]
     MissingReferencedTweet(u64),
-    #[error("Missing user")]
+    #[error("Missing user: {0}")]
     MissingUser(u64),
 }
 
@@ -39,10 +39,7 @@ pub struct TweetSnapshot<'a> {
 impl<'a> TweetSnapshot<'a> {
     #[must_use]
     pub fn lookup_user(&self, id: u64) -> Option<&User<'a>> {
-        self.includes.users.iter().find_map(|user| match user {
-            UserEntry::User(user) if user.id == id => Some(user.as_ref()),
-            _ => None,
-        })
+        self.includes.users().find(|user| user.id == id)
     }
 
     #[must_use]
@@ -105,6 +102,7 @@ pub struct Tweet<'a> {
     pub public_metrics: TweetPublicMetrics,
     pub referenced_tweets: Option<Vec<ReferencedTweet>>,
     pub reply_settings: ReplySettings,
+    #[serde(borrow)]
     pub text: Cow<'a, str>,
     #[serde(with = "optional_integer_str", default)]
     pub in_reply_to_user_id: Option<u64>,
@@ -152,19 +150,6 @@ impl Tweet<'_> {
             })
             .transpose()
     }
-
-    /*pub fn mention_ids(&self) -> Vec<u64> {
-        self.entities
-            .as_ref()
-            .and_then(|entities| entities.mentions.as_ref())
-            .map(|mentions| {
-                mentions
-                    .iter()
-                    .filter_map(|mention| mention.id.and_then(|id| id.0))
-                    .collect()
-            })
-            .unwrap_or_default()
-    }*/
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -198,10 +183,7 @@ pub struct TweetIncludes<'a> {
 
 impl<'a> TweetIncludes<'a> {
     pub fn users(&self) -> impl Iterator<Item = &User<'a>> {
-        self.users.iter().filter_map(|user| match user {
-            UserEntry::User(user) => Some(user.as_ref()),
-            UserEntry::DerivedUser(_) => None,
-        })
+        self.users.iter().filter_map(UserEntry::user)
     }
 }
 
@@ -213,6 +195,7 @@ pub struct Poll<'a> {
     pub voting_status: PollVotingStatus,
     pub duration_minutes: usize,
     pub end_datetime: DateTime<Utc>,
+    #[serde(borrow)]
     pub options: Vec<PollOption<'a>>,
 }
 
@@ -228,6 +211,7 @@ pub enum PollVotingStatus {
 #[serde(deny_unknown_fields)]
 pub struct PollOption<'a> {
     pub position: usize,
+    #[serde(borrow)]
     pub label: Cow<'a, str>,
     pub votes: usize,
 }
@@ -235,6 +219,7 @@ pub struct PollOption<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Geo<'a> {
+    #[serde(borrow)]
     pub place_id: Option<Cow<'a, str>>,
     pub coordinates: Option<TypedCoordinates>,
 }
@@ -252,6 +237,7 @@ pub struct EditControls {
 pub struct NoteTweet<'a> {
     #[serde(borrow)]
     pub entities: Option<entity::TweetEntities<'a>>,
+    #[serde(borrow)]
     pub text: Option<Cow<'a, str>>,
 }
 
@@ -322,11 +308,16 @@ pub struct User<'a> {
     pub id: u64,
     #[serde(borrow)]
     pub username: Cow<'a, str>,
+    #[serde(borrow)]
     pub name: Cow<'a, str>,
     pub created_at: DateTime<Utc>,
+    #[serde(borrow)]
     pub description: Cow<'a, str>,
+    #[serde(borrow)]
     pub location: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub url: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub profile_image_url: Cow<'a, str>,
     #[serde(with = "optional_integer_str", default)]
     pub pinned_tweet_id: Option<u64>,
@@ -349,16 +340,21 @@ pub struct DerivedUser<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Derived<'a> {
+    #[serde(borrow)]
     pub locations: Vec<Location<'a>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Location<'a> {
+    #[serde(borrow)]
     pub full_name: Cow<'a, str>,
     pub country_code: Country,
+    #[serde(borrow)]
     pub region: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub sub_region: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub locality: Option<Cow<'a, str>>,
     pub geo: TypedCoordinates,
 }
@@ -373,5 +369,53 @@ pub struct Withheld {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Article<'a> {
+    #[serde(borrow)]
     pub title: Option<Cow<'a, str>>,
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn deserialize_tweet_snapshot_examples() {
+        // This example corpus is deliberately kept out of version control and out of the published
+        // crate, so the test is a no-op when the directory is absent rather than a hard failure.
+        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../examples/wxj/other");
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+
+        let mut checked = 0;
+        for entry in entries {
+            let path = entry.expect("Invalid directory entry").path();
+            let contents = std::fs::read_to_string(&path).expect("Invalid example file");
+            let result = serde_json::from_str::<super::TweetSnapshot<'_>>(&contents);
+
+            if let Err(error) = &result {
+                println!("{}: invalid tweet snapshot: {error}", path.display());
+            }
+
+            assert!(result.is_ok());
+            checked += 1;
+        }
+
+        assert!(checked > 0, "Example directory present but empty");
+    }
+
+    /// Regression: `Tweet::text` must deserialize as `Cow::Borrowed` for escape-free input,
+    /// confirming the `#[serde(borrow)]` attribute preserves the crate's zero-copy design.
+    #[test]
+    fn tweet_text_borrows_when_unescaped() {
+        let json = concat!(
+            r#"{"data":{"author_id":"1","conversation_id":"2","#,
+            r#""created_at":"2026-05-19T13:42:45.000Z","id":"2","lang":"en","#,
+            r#""possibly_sensitive":false,"public_metrics":{"retweet_count":0,"#,
+            r#""reply_count":0,"like_count":0,"quote_count":0},"#,
+            r#""reply_settings":"everyone","text":"hello world"},"#,
+            r#""includes":{"users":[]}}"#
+        );
+
+        let snapshot = serde_json::from_str::<super::TweetSnapshot<'_>>(json).unwrap();
+
+        assert!(matches!(snapshot.data.text, std::borrow::Cow::Borrowed(_)));
+    }
 }

@@ -15,6 +15,7 @@ use std::borrow::Cow;
 pub struct Cursor<'a> {
     #[serde(rename = "cursorType")]
     pub cursor_type: CursorType,
+    #[serde(borrow)]
     pub value: Cow<'a, str>,
     #[serde(rename = "displayTreatment", borrow)]
     display_treatment: Option<DisplayTreatment<'a>>,
@@ -73,7 +74,7 @@ pub struct TextHighlight {
 #[serde(deny_unknown_fields)]
 pub struct TweetContext<'a> {
     /// Should always be `"TimelineTweetContext"`.
-    #[serde(rename = "type")]
+    #[serde(rename = "type", borrow)]
     pub tweet_context_type: Cow<'a, str>,
     #[serde(rename = "tweetContext")]
     pub tweet_context: crate::model::graphql::timeline::context::TweetContext<'a>,

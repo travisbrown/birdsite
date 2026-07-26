@@ -122,6 +122,7 @@ impl<'de: 'a, 'a> Deserialize<'de> for Note<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Summary<'a> {
+    #[serde(borrow)]
     pub text: Cow<'a, str>,
     #[serde(borrow)]
     pub entities: Vec<TypedEntity<'a>>,

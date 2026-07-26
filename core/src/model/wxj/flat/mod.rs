@@ -10,7 +10,10 @@ use crate::model::{
 };
 use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
-use serde_field_attributes::{integer_str, optional_integer_str, optional_range, optional_usize};
+use serde_field_attributes::{
+    integer_str, optional_integer_str, optional_range, optional_timestamp_millis_str,
+    optional_usize,
+};
 use std::borrow::Cow;
 use std::ops::Range;
 
@@ -27,6 +30,7 @@ pub struct TweetSnapshot<'a> {
     pub id: u64,
     #[serde(with = "integer_str")]
     id_str: u64,
+    #[serde(borrow)]
     pub text: Cow<'a, str>,
     pub source: SourceAnchor,
     pub truncated: bool,
@@ -35,8 +39,9 @@ pub struct TweetSnapshot<'a> {
     in_reply_to_status_id_str: Option<u64>,
     pub in_reply_to_user_id: Option<u64>,
     #[serde(with = "optional_integer_str")]
-    pub in_reply_to_user_id_str: Option<u64>,
+    in_reply_to_user_id_str: Option<u64>,
     pub user: User<'a>,
+    #[serde(borrow)]
     pub in_reply_to_screen_name: Option<Cow<'a, str>>,
     pub geo: Option<TypedCoordinates>,
     pub coordinates: Option<TypedCoordinates>,
@@ -45,7 +50,7 @@ pub struct TweetSnapshot<'a> {
     pub quoted_status_id: Option<u64>,
     #[serde(with = "optional_integer_str")]
     #[serde(default)]
-    pub quoted_status_id_str: Option<u64>,
+    quoted_status_id_str: Option<u64>,
     // We have to write out the type here and below because of an apparent bug in the `ToStatic` macro.
     #[allow(clippy::use_self)]
     pub quoted_status: Option<Box<TweetSnapshot<'a>>>,
@@ -65,7 +70,9 @@ pub struct TweetSnapshot<'a> {
     pub possibly_sensitive: Option<bool>,
     pub filter_level: FilterLevel,
     pub lang: Lang,
-    pub timestamp_ms: Option<String>,
+    // Present only on top-level streamed tweets; nested quoted/retweeted statuses omit it.
+    #[serde(with = "optional_timestamp_millis_str", default)]
+    pub timestamp_ms: Option<DateTime<Utc>>,
     #[serde(with = "optional_range", default)]
     pub display_text_range: Option<Range<usize>>,
     #[serde(borrow)]
@@ -102,8 +109,11 @@ impl<'a> TweetSnapshot<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Url<'a> {
+    #[serde(borrow)]
     pub url: Cow<'a, str>,
+    #[serde(borrow)]
     pub expanded: Cow<'a, str>,
+    #[serde(borrow)]
     pub display: Cow<'a, str>,
 }
 
@@ -131,10 +141,15 @@ pub struct User<'a> {
     pub id: u64,
     #[serde(with = "integer_str")]
     id_str: u64,
+    #[serde(borrow)]
     pub name: Cow<'a, str>,
+    #[serde(borrow)]
     pub screen_name: Cow<'a, str>,
+    #[serde(borrow)]
     pub location: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub url: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub description: Option<Cow<'a, str>>,
     pub translator_type: Option<TranslatorType>,
     pub protected: bool,
@@ -157,7 +172,9 @@ pub struct User<'a> {
     pub contributors_enabled: bool,
     pub is_translator: bool,
     pub profile_background_color: Color,
+    #[serde(borrow)]
     profile_background_image_url: Cow<'a, str>,
+    #[serde(borrow)]
     pub profile_background_image_url_https: Cow<'a, str>,
     pub profile_background_tile: bool,
     pub profile_link_color: Color,
@@ -165,8 +182,11 @@ pub struct User<'a> {
     pub profile_sidebar_fill_color: Color,
     pub profile_text_color: Color,
     pub profile_use_background_image: bool,
+    #[serde(borrow)]
     profile_image_url: Cow<'a, str>,
+    #[serde(borrow)]
     pub profile_image_url_https: Cow<'a, str>,
+    #[serde(borrow)]
     pub profile_banner_url: Option<Cow<'a, str>>,
     pub default_profile: bool,
     pub default_profile_image: bool,
@@ -193,4 +213,50 @@ pub enum TranslatorType {
     Badged,
     #[serde(rename = "moderator")]
     Moderator,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::TweetSnapshot;
+
+    #[test]
+    fn deserialize_and_round_trip_flat_examples() {
+        let lines = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/data/wxj/flat.ndjson"
+        ))
+        .split('\n')
+        .filter(|line| !line.is_empty());
+
+        for (i, line) in lines.enumerate() {
+            let snapshot = serde_json::from_str::<TweetSnapshot<'_>>(line)
+                .unwrap_or_else(|error| panic!("Line {}: invalid flat snapshot: {error}", i + 1));
+
+            // The millisecond timestamp is present on the top-level streamed tweet but omitted on
+            // nested statuses, exercising both the parsed and defaulted paths.
+            assert!(
+                snapshot.timestamp_ms.is_some(),
+                "Line {}: missing timestamp_ms",
+                i + 1
+            );
+            for nested in snapshot
+                .retweeted_status
+                .iter()
+                .chain(&snapshot.quoted_status)
+            {
+                assert!(
+                    nested.timestamp_ms.is_none(),
+                    "Line {}: nested timestamp_ms",
+                    i + 1
+                );
+            }
+
+            // Re-serializing and re-parsing must yield an identical value, which confirms the
+            // `DateTime`-to-millisecond-string conversion is symmetric.
+            let serialized = serde_json::to_string(&snapshot).expect("serializable snapshot");
+            let reparsed = serde_json::from_str::<TweetSnapshot<'_>>(&serialized)
+                .expect("re-parseable snapshot");
+            assert_eq!(snapshot, reparsed, "Line {}: round-trip mismatch", i + 1);
+        }
+    }
 }

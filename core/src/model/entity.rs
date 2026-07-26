@@ -6,6 +6,7 @@ use std::ops::Range;
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LegacyUrl<'a> {
+    #[serde(borrow)]
     pub url: Cow<'a, str>,
     pub url_type: UrlType,
 }
@@ -84,9 +85,11 @@ pub enum TypedEntityReference<'a> {
         url: Url<'a>,
     },
     TimelineRichTextHashtag {
+        #[serde(borrow)]
         text: Cow<'a, str>,
     },
     TimelineRichTextCashtag {
+        #[serde(borrow)]
         text: Cow<'a, str>,
     },
 }
@@ -95,6 +98,7 @@ pub enum TypedEntityReference<'a> {
 // serialization instantiates it borrowed (avoiding a clone per entity).
 mod internal {
     #[derive(serde::Deserialize, serde::Serialize)]
+    #[serde(deny_unknown_fields)]
     pub(super) struct Entity<R> {
         pub from_index: usize,
         pub to_index: usize,
@@ -103,6 +107,7 @@ mod internal {
     }
 
     #[derive(serde::Deserialize, serde::Serialize)]
+    #[serde(deny_unknown_fields)]
     pub(super) struct TypedEntity<R> {
         #[serde(rename = "fromIndex")]
         pub from_index: usize,

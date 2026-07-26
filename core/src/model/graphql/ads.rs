@@ -23,11 +23,11 @@ pub struct PromotedMetadata<'a, U> {
     pub impression_id: &'a str,
     #[serde(rename = "impressionString")]
     pub impression_string: &'a str,
-    #[serde(rename = "promotedTrendName")]
+    #[serde(rename = "promotedTrendName", borrow)]
     pub promoted_trend_name: Option<Cow<'a, str>>,
-    #[serde(rename = "promotedTrendQueryTerm")]
+    #[serde(rename = "promotedTrendQueryTerm", borrow)]
     pub promoted_trend_query_term: Option<Cow<'a, str>>,
-    #[serde(rename = "promotedTrendDescription")]
+    #[serde(rename = "promotedTrendDescription", borrow)]
     pub promoted_trend_description: Option<Cow<'a, str>>,
     #[serde(rename = "promotedTrend")]
     pub promoted_trend: Option<PromotedTrend>,
@@ -49,7 +49,7 @@ pub struct AdMetadataContainer<'a> {
     #[serde(rename = "isQuickPromote")]
     pub is_quick_promote: Option<bool>,
     pub remove_promoted_attribution_for_preroll: Option<bool>,
-    #[serde(rename = "unifiedCardOverride")]
+    #[serde(rename = "unifiedCardOverride", borrow)]
     pub unified_card_override: Option<Cow<'a, str>>,
 }
 
@@ -69,6 +69,7 @@ pub enum DynamicPrerollType {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct PrerollMetadata<'a> {
+    #[serde(borrow)]
     pub preroll: Preroll<'a>,
 }
 
@@ -79,15 +80,15 @@ pub struct Preroll<'a> {
     pub preroll_id: u64,
     #[serde(rename = "dynamicPrerollType")]
     pub dynamic_preroll_type: DynamicPrerollType,
-    #[serde(rename = "mediaInfo")]
+    #[serde(rename = "mediaInfo", borrow)]
     pub media_info: MediaInfo<'a>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct MediaInfo<'a> {
-    #[serde(rename = "advertiserName")]
+    #[serde(rename = "advertiserName", borrow)]
     pub advertiser_name: Cow<'a, str>,
-    #[serde(rename = "advertiserProfileImageUrl")]
+    #[serde(rename = "advertiserProfileImageUrl", borrow)]
     pub advertiser_profile_image_url: Cow<'a, str>,
 }
 

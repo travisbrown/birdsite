@@ -4,12 +4,17 @@ use std::borrow::Cow;
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TweetError<'a> {
+    #[serde(borrow)]
     pub resource_id: Cow<'a, str>,
+    #[serde(borrow)]
     pub parameter: Cow<'a, str>,
     pub resource_type: TweetErrorResourceType,
     pub section: Option<TweetErrorSection>,
+    #[serde(borrow)]
     pub title: Cow<'a, str>,
+    #[serde(borrow)]
     pub value: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub detail: Cow<'a, str>,
     #[serde(rename = "type")]
     pub error_type: TweetErrorType,

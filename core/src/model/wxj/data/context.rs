@@ -15,7 +15,9 @@ pub struct ContextAnnotation<'a> {
 pub struct ContextDomain<'a> {
     #[serde(with = "integer_str")]
     pub id: u64,
+    #[serde(borrow)]
     pub name: Cow<'a, str>,
+    #[serde(borrow)]
     pub description: Option<Cow<'a, str>>,
 }
 
@@ -24,6 +26,8 @@ pub struct ContextDomain<'a> {
 pub struct ContextEntity<'a> {
     #[serde(with = "integer_str")]
     pub id: u64,
+    #[serde(borrow)]
     pub name: Cow<'a, str>,
+    #[serde(borrow)]
     pub description: Option<Cow<'a, str>>,
 }

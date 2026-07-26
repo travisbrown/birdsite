@@ -78,8 +78,11 @@ pub enum ItemContent<'a, T, U> {
     Pivot {
         #[serde(rename = "__typename")]
         typename: &'a str,
+        #[serde(borrow)]
         title_text: Cow<'a, str>,
+        #[serde(borrow)]
         detail_text: Option<Cow<'a, str>>,
+        #[serde(borrow)]
         destination_url: Cow<'a, str>,
         pivot_display_type: PivotDisplayType,
         image: Image<'a>,
@@ -89,6 +92,7 @@ pub enum ItemContent<'a, T, U> {
     Label {
         #[serde(rename = "__typename")]
         typename: &'a str,
+        #[serde(borrow)]
         text: Cow<'a, str>,
         display_type: Option<LabelDisplayType>,
         url: Option<crate::model::url::Url<'a>>,
@@ -100,13 +104,16 @@ pub enum ItemContent<'a, T, U> {
     Trend {
         #[serde(rename = "__typename")]
         typename: &'a str,
+        #[serde(borrow)]
         name: Cow<'a, str>,
+        #[serde(borrow)]
         description: Option<Cow<'a, str>>,
         social_context: Option<context::SocialContext<'a>>,
         is_ai_trend: Option<bool>,
         trend_url: crate::model::url::Url<'a>,
         trend_metadata: TrendMetadata<'a>,
         grouped_trends: Option<Vec<trends::Trend<'a>>>,
+        #[serde(borrow)]
         rank: Option<Cow<'a, str>>,
         thumbnail_image: Option<OriginalImage<'a>>,
         images: Option<Vec<trends::TrendImage<'a>>>,

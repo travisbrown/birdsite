@@ -17,12 +17,15 @@ pub struct Media<'a> {
     pub indices: Range<usize>,
     #[serde(borrow)]
     pub additional_media_info: Option<AdditionalMediaInfo<'a>>,
-    #[serde(rename = "media_url")]
+    #[serde(rename = "media_url", borrow)]
     media_url_http: Cow<'a, str>,
-    #[serde(rename = "media_url_https")]
+    #[serde(rename = "media_url_https", borrow)]
     pub media_url: Cow<'a, str>,
+    #[serde(borrow)]
     pub url: Cow<'a, str>,
+    #[serde(borrow)]
     pub display_url: Cow<'a, str>,
+    #[serde(borrow)]
     pub expanded_url: Cow<'a, str>,
     #[serde(rename = "type")]
     pub media_type: MediaType,
@@ -30,13 +33,16 @@ pub struct Media<'a> {
     pub sizes: MediaSizes,
     #[serde(flatten)]
     pub source_metadata: Option<MediaSourceMetadata>,
+    #[serde(borrow)]
     pub description: Option<Cow<'a, str>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AdditionalMediaInfo<'a> {
+    #[serde(borrow)]
     pub title: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub description: Option<Cow<'a, str>>,
     pub embeddable: Option<bool>,
     pub monetizable: bool,
@@ -48,6 +54,7 @@ pub struct VideoInfo<'a> {
     #[serde(with = "range")]
     pub aspect_ratio: Range<usize>,
     pub duration_millis: Option<usize>,
+    #[serde(borrow)]
     pub variants: Vec<MediaVariant<'a>>,
 }
 

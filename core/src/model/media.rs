@@ -36,6 +36,7 @@ pub enum MediaType {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MediaVariant<'a> {
+    #[serde(borrow)]
     pub url: Cow<'a, str>,
     pub content_type: ContentType,
     // Older snapshots (v1) tend to use the unhyphenated form.
@@ -70,7 +71,8 @@ pub struct MediaSize {
 pub struct Media<'a> {
     /// Numeric identifier of the media item.
     pub id: u64,
-    /// Wire-format string form of `id`; validated to match during deserialization.
+    /// Wire-format `id_str` field, preserved verbatim for exact round-tripping; normally the
+    /// decimal string form of `id`.
     #[serde(with = "integer_str")]
     id_str: u64,
     /// `[start, end)` byte offsets of the media URL in the tweet text.
@@ -80,16 +82,19 @@ pub struct Media<'a> {
     #[serde(borrow)]
     pub additional_media_info: Option<AdditionalMediaInfo<'a>>,
     /// HTTP URL of the media file (kept private; prefer `media_url`).
-    #[serde(rename = "media_url")]
+    #[serde(rename = "media_url", borrow)]
     media_url_http: Cow<'a, str>,
     /// HTTPS URL of the media file.
-    #[serde(rename = "media_url_https")]
+    #[serde(rename = "media_url_https", borrow)]
     pub media_url: Cow<'a, str>,
     /// Shortened `t.co` URL used in the tweet text.
+    #[serde(borrow)]
     pub url: Cow<'a, str>,
     /// Human-readable abbreviated form of the expanded URL.
+    #[serde(borrow)]
     pub display_url: Cow<'a, str>,
     /// Fully-expanded URL to the media page.
+    #[serde(borrow)]
     pub expanded_url: Cow<'a, str>,
     /// Media classification.
     #[serde(rename = "type")]
@@ -102,6 +107,7 @@ pub struct Media<'a> {
     #[serde(flatten)]
     source_metadata: internal::MaybeMediaSourceMetadata,
     /// Alt-text description of the media.
+    #[serde(borrow)]
     pub description: Option<Cow<'a, str>>,
 }
 
@@ -117,22 +123,53 @@ impl Media<'_> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AdditionalMediaInfo<'a> {
+    #[serde(borrow)]
     pub title: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub description: Option<Cow<'a, str>>,
     pub embeddable: Option<bool>,
     pub monetizable: bool,
+}
+
+/// Aspect ratio of a video, expressed as `width:height` (e.g. 16:9).
+///
+/// Serialized as the two-element `[width, height]` array used by the v1.1 API. This is a distinct
+/// type rather than a `Range`, whose `start..end` semantics (emptiness, `contains`, `len`) are
+/// meaningless for a ratio.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub struct AspectRatio {
+    pub width: usize,
+    pub height: usize,
+}
+
+impl serde::ser::Serialize for AspectRatio {
+    fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeTuple;
+        let mut tuple = serializer.serialize_tuple(2)?;
+        tuple.serialize_element(&self.width)?;
+        tuple.serialize_element(&self.height)?;
+        tuple.end()
+    }
+}
+
+impl<'de> serde::de::Deserialize<'de> for AspectRatio {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let (width, height) = <(usize, usize)>::deserialize(deserializer)?;
+
+        Ok(Self { width, height })
+    }
 }
 
 /// Video stream information attached to `video` and `animated_gif` media.
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct VideoInfo<'a> {
-    /// Width-to-height ratio encoded as `[width, height]`.
-    #[serde(with = "range")]
-    pub aspect_ratio: Range<usize>,
+    /// Width-to-height ratio of the video.
+    pub aspect_ratio: AspectRatio,
     /// Total duration of the video in milliseconds.
     pub duration_millis: Option<usize>,
     /// Available stream variants (codec, bitrate, URL).
+    #[serde(borrow)]
     pub variants: Vec<MediaVariant<'a>>,
 }
 

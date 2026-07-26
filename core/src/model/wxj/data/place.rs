@@ -6,11 +6,15 @@ use std::borrow::Cow;
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Place<'a> {
+    #[serde(borrow)]
     pub id: Cow<'a, str>,
     pub place_type: crate::model::place::PlaceType,
+    #[serde(borrow)]
     pub name: Cow<'a, str>,
     pub country_code: crate::model::country::PossibleCountry,
+    #[serde(borrow)]
     pub country: Cow<'a, str>,
+    #[serde(borrow)]
     pub full_name: Cow<'a, str>,
     pub geo: Option<PlaceGeo>,
 }

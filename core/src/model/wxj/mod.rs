@@ -1,11 +1,19 @@
+//! Models for the two JSON tweet-snapshot formats found in the Wayback Machine.
+//!
+//! The archive uses two distinct shapes over time: the nested [`data`] format (a `data` envelope
+//! mirroring the v2 API, seen from roughly December 2022 onward) and the older [`flat`] format (a
+//! single object mirroring the v1.1 API). [`TweetSnapshot`] unifies both.
+use bounded_static_derive_more::ToStatic;
+
 pub mod data;
 pub mod flat;
 pub mod metadata;
 
+/// A tweet snapshot in either of the two archived JSON formats.
 // Boxing the larger variant would break the `const fn` accessors below (dereferencing a `Box` is
 // not allowed in const contexts).
 #[allow(clippy::large_enum_variant)]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic)]
 pub enum TweetSnapshot<'a> {
     Data(data::TweetSnapshot<'a>),
     Flat(flat::TweetSnapshot<'a>),

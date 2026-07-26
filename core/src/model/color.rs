@@ -7,15 +7,16 @@ use std::str::FromStr;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("Invalid color code")]
+    #[error("Invalid color code: {0}")]
     Invalid(String),
 }
 
+/// An RGB color, parsed from a three- or six-digit hexadecimal string.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Color {
-    pub red: u16,
-    pub green: u16,
-    pub blue: u16,
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
 }
 
 impl FromStr for Color {
@@ -31,7 +32,7 @@ impl FromStr for Color {
             match s.len() {
                 3 => {
                     // CSS shorthand: each hex digit is doubled (e.g. "f0a" to "ff00aa").
-                    let digit = |i| u16::from_str_radix(&s[i..=i], 16).map(|v| v * 17);
+                    let digit = |i| u8::from_str_radix(&s[i..=i], 16).map(|v| v * 17);
 
                     Ok(Self {
                         red: digit(0).map_err(|_| err())?,
@@ -39,10 +40,10 @@ impl FromStr for Color {
                         blue: digit(2).map_err(|_| err())?,
                     })
                 }
-                6 => u16::from_str_radix(&s[0..2], 16)
+                6 => u8::from_str_radix(&s[0..2], 16)
                     .and_then(|red| {
-                        u16::from_str_radix(&s[2..4], 16).and_then(|green| {
-                            u16::from_str_radix(&s[4..6], 16).map(|blue| Self { red, green, blue })
+                        u8::from_str_radix(&s[2..4], 16).and_then(|green| {
+                            u8::from_str_radix(&s[4..6], 16).map(|blue| Self { red, green, blue })
                         })
                     })
                     .map_err(|_| err()),

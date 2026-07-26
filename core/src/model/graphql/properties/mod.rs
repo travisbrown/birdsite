@@ -32,6 +32,7 @@ pub struct ConversationAnnotation {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TombstoneInfo<'a> {
+    #[serde(borrow)]
     text: Cow<'a, str>,
     #[serde(rename = "richText", borrow)]
     rich_text: crate::model::graphql::text::Text<'a>,

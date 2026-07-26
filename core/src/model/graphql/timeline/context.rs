@@ -24,6 +24,7 @@ pub struct SocialContext<'a> {
     pub social_context_type: SocialContextType,
     #[serde(rename = "contextType")]
     pub context_type: SocialContextContextType,
+    #[serde(borrow)]
     pub text: Cow<'a, str>,
     #[serde(rename = "landingUrl")]
     pub landing_url: Option<crate::model::url::Url<'a>>,
@@ -62,6 +63,7 @@ pub enum SoftInterventionDisplayType {
 #[serde(tag = "__typename", deny_unknown_fields)]
 pub enum TweetContext<'a> {
     TimelineTweetGenericContext {
+        #[serde(borrow)]
         primary_text: Cow<'a, str>,
         url: crate::model::url::Url<'a>,
     },

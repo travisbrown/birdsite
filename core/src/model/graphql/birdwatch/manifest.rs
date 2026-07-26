@@ -4,7 +4,7 @@ use url::Url;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Invalid URL error")]
+    #[error("Invalid URL: {0}")]
     InvalidUrl(Url),
     #[error("Missing URLs")]
     MissingUrls,
