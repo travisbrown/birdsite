@@ -15,7 +15,6 @@ use std::borrow::Cow;
 use std::ops::Range;
 
 pub mod entity;
-pub mod media;
 
 // The bools mirror the wire format.
 #[allow(clippy::struct_excessive_bools)]

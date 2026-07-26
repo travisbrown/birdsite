@@ -1,3 +1,4 @@
+use crate::model::media::Media;
 use bounded_static_derive_more::ToStatic;
 use serde_field_attributes::range;
 use std::borrow::Cow;
@@ -11,7 +12,7 @@ pub struct TweetEntities<'a> {
     pub user_mentions: Vec<Mention<'a>>,
     pub symbols: Vec<Symbol>,
     #[serde(borrow)]
-    pub media: Option<Vec<super::media::Media<'a>>>,
+    pub media: Option<Vec<Media<'a>>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
@@ -62,5 +63,5 @@ pub struct Symbol {
 #[serde(deny_unknown_fields)]
 pub struct ExtendedTweetExtendedEntities<'a> {
     #[serde(borrow)]
-    pub media: Vec<super::media::Media<'a>>,
+    pub media: Vec<Media<'a>>,
 }
