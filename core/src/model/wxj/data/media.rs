@@ -78,9 +78,12 @@ pub struct MediaMetadata<'a> {
 mod tests {
     #[test]
     fn deserialize_media_examples() {
-        let lines = include_str!("../../../../../examples/wxj/media.ndjson")
-            .split('\n')
-            .filter(|line| !line.is_empty());
+        let lines = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/data/wxj/media.ndjson"
+        ))
+        .split('\n')
+        .filter(|line| !line.is_empty());
 
         for (i, line) in lines.enumerate() {
             let result = serde_json::from_str::<super::Media<'_>>(line);

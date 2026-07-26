@@ -150,10 +150,14 @@ pub struct JoinRequestsResult {}
 mod tests {
     use crate::model::graphql::user::User;
 
-    const COMMUNITIES_2024_08_01: &str =
-        include_str!("../../../../examples/graphql/communities-2024-08-01.ndjson");
-    const COMMUNITIES_2025_06_01: &str =
-        include_str!("../../../../examples/graphql/communities-2025-06-01.ndjson");
+    const COMMUNITIES_2024_08_01: &str = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/data/graphql/communities-2024-08-01.ndjson"
+    ));
+    const COMMUNITIES_2025_06_01: &str = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/data/graphql/communities-2025-06-01.ndjson"
+    ));
 
     #[test]
     fn deserialize_examples_2024_08_01() {

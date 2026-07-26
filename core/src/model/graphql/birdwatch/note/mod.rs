@@ -294,10 +294,12 @@ mod tests {
 
     #[test]
     fn deserialize_birdwatch_examples() {
-        let lines =
-            include_str!("../../../../../../examples/graphql/birdwatch-notes-2025-08-28.ndjson")
-                .split('\n')
-                .filter(|line| !line.is_empty());
+        let lines = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/data/graphql/birdwatch-notes-2025-08-28.ndjson"
+        ))
+        .split('\n')
+        .filter(|line| !line.is_empty());
 
         for (i, line) in lines.enumerate() {
             let result = serde_json::from_str::<BirdwatchNote<'_>>(line);

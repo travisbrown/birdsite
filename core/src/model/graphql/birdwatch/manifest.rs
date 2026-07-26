@@ -107,8 +107,10 @@ mod tests {
 
     #[test]
     fn deserialize_birdwatch_examples() {
-        let line =
-            include_str!("../../../../../examples/graphql/birdwatch-manifest-2025-08-28.json");
+        let line = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/data/graphql/birdwatch-manifest-2025-08-28.json"
+        ));
 
         let result = serde_json::from_str::<Manifest>(line);
 

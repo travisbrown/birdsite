@@ -258,8 +258,11 @@ mod tests {
     #[test]
     fn parse_exchange_with_timeout_errors() {
         // We remove the trailing line break from the file contents.
-        let json =
-            include_str!("../../../examples/graphql/errors-timeout-1764462528033.json").trim_end();
+        let json = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/data/errors-timeout-1764462528033.json"
+        ))
+        .trim_end();
 
         let exchange: Exchange<'_, Variables, Body> =
             super::parse_exchange(json, 1, &crate::request::filter::exclude_filter([]))
@@ -278,9 +281,11 @@ mod tests {
     #[test]
     fn parse_exchange_with_authorization_errors() {
         // We remove the trailing line break from the file contents.
-        let json =
-            include_str!("../../../examples/graphql/errors-authorization-1764497106517.json")
-                .trim_end();
+        let json = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/data/errors-authorization-1764497106517.json"
+        ))
+        .trim_end();
 
         let exchange: Exchange<'_, Variables, Body> =
             super::parse_exchange(json, 1, &crate::request::filter::exclude_filter([]))
@@ -299,8 +304,11 @@ mod tests {
     #[test]
     fn parse_exchange_without_errors() {
         // We remove the trailing line break from the file contents.
-        let json =
-            include_str!("../../../examples/graphql/errors-none-1764460993001.json").trim_end();
+        let json = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/data/errors-none-1764460993001.json"
+        ))
+        .trim_end();
 
         let exchange: Exchange<'_, Variables, Body> =
             super::parse_exchange(json, 1, &crate::request::filter::exclude_filter([]))
@@ -334,8 +342,11 @@ mod tests {
     #[test]
     fn parse_exchange_with_missing_data() {
         // We remove the trailing line break from the file contents.
-        let json = include_str!("../../../examples/graphql/errors-data-missing-1738068567896.json")
-            .trim_end();
+        let json = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/data/errors-data-missing-1738068567896.json"
+        ))
+        .trim_end();
 
         let exchange: Exchange<'_, Variables, Body> =
             super::parse_exchange(json, 1, &crate::request::filter::exclude_filter([]))
