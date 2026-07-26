@@ -44,7 +44,7 @@ pub struct MediaVariant<'a> {
     pub bit_rate: Option<usize>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MediaSizes {
     pub thumb: MediaSize,
@@ -53,7 +53,7 @@ pub struct MediaSizes {
     pub large: MediaSize,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MediaSize {
     pub w: usize,
@@ -138,17 +138,15 @@ pub struct AdditionalMediaInfo<'a> {
 /// meaningless for a ratio.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct AspectRatio {
+    /// Width component of the ratio.
     pub width: usize,
+    /// Height component of the ratio.
     pub height: usize,
 }
 
 impl serde::ser::Serialize for AspectRatio {
     fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeTuple;
-        let mut tuple = serializer.serialize_tuple(2)?;
-        tuple.serialize_element(&self.width)?;
-        tuple.serialize_element(&self.height)?;
-        tuple.end()
+        (self.width, self.height).serialize(serializer)
     }
 }
 
@@ -190,8 +188,8 @@ mod internal {
     ///
     /// A derived `Option<MediaSourceMetadata>` flatten would treat a partial set of keys as
     /// `None`, silently dropping the present values; this wrapper reads the four fields as
-    /// individually optional and requires each `id`/`id_str` pair to be complete and consistent.
-    /// The status pair may appear without the user pair (2015-era archives), but not vice versa.
+    /// individually optional and requires each identifier pair to be complete and consistent. The
+    /// status pair may appear without the user pair (2015-era archives), but not vice versa.
     #[derive(Clone, Debug, Eq, PartialEq)]
     pub(super) struct MaybeMediaSourceMetadata(pub(super) Option<super::MediaSourceMetadata>);
 
@@ -300,6 +298,31 @@ mod tests {
 
     fn media_json(extra: &str) -> String {
         format!("{{{BASE_FIELDS}{extra}}}")
+    }
+
+    #[test]
+    fn round_trips_aspect_ratio() {
+        let ratio = serde_json::from_str::<AspectRatio>("[16,9]").unwrap();
+
+        assert_eq!(
+            ratio,
+            AspectRatio {
+                width: 16,
+                height: 9
+            }
+        );
+        // The wire format is a two-element array, not a `start`/`end` map.
+        assert_eq!(serde_json::to_string(&ratio).unwrap(), "[16,9]");
+    }
+
+    #[test]
+    fn rejects_malformed_aspect_ratio() {
+        for json in ["[16]", "[16,9,1]", r#"["16","9"]"#, "{}"] {
+            assert!(
+                serde_json::from_str::<AspectRatio>(json).is_err(),
+                "{json} should not be a valid aspect ratio"
+            );
+        }
     }
 
     #[test]
