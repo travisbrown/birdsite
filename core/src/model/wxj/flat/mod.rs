@@ -10,7 +10,7 @@ use crate::model::{
 };
 use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
-use serde_field_attributes::{optional_range, optional_timestamp_millis_str};
+use serde_field_attributes::{optional_range, optional_timestamp_millis_str, range};
 use std::borrow::Cow;
 use std::ops::Range;
 
@@ -124,6 +124,7 @@ pub struct Scopes {
 pub struct ExtendedTweet<'a> {
     #[serde(borrow)]
     pub full_text: Cow<'a, str>,
+    #[serde(with = "range")]
     pub display_text_range: Range<usize>,
     pub entities: entity::TweetEntities<'a>,
     pub extended_entities: Option<entity::ExtendedTweetExtendedEntities<'a>>,
@@ -213,7 +214,52 @@ pub enum TranslatorType {
 
 #[cfg(test)]
 mod tests {
-    use super::TweetSnapshot;
+    use super::{ExtendedTweet, TweetSnapshot};
+
+    /// Recursively drops object entries whose value is `null`.
+    ///
+    /// Absent optional fields are serialized as explicit nulls rather than omitted, so this
+    /// normalization is what lets a re-serialized snapshot be compared against the input JSON.
+    fn strip_nulls(value: &mut serde_json::Value) {
+        match value {
+            serde_json::Value::Object(fields) => {
+                fields.retain(|_, field| !field.is_null());
+
+                for field in fields.values_mut() {
+                    strip_nulls(field);
+                }
+            }
+            serde_json::Value::Array(items) => {
+                for item in items {
+                    strip_nulls(item);
+                }
+            }
+            serde_json::Value::Null
+            | serde_json::Value::Bool(_)
+            | serde_json::Value::Number(_)
+            | serde_json::Value::String(_) => {}
+        }
+    }
+
+    #[test]
+    fn serializes_extended_tweet_display_text_range_as_array() {
+        // No corpus line exercises `extended_tweet`, and this field previously lacked the `range`
+        // attribute, so it was emitted as a `start`/`end` map that still reparsed as an equal
+        // value.
+        let json = concat!(
+            r#"{"full_text":"hello world","display_text_range":[0,11],"entities":"#,
+            r#"{"hashtags":[],"urls":[],"user_mentions":[],"symbols":[],"media":null}}"#
+        );
+
+        let extended = serde_json::from_str::<ExtendedTweet<'_>>(json).unwrap();
+
+        assert_eq!(extended.display_text_range, 0..11);
+        assert!(
+            serde_json::to_string(&extended)
+                .unwrap()
+                .contains(r#""display_text_range":[0,11]"#)
+        );
+    }
 
     #[test]
     fn deserialize_and_round_trip_flat_examples() {
@@ -253,6 +299,17 @@ mod tests {
             let reparsed = serde_json::from_str::<TweetSnapshot<'_>>(&serialized)
                 .expect("re-parseable snapshot");
             assert_eq!(snapshot, reparsed, "Line {}: round-trip mismatch", i + 1);
+
+            // Value equality alone cannot see a changed JSON shape, since a two-element array
+            // emitted as a `start`/`end` map reparses to an equal value, so also compare the
+            // emitted JSON against the input.
+            let mut original =
+                serde_json::from_str::<serde_json::Value>(line).expect("valid input JSON");
+            let mut emitted =
+                serde_json::from_str::<serde_json::Value>(&serialized).expect("valid output JSON");
+            strip_nulls(&mut original);
+            strip_nulls(&mut emitted);
+            assert_eq!(original, emitted, "Line {}: wire-format mismatch", i + 1);
         }
     }
 }
