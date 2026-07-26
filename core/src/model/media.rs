@@ -1,5 +1,5 @@
 use bounded_static_derive_more::ToStatic;
-use serde_field_attributes::{integer_str, range};
+use serde_field_attributes::range;
 use std::borrow::Cow;
 use std::ops::Range;
 
@@ -73,7 +73,7 @@ pub struct Media<'a> {
     pub id: u64,
     /// Wire-format `id_str` field, preserved verbatim for exact round-tripping; normally the
     /// decimal string form of `id`.
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     id_str: u64,
     /// `[start, end)` byte offsets of the media URL in the tweet text.
     #[serde(with = "range")]
@@ -185,7 +185,6 @@ pub struct MediaSourceMetadata {
 
 mod internal {
     use serde::de::Unexpected;
-    use serde_field_attributes::optional_integer_str;
 
     /// Validating wrapper for the flattened `source_*` wire fields.
     ///
@@ -203,7 +202,7 @@ mod internal {
         #[serde(skip_serializing_if = "Option::is_none")]
         source_status_id: Option<u64>,
         #[serde(
-            with = "optional_integer_str",
+            with = "crate::model::attributes::optional_id_str",
             default,
             skip_serializing_if = "Option::is_none"
         )]
@@ -211,7 +210,7 @@ mod internal {
         #[serde(skip_serializing_if = "Option::is_none")]
         source_user_id: Option<u64>,
         #[serde(
-            with = "optional_integer_str",
+            with = "crate::model::attributes::optional_id_str",
             default,
             skip_serializing_if = "Option::is_none"
         )]

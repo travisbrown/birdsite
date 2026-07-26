@@ -1,5 +1,4 @@
 use crate::model::KeyValuePair;
-use serde_field_attributes::integer_str;
 use std::borrow::Cow;
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -56,7 +55,7 @@ pub struct AdMetadataContainer<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct PromotedTrend {
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub rest_id: u64,
 }
 
@@ -76,7 +75,7 @@ pub struct PrerollMetadata<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Preroll<'a> {
-    #[serde(rename = "prerollId", with = "integer_str")]
+    #[serde(rename = "prerollId", with = "crate::model::attributes::id_str")]
     pub preroll_id: u64,
     #[serde(rename = "dynamicPrerollType")]
     pub dynamic_preroll_type: DynamicPrerollType,

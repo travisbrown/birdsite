@@ -1,6 +1,5 @@
 use crate::model::media::{MediaType, MediaVariant};
 use bounded_static_derive_more::ToStatic;
-use serde_field_attributes::integer_str;
 use serde_field_attributes::range;
 use std::borrow::Cow;
 use std::ops::Range;
@@ -11,7 +10,7 @@ use std::ops::Range;
 #[serde(deny_unknown_fields)]
 pub struct Media<'a> {
     pub id: u64,
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     id_str: u64,
     #[serde(with = "range")]
     pub indices: Range<usize>,
@@ -88,10 +87,10 @@ pub enum Resize {
 pub struct MediaSourceMetadata {
     #[serde(rename = "source_status_id")]
     pub status_id: u64,
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     source_status_id_str: u64,
     #[serde(rename = "source_user_id")]
     pub user_id: u64,
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     source_user_id_str: u64,
 }

@@ -1,5 +1,5 @@
 use bounded_static_derive_more::ToStatic;
-use serde_field_attributes::{optional_integer_str, range};
+use serde_field_attributes::range;
 use std::borrow::Cow;
 use std::ops::Range;
 
@@ -40,7 +40,7 @@ pub struct Url<'a> {
 #[serde(deny_unknown_fields)]
 pub struct Mention<'a> {
     pub id: Option<u64>,
-    #[serde(with = "optional_integer_str")]
+    #[serde(with = "crate::model::attributes::optional_id_str")]
     id_str: Option<u64>,
     #[serde(borrow)]
     pub screen_name: Cow<'a, str>,

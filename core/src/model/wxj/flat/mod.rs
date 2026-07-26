@@ -10,10 +10,7 @@ use crate::model::{
 };
 use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
-use serde_field_attributes::{
-    integer_str, optional_integer_str, optional_range, optional_timestamp_millis_str,
-    optional_usize,
-};
+use serde_field_attributes::{optional_range, optional_timestamp_millis_str};
 use std::borrow::Cow;
 use std::ops::Range;
 
@@ -28,17 +25,17 @@ pub struct TweetSnapshot<'a> {
     #[serde(with = "text_timestamp")]
     pub created_at: DateTime<Utc>,
     pub id: u64,
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     id_str: u64,
     #[serde(borrow)]
     pub text: Cow<'a, str>,
     pub source: SourceAnchor,
     pub truncated: bool,
     pub in_reply_to_status_id: Option<u64>,
-    #[serde(with = "optional_integer_str")]
+    #[serde(with = "crate::model::attributes::optional_id_str")]
     in_reply_to_status_id_str: Option<u64>,
     pub in_reply_to_user_id: Option<u64>,
-    #[serde(with = "optional_integer_str")]
+    #[serde(with = "crate::model::attributes::optional_id_str")]
     in_reply_to_user_id_str: Option<u64>,
     pub user: User<'a>,
     #[serde(borrow)]
@@ -48,7 +45,7 @@ pub struct TweetSnapshot<'a> {
     pub place: Option<Place<'a>>,
     pub contributors: Option<Vec<u64>>,
     pub quoted_status_id: Option<u64>,
-    #[serde(with = "optional_integer_str")]
+    #[serde(with = "crate::model::attributes::optional_id_str")]
     #[serde(default)]
     quoted_status_id_str: Option<u64>,
     // We have to write out the type here and below because of an apparent bug in the `ToStatic` macro.
@@ -139,7 +136,7 @@ pub struct ExtendedTweet<'a> {
 #[serde(deny_unknown_fields)]
 pub struct User<'a> {
     pub id: u64,
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     id_str: u64,
     #[serde(borrow)]
     pub name: Cow<'a, str>,
@@ -154,14 +151,14 @@ pub struct User<'a> {
     pub translator_type: Option<TranslatorType>,
     pub protected: bool,
     pub verified: bool,
-    #[serde(with = "optional_usize")]
+    #[serde(with = "crate::model::attributes::optional_count_with_sentinel")]
     pub followers_count: Option<usize>,
-    #[serde(with = "optional_usize")]
+    #[serde(with = "crate::model::attributes::optional_count_with_sentinel")]
     pub friends_count: Option<usize>,
     pub listed_count: Option<usize>,
-    #[serde(with = "optional_usize")]
+    #[serde(with = "crate::model::attributes::optional_count_with_sentinel")]
     pub favourites_count: Option<usize>,
-    #[serde(with = "optional_usize")]
+    #[serde(with = "crate::model::attributes::optional_count_with_sentinel")]
     pub statuses_count: Option<usize>,
     #[serde(with = "text_timestamp")]
     pub created_at: DateTime<Utc>,

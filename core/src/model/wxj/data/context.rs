@@ -1,5 +1,4 @@
 use bounded_static_derive_more::ToStatic;
-use serde_field_attributes::integer_str;
 use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
@@ -13,7 +12,7 @@ pub struct ContextAnnotation<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ContextDomain<'a> {
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
     #[serde(borrow)]
     pub name: Cow<'a, str>,
@@ -24,7 +23,7 @@ pub struct ContextDomain<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ContextEntity<'a> {
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
     #[serde(borrow)]
     pub name: Cow<'a, str>,

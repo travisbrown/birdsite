@@ -210,14 +210,13 @@ pub struct MediaNoteMatchesV2 {
 mod internal {
     use crate::model::graphql::text::Text;
     use chrono::{DateTime, Utc, serde::ts_milliseconds_option};
-    use serde_field_attributes::{integer_str, optional_integer_str};
 
     // Field names mirror the wire format (`is_media_note` etc.).
     #[allow(clippy::struct_field_names)]
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub(super) struct Note<'a> {
-        #[serde(with = "integer_str")]
+        #[serde(with = "crate::model::attributes::id_str")]
         pub(super) rest_id: u64,
         #[serde(borrow)]
         pub(super) data_v1: Option<DataV1<'a>>,
@@ -235,7 +234,7 @@ mod internal {
         pub(super) can_appeal: Option<bool>,
         pub(super) appeal_status: Option<super::AppealStatus>,
         pub(super) is_media_note: Option<bool>,
-        #[serde(default, with = "optional_integer_str")]
+        #[serde(default, with = "crate::model::attributes::optional_count_str")]
         pub(super) media_note_matches: Option<usize>,
         pub(super) media_note_matches_v2: Option<super::MediaNoteMatchesV2>,
         pub(super) is_in_account_language: Option<bool>,
@@ -279,7 +278,7 @@ mod internal {
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub(super) struct TweetResultsResult {
-        #[serde(with = "optional_integer_str", default)]
+        #[serde(with = "crate::model::attributes::optional_id_str", default)]
         pub(super) rest_id: Option<u64>,
         pub(super) media_note_category: Option<super::MediaNoteCategory>,
     }

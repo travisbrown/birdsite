@@ -1,6 +1,5 @@
 use crate::model::graphql::ResultWrapper;
 use chrono::{DateTime, Utc, serde::ts_milliseconds};
-use serde_field_attributes::{integer_str, optional_integer_str};
 use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -16,7 +15,7 @@ pub enum CommunityResult<'a, U> {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Community<'a, U> {
-    #[serde(rename = "id_str", with = "integer_str")]
+    #[serde(rename = "id_str", with = "crate::model::attributes::id_str")]
     pub id: u64,
     #[serde(borrow)]
     pub name: Cow<'a, str>,
@@ -49,7 +48,11 @@ pub struct Community<'a, U> {
     pub join_requests_result: JoinRequestsResult,
     #[serde(rename = "id", borrow)]
     _internal_id: Option<Cow<'a, str>>,
-    #[serde(rename = "rest_id", with = "optional_integer_str", default)]
+    #[serde(
+        rename = "rest_id",
+        with = "crate::model::attributes::optional_id_str",
+        default
+    )]
     _rest_id: Option<u64>,
 }
 
@@ -78,7 +81,7 @@ pub struct InvitesResult {}
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Topic<'a> {
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub topic_id: u64,
     #[serde(borrow)]
     pub topic_name: Cow<'a, str>,
@@ -105,7 +108,7 @@ pub enum Role {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Rule<'a> {
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub rest_id: u64,
     #[serde(borrow)]
     pub name: Cow<'a, str>,

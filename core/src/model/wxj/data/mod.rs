@@ -8,7 +8,6 @@ use crate::model::{
 };
 use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
-use serde_field_attributes::{integer_str, optional_integer_str, optional_integer_str_array};
 use std::borrow::Cow;
 
 pub mod context;
@@ -83,17 +82,17 @@ pub struct Tweet<'a> {
     #[serde(borrow)]
     pub article: Option<Article<'a>>,
     pub attachments: Option<Attachments>,
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub author_id: u64,
     pub context_annotations: Option<Vec<context::ContextAnnotation<'a>>>,
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub conversation_id: u64,
     pub created_at: DateTime<Utc>,
     pub edit_controls: Option<EditControls>,
-    #[serde(with = "optional_integer_str_array", default)]
-    pub edit_history_tweet_ids: Option<Vec<u64>>,
+    #[serde(with = "crate::model::attributes::optional_ids_str", default)]
+    pub edit_history_tweet_ids: Option<Cow<'a, [u64]>>,
     pub lang: Lang,
     pub entities: Option<entity::TweetEntities<'a>>,
     pub geo: Option<Geo<'a>>,
@@ -104,7 +103,7 @@ pub struct Tweet<'a> {
     pub reply_settings: ReplySettings,
     #[serde(borrow)]
     pub text: Cow<'a, str>,
-    #[serde(with = "optional_integer_str", default)]
+    #[serde(with = "crate::model::attributes::optional_id_str", default)]
     pub in_reply_to_user_id: Option<u64>,
     pub source: Option<SourceName>,
     pub withheld: Option<Withheld>,
@@ -157,17 +156,17 @@ impl Tweet<'_> {
 pub struct Attachments {
     pub media_keys: Option<Vec<String>>,
     #[serde(
-        with = "optional_integer_str_array",
+        with = "crate::model::attributes::optional_ids_str",
         default,
         skip_serializing_if = "Option::is_none"
     )]
-    pub media_source_tweet_id: Option<Vec<u64>>,
+    pub media_source_tweet_id: Option<Cow<'static, [u64]>>,
     #[serde(
-        with = "optional_integer_str_array",
+        with = "crate::model::attributes::optional_ids_str",
         default,
         skip_serializing_if = "Option::is_none"
     )]
-    pub poll_ids: Option<Vec<u64>>,
+    pub poll_ids: Option<Cow<'static, [u64]>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
@@ -190,7 +189,7 @@ impl<'a> TweetIncludes<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Poll<'a> {
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
     pub voting_status: PollVotingStatus,
     pub duration_minutes: usize,
@@ -246,7 +245,7 @@ pub struct NoteTweet<'a> {
 pub struct ReferencedTweet {
     #[serde(rename = "type")]
     pub reference_type: ReferenceType,
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
 }
 
@@ -304,7 +303,7 @@ impl<'a> UserEntry<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct User<'a> {
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
     #[serde(borrow)]
     pub username: Cow<'a, str>,
@@ -319,7 +318,7 @@ pub struct User<'a> {
     pub url: Option<Cow<'a, str>>,
     #[serde(borrow)]
     pub profile_image_url: Cow<'a, str>,
-    #[serde(with = "optional_integer_str", default)]
+    #[serde(with = "crate::model::attributes::optional_id_str", default)]
     pub pinned_tweet_id: Option<u64>,
     pub entities: Option<entity::UserEntities<'a>>,
     pub verified: bool,
@@ -331,7 +330,7 @@ pub struct User<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DerivedUser<'a> {
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
     #[serde(borrow)]
     pub derived: Option<Derived<'a>>,

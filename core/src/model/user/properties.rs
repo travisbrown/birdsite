@@ -1,5 +1,4 @@
 use bounded_static_derive_more::ToStatic;
-use serde_field_attributes::integer_str;
 use std::borrow::Cow;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -37,7 +36,7 @@ pub enum ParodyCommentaryFanLabel {
 #[serde(deny_unknown_fields)]
 pub struct HighlightsInfo {
     pub can_highlight_tweets: bool,
-    #[serde(with = "integer_str")]
+    #[serde(with = "crate::model::attributes::count_str")]
     pub highlighted_tweets: usize,
 }
 
@@ -164,14 +163,13 @@ pub struct Birthdate {
 }
 
 mod internal {
-    use serde_field_attributes::integer_str;
 
     // Field names mirror the wire format (`professional_type`).
     #[allow(clippy::struct_field_names)]
     #[derive(serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
     pub(super) struct Professional<'a> {
-        #[serde(with = "integer_str")]
+        #[serde(with = "crate::model::attributes::id_str")]
         pub rest_id: u64,
         pub professional_type: super::ProfessionalType,
         #[serde(borrow)]
