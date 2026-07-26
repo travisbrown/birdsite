@@ -1,4 +1,4 @@
-use crate::model::media::{MediaType, MediaVariant};
+use crate::model::media::{AspectRatio, MediaType, MediaVariant};
 use bounded_static_derive_more::ToStatic;
 use serde_field_attributes::range;
 use std::borrow::Cow;
@@ -50,8 +50,7 @@ pub struct AdditionalMediaInfo<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct VideoInfo<'a> {
-    #[serde(with = "range")]
-    pub aspect_ratio: Range<usize>,
+    pub aspect_ratio: AspectRatio,
     pub duration_millis: Option<usize>,
     #[serde(borrow)]
     pub variants: Vec<MediaVariant<'a>>,
