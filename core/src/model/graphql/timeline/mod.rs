@@ -15,6 +15,142 @@ pub mod context;
 pub mod item;
 pub mod trends;
 
+/// A timeline response instruction.
+///
+/// This is the outermost layer of every timeline response: a list of instructions that add,
+/// replace, or pin the entries that carry tweets and users. The type parameters are the tweet
+/// result and user representations, as for [`ModuleItem`].
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(tag = "type", deny_unknown_fields)]
+pub enum Instruction<'a, T, U> {
+    #[serde(rename = "TimelineClearCache")]
+    ClearCache,
+    #[serde(rename = "TimelineTerminateTimeline")]
+    TerminateTimeline {
+        direction: crate::model::graphql::properties::TimelineDirection,
+    },
+    #[serde(rename = "TimelineAddEntries")]
+    AddEntries {
+        #[serde(borrow)]
+        entries: Vec<Entry<'a, T, U>>,
+    },
+    #[serde(rename = "TimelinePinEntry")]
+    PinEntry {
+        #[serde(borrow)]
+        entry: Entry<'a, T, U>,
+    },
+    #[serde(rename = "TimelineReplaceEntry")]
+    ReplaceEntry {
+        entry_id_to_replace: EntryId<'a>,
+        #[serde(borrow)]
+        entry: Entry<'a, T, U>,
+    },
+    #[serde(rename = "TimelineAddToModule")]
+    AddToModule {
+        #[serde(rename = "moduleEntryId")]
+        module_entry_id: EntryId<'a>,
+        #[serde(rename = "moduleItems", borrow)]
+        module_items: Vec<ModuleItem<'a, T, U>>,
+        prepend: Option<bool>,
+    },
+    #[serde(rename = "TimelineShowCover")]
+    ShowCover,
+    #[serde(rename = "TimelineShowAlert")]
+    ShowAlert,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(transparent)]
+pub struct EntryId<'a>(#[serde(borrow)] pub Cow<'a, str>);
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Entry<'a, T, U> {
+    #[serde(rename = "entryId")]
+    pub entry_id: EntryId<'a>,
+    #[serde(rename = "sortIndex", with = "serde_field_attributes::integer_str")]
+    pub sort_index: u64,
+    #[serde(borrow)]
+    pub content: EntryContent<'a, T, U>,
+}
+
+// Boxing the module and item payloads would complicate destructuring for little benefit, since
+// cursor entries are rare relative to content entries.
+#[allow(clippy::large_enum_variant)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(tag = "entryType", deny_unknown_fields)]
+pub enum EntryContent<'a, T, U> {
+    #[serde(rename = "TimelineTimelineCursor")]
+    Cursor(#[serde(borrow)] item::Cursor<'a>),
+    #[serde(rename = "TimelineTimelineModule")]
+    Module {
+        #[serde(rename = "__typename")]
+        typename: &'a str,
+        #[serde(borrow)]
+        items: Vec<ModuleItem<'a, T, U>>,
+        metadata: Option<serde_json::Value>,
+        #[serde(rename = "displayType")]
+        display_type: crate::model::graphql::properties::display::ModuleDisplayType,
+        header: Option<EntryContentHeader<'a>>,
+        footer: Option<EntryContentFooter<'a>>,
+        #[serde(rename = "clientEventInfo")]
+        client_event_info: Option<client::event::ClientEventInfo<'a>>,
+        #[serde(rename = "feedbackInfo")]
+        feedback_info: Option<client::feedback::FeedbackInfo<'a>>,
+    },
+    #[serde(rename = "TimelineTimelineItem")]
+    Item {
+        #[serde(rename = "__typename")]
+        typename: &'a str,
+        #[serde(rename = "itemContent")]
+        item_content: ItemContent<'a, T, U>,
+        #[serde(rename = "clientEventInfo")]
+        client_event_info: Option<client::event::ClientEventInfo<'a>>,
+        #[serde(rename = "feedbackInfo")]
+        feedback_info: Option<client::feedback::FeedbackInfo<'a>>,
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct EntryContentHeader<'a> {
+    #[serde(rename = "displayType")]
+    pub display_type: EntryContentHeaderDisplayType,
+    pub text: &'a str,
+    #[serde(rename = "socialContext")]
+    pub social_context: Option<context::SocialContext<'a>>,
+    #[serde(rename = "landingUrl")]
+    pub landing_url: Option<crate::model::url::Url<'a>>,
+    pub icon: Option<EntryContentHeaderIcon>,
+    pub sticky: Option<bool>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct EntryContentFooter<'a> {
+    #[serde(rename = "displayType")]
+    pub display_type: EntryContentFooterDisplayType,
+    pub text: &'a str,
+    #[serde(rename = "landingUrl")]
+    pub landing_url: Option<crate::model::url::Url<'a>>,
+    pub url: Option<&'a str>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
+pub enum EntryContentHeaderDisplayType {
+    Classic,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
+pub enum EntryContentHeaderIcon {
+    TopicFilled,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
+pub enum EntryContentFooterDisplayType {
+    Classic,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ModuleItem<'a, T, U> {
