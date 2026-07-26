@@ -296,27 +296,6 @@ pub const REQUEST_NAME_VALUES: [RequestName; 112] = [
     RequestName::ViewerUserQuery,
 ];
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Counts(std::collections::BTreeMap<RequestName, usize>);
-
-impl Counts {
-    pub fn add(&mut self, request_name: RequestName) {
-        let count = self.0.entry(request_name).or_default();
-        *count += 1;
-    }
-
-    #[must_use]
-    pub fn sorted(&self) -> Vec<(RequestName, usize)> {
-        let mut values = self
-            .0
-            .iter()
-            .map(|(request_name, count)| (*request_name, *count))
-            .collect::<Vec<_>>();
-        values.sort_by_key(|(request_name, count)| (std::cmp::Reverse(*count), *request_name));
-        values
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::RequestName;

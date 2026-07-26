@@ -38,6 +38,8 @@ impl RequestFilter for Vec<RequestName> {
     }
 }
 
+/// A filter that includes only the request names it holds.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RequestInclusions<const N: usize>([RequestName; N]);
 
 impl<const N: usize> RequestFilter for RequestInclusions<N> {
@@ -46,6 +48,8 @@ impl<const N: usize> RequestFilter for RequestInclusions<N> {
     }
 }
 
+/// A filter that includes every request name except those it holds.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RequestExclusions<const N: usize>([RequestName; N]);
 
 impl<const N: usize> RequestFilter for RequestExclusions<N> {
