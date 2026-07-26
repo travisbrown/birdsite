@@ -13,12 +13,17 @@ use std::borrow::Cow;
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Cursor<'a> {
+    /// Present on timeline entry cursors but not on item content cursors.
+    #[serde(rename = "__typename", borrow, default)]
+    pub typename: Option<Cow<'a, str>>,
     #[serde(rename = "cursorType")]
     pub cursor_type: CursorType,
     #[serde(borrow)]
     pub value: Cow<'a, str>,
+    #[serde(rename = "stopOnEmptyResponse", default)]
+    pub stop_on_empty_response: Option<bool>,
     #[serde(rename = "displayTreatment", borrow)]
-    display_treatment: Option<DisplayTreatment<'a>>,
+    pub display_treatment: Option<DisplayTreatment<'a>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

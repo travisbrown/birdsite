@@ -85,7 +85,8 @@ pub struct TipjarSettings<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic)]
 pub struct Professional<'a> {
     pub id: u64,
-    pub professional_type: ProfessionalType,
+    /// Missing in some captures (observed from January 2023, for example).
+    pub professional_type: Option<ProfessionalType>,
     pub category: Option<ProfessionalCategory<'a>>,
 }
 
@@ -171,7 +172,7 @@ mod internal {
     pub(super) struct Professional<'a> {
         #[serde(with = "crate::model::attributes::id_str")]
         pub rest_id: u64,
-        pub professional_type: super::ProfessionalType,
+        pub professional_type: Option<super::ProfessionalType>,
         #[serde(borrow)]
         pub category: Option<Vec<super::ProfessionalCategory<'a>>>,
     }

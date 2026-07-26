@@ -11,6 +11,7 @@ pub enum TweetUnavailableReason {
     Limited,
     /// Indicates either that the user account has been deactivated or the tweet deleted (or both).
     Missing,
+    NsfwViewerIsUnderage,
     Protected,
     RuleViolation,
     Suspended,

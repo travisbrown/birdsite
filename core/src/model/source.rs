@@ -183,6 +183,21 @@ pub enum Source {
     Sprinklr,
     Freshdesk,
     TwitterMediaStudio,
+    TweetDeckWebApp,
+    AdvertiserInterface,
+    SproutSocial,
+    Buffer,
+    DlvrIt,
+    HootSuiteInc,
+    TwitterForAdvertisers,
+    TwitterAds,
+    TheWhiteHouse,
+    Wildmoka,
+    TrueanthemPro2,
+    Nonli,
+    Healthb0t,
+    Illuminatibot,
+    Ifttt,
 }
 
 impl Source {
@@ -238,7 +253,7 @@ impl Source {
     }
 }
 
-const SOURCE_MAPPINGS: [(Source, &str, &str); 11] = [
+const SOURCE_MAPPINGS: [(Source, &str, &str); 26] = [
     (
         Source::TwitterForIPhone,
         "http://twitter.com/download/iphone",
@@ -286,6 +301,49 @@ const SOURCE_MAPPINGS: [(Source, &str, &str); 11] = [
         "https://studio.twitter.com",
         "Twitter Media Studio",
     ),
+    (
+        Source::TweetDeckWebApp,
+        "https://twitter.com",
+        "TweetDeck Web App",
+    ),
+    (
+        Source::AdvertiserInterface,
+        "https://help.twitter.com/en/using-twitter/how-to-tweet#source-labels",
+        "advertiser-interface",
+    ),
+    (
+        Source::SproutSocial,
+        "https://sproutsocial.com",
+        "Sprout Social",
+    ),
+    (Source::Buffer, "https://buffer.com", "Buffer"),
+    (Source::DlvrIt, "https://dlvrit.com/", "dlvr.it"),
+    (
+        Source::HootSuiteInc,
+        "https://www.hootsuite.com",
+        "Hootsuite Inc.",
+    ),
+    (
+        Source::TwitterForAdvertisers,
+        "https://twitter.com",
+        "Twitter for Advertisers",
+    ),
+    (Source::TwitterAds, "https://ads.twitter.com", "Twitter Ads"),
+    (
+        Source::TheWhiteHouse,
+        "https://www.sprinklr.com",
+        "The White House",
+    ),
+    (Source::Wildmoka, "http://wildmoka.com", "Wildmoka"),
+    (
+        Source::TrueanthemPro2,
+        "https://trueanthem.com",
+        "trueanthem_pro2",
+    ),
+    (Source::Nonli, "https://www.nonli.com", "Nonli"),
+    (Source::Healthb0t, "https://www.google.com/", "healthb0t"),
+    (Source::Illuminatibot, "https://google.com", "illuminatibot"),
+    (Source::Ifttt, "https://ifttt.com", "Ifttt"),
 ];
 
 static BY_NAME: LazyLock<HashMap<String, Source>> = LazyLock::new(|| {
