@@ -292,24 +292,17 @@ mod tests {
         birdwatch_note_by_rest_id: super::Note<'a>,
     }
 
+    const FIXTURE: &str = include_str!("../../../../../tests/data/graphql/birdwatch-notes.jsonl");
+
     #[test]
-    fn deserialize_birdwatch_examples() {
-        let lines =
-            include_str!("../../../../../../examples/graphql/birdwatch-notes-2025-08-28.ndjson")
-                .split('\n')
-                .filter(|line| !line.is_empty());
+    fn parses_note_fixture() {
+        crate::test_support::parse_jsonl::<BirdwatchNote<'_>>("birdwatch notes fixture", FIXTURE);
+    }
 
-        for (i, line) in lines.enumerate() {
-            let result = serde_json::from_str::<BirdwatchNote<'_>>(line);
-
-            if let Err(error) = &result {
-                println!(
-                    "Line {}: {line:?} is an invalid note object: {error}",
-                    i + 1
-                );
-            }
-
-            assert!(result.is_ok());
+    #[test]
+    fn parses_note_corpus() {
+        for (path, contents) in crate::test_support::local_corpus("graphql/birdwatch-notes") {
+            crate::test_support::parse_jsonl::<BirdwatchNote<'_>>(&path, &contents);
         }
     }
 }

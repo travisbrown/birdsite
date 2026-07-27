@@ -215,31 +215,9 @@ pub enum TranslatorType {
 #[cfg(test)]
 mod tests {
     use super::{ExtendedTweet, TweetSnapshot};
+    use crate::test_support::{local_corpus, numbered_lines, round_trip_jsonl};
 
-    /// Recursively drops object entries whose value is `null`.
-    ///
-    /// Absent optional fields are serialized as explicit nulls rather than omitted, so this
-    /// normalization is what lets a re-serialized snapshot be compared against the input JSON.
-    fn strip_nulls(value: &mut serde_json::Value) {
-        match value {
-            serde_json::Value::Object(fields) => {
-                fields.retain(|_, field| !field.is_null());
-
-                for field in fields.values_mut() {
-                    strip_nulls(field);
-                }
-            }
-            serde_json::Value::Array(items) => {
-                for item in items {
-                    strip_nulls(item);
-                }
-            }
-            serde_json::Value::Null
-            | serde_json::Value::Bool(_)
-            | serde_json::Value::Number(_)
-            | serde_json::Value::String(_) => {}
-        }
-    }
+    const FIXTURE: &str = include_str!("../../../../tests/data/wxj/flat.jsonl");
 
     #[test]
     fn serializes_extended_tweet_display_text_range_as_array() {
@@ -262,25 +240,30 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_and_round_trip_flat_examples() {
-        let lines = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/data/wxj/flat.ndjson"
-        ))
-        .split('\n')
-        .filter(|line| !line.is_empty());
+    fn round_trips_flat_fixture() {
+        round_trip_jsonl::<TweetSnapshot<'_>>("wxj/flat fixture", FIXTURE);
+    }
 
-        for (i, line) in lines.enumerate() {
+    #[test]
+    fn round_trips_flat_corpus() {
+        for (path, contents) in local_corpus("wxj/flat") {
+            round_trip_jsonl::<TweetSnapshot<'_>>(&path, &contents);
+        }
+    }
+
+    /// The millisecond timestamp is present on the top-level streamed tweet but omitted on nested
+    /// statuses, so the fixture exercises both the parsed and the defaulted path.
+    #[test]
+    fn parses_timestamp_only_on_top_level_snapshots() {
+        for (number, line) in numbered_lines(FIXTURE) {
             let snapshot = serde_json::from_str::<TweetSnapshot<'_>>(line)
-                .unwrap_or_else(|error| panic!("Line {}: invalid flat snapshot: {error}", i + 1));
+                .unwrap_or_else(|error| panic!("Line {number}: invalid flat snapshot: {error}"));
 
-            // The millisecond timestamp is present on the top-level streamed tweet but omitted on
-            // nested statuses, exercising both the parsed and defaulted paths.
             assert!(
                 snapshot.timestamp_ms.is_some(),
-                "Line {}: missing timestamp_ms",
-                i + 1
+                "Line {number}: missing timestamp_ms"
             );
+
             for nested in snapshot
                 .retweeted_status
                 .iter()
@@ -288,28 +271,9 @@ mod tests {
             {
                 assert!(
                     nested.timestamp_ms.is_none(),
-                    "Line {}: nested timestamp_ms",
-                    i + 1
+                    "Line {number}: nested timestamp_ms"
                 );
             }
-
-            // Re-serializing and re-parsing must yield an identical value, which confirms the
-            // `DateTime`-to-millisecond-string conversion is symmetric.
-            let serialized = serde_json::to_string(&snapshot).expect("serializable snapshot");
-            let reparsed = serde_json::from_str::<TweetSnapshot<'_>>(&serialized)
-                .expect("re-parseable snapshot");
-            assert_eq!(snapshot, reparsed, "Line {}: round-trip mismatch", i + 1);
-
-            // Value equality alone cannot see a changed JSON shape, since a two-element array
-            // emitted as a `start`/`end` map reparses to an equal value, so also compare the
-            // emitted JSON against the input.
-            let mut original =
-                serde_json::from_str::<serde_json::Value>(line).expect("valid input JSON");
-            let mut emitted =
-                serde_json::from_str::<serde_json::Value>(&serialized).expect("valid output JSON");
-            strip_nulls(&mut original);
-            strip_nulls(&mut emitted);
-            assert_eq!(original, emitted, "Line {}: wire-format mismatch", i + 1);
         }
     }
 }

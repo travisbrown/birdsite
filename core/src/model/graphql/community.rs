@@ -149,27 +149,30 @@ pub struct JoinRequestsResult {}
 #[cfg(test)]
 mod tests {
     use crate::model::graphql::user::User;
+    use crate::test_support::{local_corpus, parse_jsonl};
 
-    const COMMUNITIES_2024_08_01: &str =
-        include_str!("../../../../examples/graphql/communities-2024-08-01.ndjson");
-    const COMMUNITIES_2025_06_01: &str =
-        include_str!("../../../../examples/graphql/communities-2025-06-01.ndjson");
+    /// The two fixtures are drawn from different eras of the API, which return different shapes.
+    const FIXTURE_2024_08_01: &str =
+        include_str!("../../../tests/data/graphql/communities-2024-08-01.jsonl");
+    const FIXTURE_2025_06_01: &str =
+        include_str!("../../../tests/data/graphql/communities-2025-06-01.json");
 
     #[test]
-    fn deserialize_examples_2024_08_01() {
-        for (i, line) in COMMUNITIES_2024_08_01.split('\n').enumerate() {
-            if let Err(error) = serde_json::from_str::<super::CommunityResult<'_, User<'_>>>(line) {
-                panic!("Error at line {}: {:?}", i + 1, error);
-            }
-        }
+    fn parses_community_fixtures() {
+        parse_jsonl::<super::CommunityResult<'_, User<'_>>>(
+            "communities 2024-08-01",
+            FIXTURE_2024_08_01,
+        );
+        parse_jsonl::<super::CommunityResult<'_, User<'_>>>(
+            "communities 2025-06-01",
+            FIXTURE_2025_06_01,
+        );
     }
 
     #[test]
-    fn deserialize_examples_2025_06_01() {
-        for (i, line) in COMMUNITIES_2025_06_01.split('\n').enumerate() {
-            if let Err(error) = serde_json::from_str::<super::CommunityResult<'_, User<'_>>>(line) {
-                panic!("Error at line {}: {:?}", i + 1, error);
-            }
+    fn parses_community_corpus() {
+        for (path, contents) in local_corpus("graphql/communities") {
+            parse_jsonl::<super::CommunityResult<'_, User<'_>>>(&path, &contents);
         }
     }
 }

@@ -76,23 +76,19 @@ pub struct MediaMetadata<'a> {
 
 #[cfg(test)]
 mod tests {
+    use crate::test_support::{local_corpus, round_trip_jsonl};
+
+    const FIXTURE: &str = include_str!("../../../../tests/data/wxj/media.jsonl");
+
     #[test]
-    fn deserialize_media_examples() {
-        let lines = include_str!("../../../../../examples/wxj/media.ndjson")
-            .split('\n')
-            .filter(|line| !line.is_empty());
+    fn round_trips_media_fixture() {
+        round_trip_jsonl::<super::Media<'_>>("wxj/media fixture", FIXTURE);
+    }
 
-        for (i, line) in lines.enumerate() {
-            let result = serde_json::from_str::<super::Media<'_>>(line);
-
-            if let Err(error) = &result {
-                println!(
-                    "Line {}: {line:?} is an invalid media object: {error}",
-                    i + 1
-                );
-            }
-
-            assert!(result.is_ok());
+    #[test]
+    fn round_trips_media_corpus() {
+        for (path, contents) in local_corpus("wxj/media") {
+            round_trip_jsonl::<super::Media<'_>>(&path, &contents);
         }
     }
 }

@@ -359,7 +359,7 @@ mod tests {
 
     #[test]
     fn round_trips_source_metadata_without_user_pair() {
-        // 2015-era archives carry only the status pair (see `examples/tsg/2015-errors.ndjson`).
+        // 2015-era archives carry only the status pair (see `examples/tsg/2015-errors.jsonl`).
         let json = media_json(r#","source_status_id":12,"source_status_id_str":"12""#);
 
         let media = serde_json::from_str::<Media<'_>>(&json).unwrap();

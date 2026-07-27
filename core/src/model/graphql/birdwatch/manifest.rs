@@ -105,13 +105,17 @@ mod tests {
         birdwatch_latest_public_data_file_bundle: super::Bundle,
     }
 
+    const FIXTURE: &str = include_str!("../../../../tests/data/graphql/birdwatch-manifest.json");
+
     #[test]
-    fn deserialize_birdwatch_examples() {
-        let line =
-            include_str!("../../../../../examples/graphql/birdwatch-manifest-2025-08-28.json");
+    fn parses_manifest_fixture() {
+        crate::test_support::parse_jsonl::<Manifest>("birdwatch manifest fixture", FIXTURE);
+    }
 
-        let result = serde_json::from_str::<Manifest>(line);
-
-        assert!(result.is_ok());
+    #[test]
+    fn parses_manifest_corpus() {
+        for (path, contents) in crate::test_support::local_corpus("graphql/birdwatch-manifests") {
+            crate::test_support::parse_jsonl::<Manifest>(&path, &contents);
+        }
     }
 }

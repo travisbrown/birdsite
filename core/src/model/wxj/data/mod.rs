@@ -89,6 +89,7 @@ pub struct Tweet<'a> {
     pub context_annotations: Option<Vec<context::ContextAnnotation<'a>>>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub conversation_id: u64,
+    #[serde(with = "crate::model::attributes::millisecond_timestamp")]
     pub created_at: DateTime<Utc>,
     pub edit_controls: Option<EditControls>,
     #[serde(with = "crate::model::attributes::optional_ids_str", default)]
@@ -193,6 +194,7 @@ pub struct Poll<'a> {
     pub id: u64,
     pub voting_status: PollVotingStatus,
     pub duration_minutes: usize,
+    #[serde(with = "crate::model::attributes::millisecond_timestamp")]
     pub end_datetime: DateTime<Utc>,
     #[serde(borrow)]
     pub options: Vec<PollOption<'a>>,
@@ -228,6 +230,7 @@ pub struct Geo<'a> {
 pub struct EditControls {
     pub edits_remaining: isize,
     pub is_edit_eligible: bool,
+    #[serde(with = "crate::model::attributes::millisecond_timestamp")]
     pub editable_until: DateTime<Utc>,
 }
 
@@ -309,6 +312,7 @@ pub struct User<'a> {
     pub username: Cow<'a, str>,
     #[serde(borrow)]
     pub name: Cow<'a, str>,
+    #[serde(with = "crate::model::attributes::millisecond_timestamp")]
     pub created_at: DateTime<Utc>,
     #[serde(borrow)]
     pub description: Cow<'a, str>,
@@ -376,30 +380,20 @@ pub struct Article<'a> {
 
 #[cfg(test)]
 mod tests {
+    use crate::test_support::{local_corpus, round_trip_jsonl};
+
+    const FIXTURE: &str = include_str!("../../../../tests/data/wxj/data.jsonl");
+
     #[test]
-    fn deserialize_tweet_snapshot_examples() {
-        // This example corpus is deliberately kept out of version control and out of the published
-        // crate, so the test is a no-op when the directory is absent rather than a hard failure.
-        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../examples/wxj/other");
-        let Ok(entries) = std::fs::read_dir(dir) else {
-            return;
-        };
+    fn round_trips_tweet_snapshot_fixture() {
+        round_trip_jsonl::<super::TweetSnapshot<'_>>("wxj/data fixture", FIXTURE);
+    }
 
-        let mut checked = 0;
-        for entry in entries {
-            let path = entry.expect("Invalid directory entry").path();
-            let contents = std::fs::read_to_string(&path).expect("Invalid example file");
-            let result = serde_json::from_str::<super::TweetSnapshot<'_>>(&contents);
-
-            if let Err(error) = &result {
-                println!("{}: invalid tweet snapshot: {error}", path.display());
-            }
-
-            assert!(result.is_ok());
-            checked += 1;
+    #[test]
+    fn round_trips_tweet_snapshot_corpus() {
+        for (path, contents) in local_corpus("wxj/data") {
+            round_trip_jsonl::<super::TweetSnapshot<'_>>(&path, &contents);
         }
-
-        assert!(checked > 0, "Example directory present but empty");
     }
 
     /// Regression: `Tweet::text` must deserialize as `Cow::Borrowed` for escape-free input,

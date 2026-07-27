@@ -466,6 +466,29 @@ pub mod text_timestamp {
     }
 }
 
+/// Reads and writes an ISO 8601 timestamp at the millisecond precision the v2 API always uses.
+pub mod millisecond_timestamp {
+    use crate::model::timestamp::MillisecondTimestamp;
+    use chrono::{DateTime, Utc};
+    use serde::{
+        de::{Deserialize, Deserializer},
+        ser::{Serialize, Serializer},
+    };
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<DateTime<Utc>, D::Error> {
+        MillisecondTimestamp::deserialize(deserializer).map(|timestamp| timestamp.0)
+    }
+
+    pub fn serialize<S: Serializer>(
+        value: &DateTime<Utc>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        MillisecondTimestamp::serialize(&MillisecondTimestamp(*value), serializer)
+    }
+}
+
 /// Optional variant of [`text_timestamp`].
 pub mod optional_text_timestamp {
     use crate::model::timestamp::TextTimestamp;

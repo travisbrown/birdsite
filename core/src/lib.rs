@@ -3,3 +3,5 @@
 #![forbid(unsafe_code)]
 //! Data models for working with archived X (Twitter) data.
 pub mod model;
+#[cfg(test)]
+mod test_support;
