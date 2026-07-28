@@ -6,7 +6,7 @@
 //! and per-user CSV reports over compact files. The
 //! Twitter-specific pieces (the default closing whitespace and the CEL query that infers a
 //! tweet's canonical URL) live in the bundled `twitter.toml` context configuration; the
-//! operations themselves come from `archivindex-wbm-json`.
+//! operations themselves come from `archivindex-wbm-json-processing`.
 #![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
 #![allow(clippy::missing_errors_doc)]
 #![forbid(unsafe_code)]
@@ -31,7 +31,7 @@ fn main() -> Result<(), Error> {
             level,
         } => {
             // Tweet snapshots are plain UTF-8 text; there is no non-default format to detect.
-            let summary = archivindex_wbm_json::process::pack::pack(
+            let summary = archivindex_wbm_json_processing::process::pack::pack(
                 &data,
                 invalid_db.as_deref(),
                 &output,
@@ -58,7 +58,7 @@ fn main() -> Result<(), Error> {
             batch_size,
         } => {
             let metadata = archivindex_wbm_cdx_index::metadata::MetadataDb::open(&metadata_db)?;
-            let summary = archivindex_wbm_json::process::enhance::enhance(
+            let summary = archivindex_wbm_json_processing::process::enhance::enhance(
                 &input,
                 &invalid_db,
                 &output,
@@ -163,7 +163,7 @@ where
 fn twitter_context() -> Context {
     let config: archivindex_wbm_json::context::ContextConfig =
         toml::from_str(include_str!("twitter.toml")).expect("valid Twitter context configuration");
-    Context::from_config(config).expect("valid Twitter context URL query")
+    Context::from_config(config)
 }
 
 /// Top-level application error.
@@ -172,11 +172,13 @@ pub enum Error {
     #[error("CLI argument reading error")]
     Args(#[from] cli_helpers::Error),
     #[error("pack error")]
-    Pack(#[from] archivindex_wbm_json::process::pack::Error),
+    Pack(#[from] archivindex_wbm_json_processing::process::pack::Error),
     #[error("enhance error")]
     Enhance(
         #[from]
-        archivindex_wbm_json::process::enhance::Error<archivindex_wbm_cdx_index::metadata::Error>,
+        archivindex_wbm_json_processing::process::enhance::Error<
+            archivindex_wbm_cdx_index::metadata::Error,
+        >,
     ),
     #[error("validation error")]
     Validate(#[from] validate::Error),

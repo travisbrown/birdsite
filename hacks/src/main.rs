@@ -2,7 +2,8 @@
 #![allow(clippy::missing_errors_doc)]
 #![forbid(unsafe_code)]
 use archivindex_wbm::digest::Sha1Digest;
-use archivindex_wbm_json::{context::Context, format::Format, io::write::SnapshotWriter};
+use archivindex_wbm_json::{context::Context, format::Format};
+use archivindex_wbm_json_processing::io::write::SnapshotWriter;
 use cli_helpers::prelude::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -263,7 +264,8 @@ fn extract_tweets(input: PathBuf, author_id: u64) -> Result<(), Error> {
 ///
 /// Returns [`Error::Io`] if the directory cannot be read or if writing the output fails.
 fn compact_snapshots(input: &PathBuf, output: &PathBuf, level: u16) -> Result<(), Error> {
-    let context = Context::from_static(&TWITTER_CLOSING_WHITESPACE);
+    let context =
+        Context::from_static(&TWITTER_CLOSING_WHITESPACE).expect("valid closing whitespace");
 
     // Keep only files whose name is a valid Base32 SHA-1 digest, pairing each with its decoded
     // digest. Anything not named by a digest cannot "match the digest", so it is dropped here.

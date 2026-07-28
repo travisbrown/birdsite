@@ -7,7 +7,8 @@
 //! each line's content is deserialized with the `birdsite` wxj model types (which reject unknown
 //! fields), so validation checks the full schema rather than the presence of a few fields.
 
-use archivindex_wbm_json::{context::Context, exact::ExactSnapshot, io::read::SnapshotReader};
+use archivindex_wbm_json::{context::Context, exact::ExactSnapshot};
+use archivindex_wbm_json_processing::io::read::SnapshotReader;
 use birdsite::model::wxj;
 use sha1::Sha1;
 use std::path::Path;

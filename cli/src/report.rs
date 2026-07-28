@@ -5,7 +5,8 @@
 //! `user_observations` prints a row per observed user with the capture timestamps (Unix epoch
 //! seconds) at which the user was seen.
 
-use archivindex_wbm_json::{exact::ExactSnapshot, io::read::SnapshotReader};
+use archivindex_wbm_json::exact::ExactSnapshot;
+use archivindex_wbm_json_processing::io::read::SnapshotReader;
 use birdsite::model::wxj::{self, TweetSnapshot, metadata::tweet::TweetMetadata};
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
