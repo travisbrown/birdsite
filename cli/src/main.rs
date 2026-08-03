@@ -17,6 +17,8 @@ use std::path::PathBuf;
 
 mod extract;
 mod report;
+#[cfg(test)]
+mod test_data;
 mod validate;
 
 fn main() -> Result<(), Error> {

@@ -236,23 +236,22 @@ pub fn user_observations<P: AsRef<Path>, W: Write>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_data::{EXAMPLE_A, example_bytes};
     use archivindex_wbm_json::{context::Context, format::Format};
 
-    /// A wxj/data snapshot whose content is a retweet: the main tweet (2056732294355026173 by
-    /// 627778780) plus the retweeted tweet (2056695384135581993 by 2903110717) and both users
-    /// (`Wildharv` and `FrLillie`) in its includes.
-    const DATA_EXAMPLE: &[u8] =
-        include_bytes!("../../examples/wxj/other/2PA6SG6HGUHVQD24ZVYHXESJ2I3WIY53");
-
-    fn example_snapshot(context: &Context) -> ExactSnapshot<'static> {
+    fn example_snapshot<'a>(bytes: &'a [u8], context: &Context) -> ExactSnapshot<'a> {
         context
-            .unprocessed_snapshot(&Format::Utf8, DATA_EXAMPLE)
+            .unprocessed_snapshot(&Format::Utf8, bytes)
             .expect("valid example snapshot")
     }
 
     /// The example snapshot with the given capture timestamp attached.
-    fn observed_example(context: &Context, timestamp: &str) -> ExactSnapshot<'static> {
-        let mut snapshot = example_snapshot(context);
+    fn observed_example<'a>(
+        bytes: &'a [u8],
+        context: &Context,
+        timestamp: &str,
+    ) -> ExactSnapshot<'a> {
+        let mut snapshot = example_snapshot(bytes, context);
         snapshot.timestamp = Some(timestamp.parse().expect("valid timestamp"));
 
         snapshot
@@ -260,10 +259,13 @@ mod tests {
 
     #[test]
     fn write_tweet_ids_prints_main_and_referenced_tweets() {
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
         let context = Context::default();
         let mut output = Vec::new();
 
-        let summary = write_tweet_ids([Ok(example_snapshot(&context))], false, &mut output)
+        let summary = write_tweet_ids([Ok(example_snapshot(&bytes, &context))], false, &mut output)
             .expect("tweet IDs succeed");
 
         assert_eq!(
@@ -281,12 +283,15 @@ mod tests {
 
     #[test]
     fn write_tweet_ids_reports_snapshot_error_with_line_number() {
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
         let context = Context::default();
         let mut output = Vec::new();
 
         let result = write_tweet_ids(
             [
-                Ok(example_snapshot(&context)),
+                Ok(example_snapshot(&bytes, &context)),
                 Err(archivindex_wbm_json::Error::InvalidLine),
             ],
             false,
@@ -301,25 +306,31 @@ mod tests {
 
     #[test]
     fn write_tweet_ids_reports_schema_mismatch_as_json_error() {
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
         let context = Context::default();
         let mut output = Vec::new();
 
         // The example content is wxj/data, so parsing it as wxj/flat fails.
-        let result = write_tweet_ids([Ok(example_snapshot(&context))], true, &mut output);
+        let result = write_tweet_ids([Ok(example_snapshot(&bytes, &context))], true, &mut output);
 
         assert!(matches!(result, Err(Error::Json { line_number: 1, .. })));
     }
 
     #[test]
     fn write_user_observations_dedups_and_sorts_timestamps() {
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
         let context = Context::default();
         let mut output = Vec::new();
 
         // Two distinct capture timestamps (given newest first) plus a duplicate of the newer one.
         let results = [
-            Ok(observed_example(&context, "20230101000001")),
-            Ok(observed_example(&context, "20230101000000")),
-            Ok(observed_example(&context, "20230101000001")),
+            Ok(observed_example(&bytes, &context, "20230101000001")),
+            Ok(observed_example(&bytes, &context, "20230101000000")),
+            Ok(observed_example(&bytes, &context, "20230101000001")),
         ];
 
         let summary = write_user_observations(results, false, false, &mut output)
@@ -341,13 +352,16 @@ mod tests {
 
     #[test]
     fn write_user_observations_range_only_prints_first_and_last() {
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
         let context = Context::default();
         let mut output = Vec::new();
 
         let results = [
-            Ok(observed_example(&context, "20230101000000")),
-            Ok(observed_example(&context, "20230101000001")),
-            Ok(observed_example(&context, "20230101000002")),
+            Ok(observed_example(&bytes, &context, "20230101000000")),
+            Ok(observed_example(&bytes, &context, "20230101000001")),
+            Ok(observed_example(&bytes, &context, "20230101000002")),
         ];
 
         let summary = write_user_observations(results, false, true, &mut output)
@@ -363,6 +377,9 @@ mod tests {
 
     #[test]
     fn write_user_observations_range_only_keeps_extremes_under_reordering() {
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
         let context = Context::default();
         let mut output = Vec::new();
 
@@ -370,11 +387,11 @@ mod tests {
         // maximum only after interior values have already been dropped by the two-value cap, so
         // this exercises that capping still preserves the true earliest and latest.
         let results = [
-            Ok(observed_example(&context, "20230101000005")),
-            Ok(observed_example(&context, "20230101000003")),
-            Ok(observed_example(&context, "20230101000009")),
-            Ok(observed_example(&context, "20230101000001")),
-            Ok(observed_example(&context, "20230101000007")),
+            Ok(observed_example(&bytes, &context, "20230101000005")),
+            Ok(observed_example(&bytes, &context, "20230101000003")),
+            Ok(observed_example(&bytes, &context, "20230101000009")),
+            Ok(observed_example(&bytes, &context, "20230101000001")),
+            Ok(observed_example(&bytes, &context, "20230101000007")),
         ];
 
         let summary = write_user_observations(results, false, true, &mut output)
@@ -390,12 +407,19 @@ mod tests {
 
     #[test]
     fn write_user_observations_skips_snapshots_without_timestamps() {
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
         let context = Context::default();
         let mut output = Vec::new();
 
-        let summary =
-            write_user_observations([Ok(example_snapshot(&context))], false, false, &mut output)
-                .expect("user observations succeed");
+        let summary = write_user_observations(
+            [Ok(example_snapshot(&bytes, &context))],
+            false,
+            false,
+            &mut output,
+        )
+        .expect("user observations succeed");
 
         assert_eq!(
             summary,

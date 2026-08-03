@@ -194,17 +194,8 @@ pub fn validate<P: AsRef<Path>>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_data::{EXAMPLE_A, EXAMPLE_B, example_bytes};
     use archivindex_wbm_json::format::Format;
-
-    // Example files are named by the Base32-encoded SHA-1 digest of their bytes, so snapshots
-    // built from them with `Context::unprocessed_snapshot` carry correct digests.
-    const EXAMPLE_A: &[u8] =
-        include_bytes!("../../examples/wxj/other/2PA6SG6HGUHVQD24ZVYHXESJ2I3WIY53");
-    const EXAMPLE_B: &[u8] =
-        include_bytes!("../../examples/wxj/other/2WRH57KC2V3N4RK3QAH3ZXPDVXJKPDPD");
-
-    const DATA_EXAMPLE: &str =
-        include_str!("../../examples/wxj/other/2PA6SG6HGUHVQD24ZVYHXESJ2I3WIY53");
 
     fn example_snapshot<'a>(bytes: &'a [u8], context: &Context) -> ExactSnapshot<'a> {
         context
@@ -213,21 +204,33 @@ mod tests {
     }
 
     /// The two example snapshots in ascending digest order.
-    fn ordered_examples(context: &Context) -> (ExactSnapshot<'static>, ExactSnapshot<'static>) {
-        let a = example_snapshot(EXAMPLE_A, context);
-        let b = example_snapshot(EXAMPLE_B, context);
+    fn ordered_examples<'a>(
+        bytes_a: &'a [u8],
+        bytes_b: &'a [u8],
+        context: &Context,
+    ) -> (ExactSnapshot<'a>, ExactSnapshot<'a>) {
+        let a = example_snapshot(bytes_a, context);
+        let b = example_snapshot(bytes_b, context);
 
         if a.digest < b.digest { (a, b) } else { (b, a) }
     }
 
     #[test]
     fn schema_error_accepts_valid_data_snapshot() {
-        assert!(schema_error(DATA_EXAMPLE, false).is_none());
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
+
+        assert!(schema_error(std::str::from_utf8(&bytes).expect("UTF-8 example"), false).is_none());
     }
 
     #[test]
     fn schema_error_rejects_data_snapshot_as_flat() {
-        assert!(schema_error(DATA_EXAMPLE, true).is_some());
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
+
+        assert!(schema_error(std::str::from_utf8(&bytes).expect("UTF-8 example"), true).is_some());
     }
 
     #[test]
@@ -238,8 +241,12 @@ mod tests {
 
     #[test]
     fn validate_results_accepts_ordered_valid_snapshots() {
+        let (Some(bytes_a), Some(bytes_b)) = (example_bytes(EXAMPLE_A), example_bytes(EXAMPLE_B))
+        else {
+            return;
+        };
         let context = Context::default();
-        let (first, second) = ordered_examples(&context);
+        let (first, second) = ordered_examples(&bytes_a, &bytes_b, &context);
 
         let summary = validate_results([Ok(first), Ok(second)], &context, false)
             .expect("validation should not fail on I/O");
@@ -255,8 +262,11 @@ mod tests {
 
     #[test]
     fn validate_results_rejects_url_without_timestamp() {
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
         let context = Context::default();
-        let mut snapshot = example_snapshot(EXAMPLE_A, &context);
+        let mut snapshot = example_snapshot(&bytes, &context);
         snapshot.url = Some("https://twitter.com/example/status/1".into());
 
         let summary = validate_results([Ok(snapshot)], &context, false)
@@ -270,8 +280,11 @@ mod tests {
 
     #[test]
     fn validate_results_accepts_url_with_timestamp() {
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
         let context = Context::default();
-        let mut snapshot = example_snapshot(EXAMPLE_A, &context);
+        let mut snapshot = example_snapshot(&bytes, &context);
         snapshot.url = Some("https://twitter.com/example/status/1".into());
         snapshot.timestamp = Some("20230101000000".parse().expect("valid timestamp"));
 
@@ -285,8 +298,11 @@ mod tests {
 
     #[test]
     fn validate_results_rejects_incorrect_digest() {
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
         let context = Context::default();
-        let mut snapshot = example_snapshot(EXAMPLE_A, &context);
+        let mut snapshot = example_snapshot(&bytes, &context);
         snapshot.digest.0[0] ^= 0xff;
 
         let summary = validate_results([Ok(snapshot)], &context, false)
@@ -298,8 +314,12 @@ mod tests {
 
     #[test]
     fn validate_results_rejects_descending_digests() {
+        let (Some(bytes_a), Some(bytes_b)) = (example_bytes(EXAMPLE_A), example_bytes(EXAMPLE_B))
+        else {
+            return;
+        };
         let context = Context::default();
-        let (first, second) = ordered_examples(&context);
+        let (first, second) = ordered_examples(&bytes_a, &bytes_b, &context);
 
         let summary = validate_results([Ok(second), Ok(first)], &context, false)
             .expect("validation should not fail on I/O");
@@ -310,8 +330,11 @@ mod tests {
 
     #[test]
     fn validate_results_rejects_duplicate_digests() {
+        let Some(bytes) = example_bytes(EXAMPLE_A) else {
+            return;
+        };
         let context = Context::default();
-        let snapshot = example_snapshot(EXAMPLE_A, &context);
+        let snapshot = example_snapshot(&bytes, &context);
 
         let summary = validate_results([Ok(snapshot.clone()), Ok(snapshot)], &context, false)
             .expect("validation should not fail on I/O");

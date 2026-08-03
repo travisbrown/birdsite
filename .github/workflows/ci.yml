@@ -12,6 +12,8 @@ jobs:
   build:
     name: Build and test
     runs-on: ubuntu-latest
+    env:
+      BIRDSITE_FIXTURES_PASSPHRASE: ${{ secrets.FIXTURES_PASSPHRASE }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -24,8 +26,30 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
       - name: Build
         run: cargo build --all-targets
+      # The local fixture tests skip themselves while the fixtures are still encrypted, so this
+      # visible run cannot leak their contents.
       - name: Test
         run: cargo test
+      # The remaining steps run only when the decryption passphrase is available (it is not, for
+      # example, on pull requests from forks).
+      - name: Unpack local fixtures
+        if: env.BIRDSITE_FIXTURES_PASSPHRASE != ''
+        run: ./data/fixtures.sh unpack data/fixtures/
+      # The fixtures must never appear in logs, so all test output is suppressed and only a
+      # pass-or-fail line is reported.
+      - name: Run local fixture tests (output suppressed)
+        if: env.BIRDSITE_FIXTURES_PASSPHRASE != ''
+        run: |
+          if {
+            cargo test -p birdsite --test graphql_local &&
+              cargo test -p birdsite-graphql --test local_exchanges &&
+              cargo test -p birdsite-cli
+          } > /dev/null 2>&1; then
+            echo "local fixture tests passed"
+          else
+            echo "local fixture tests FAILED (output suppressed; run locally for details)"
+            exit 1
+          fi
 
   coverage:
     name: Coverage
