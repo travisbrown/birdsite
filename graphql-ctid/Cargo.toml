@@ -7,6 +7,9 @@ version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
 keywords = { workspace = true }
+# Fixtures under `tests/` bundle real captured API responses; they are not needed to build or use the
+# crate, so keep them out of the published tarball.
+exclude = ["tests/"]
 
 [dependencies]
 base64 = "0.23"
