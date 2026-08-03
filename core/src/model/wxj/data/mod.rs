@@ -376,32 +376,6 @@ pub struct Article<'a> {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn deserialize_tweet_snapshot_examples() {
-        // This example corpus is deliberately kept out of version control and out of the published
-        // crate, so the test is a no-op when the directory is absent rather than a hard failure.
-        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../examples/wxj/other");
-        let Ok(entries) = std::fs::read_dir(dir) else {
-            return;
-        };
-
-        let mut checked = 0;
-        for entry in entries {
-            let path = entry.expect("Invalid directory entry").path();
-            let contents = std::fs::read_to_string(&path).expect("Invalid example file");
-            let result = serde_json::from_str::<super::TweetSnapshot<'_>>(&contents);
-
-            if let Err(error) = &result {
-                println!("{}: invalid tweet snapshot: {error}", path.display());
-            }
-
-            assert!(result.is_ok());
-            checked += 1;
-        }
-
-        assert!(checked > 0, "Example directory present but empty");
-    }
-
     /// Regression: `Tweet::text` must deserialize as `Cow::Borrowed` for escape-free input,
     /// confirming the `#[serde(borrow)]` attribute preserves the crate's zero-copy design.
     #[test]

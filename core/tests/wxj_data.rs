@@ -9,8 +9,9 @@
 //! tweets, articles, polls, edit history, context annotations of every type, geo places and
 //! coordinates, photo, video, and animated GIF media, tweet and user withholding, derived author
 //! entries and locations, partial-error lists, every reply-settings variant, and the tweet, note,
-//! and user entity variations). The `resource-unavailable` and place-resource error variants and
-//! videos without a duration do not appear in that corpus and necessarily remain uncovered here.
+//! and user entity variations), plus a place-resource error located outside that sample via the
+//! archive's CDX index. The `resource-unavailable` error variant and videos without a duration do
+//! not appear in either source and necessarily remain uncovered here.
 use birdsite::model::wxj::data::TweetSnapshot;
 use common::Capture;
 
@@ -164,6 +165,20 @@ const CAPTURES: &[Capture] = &[
         id: 1_913_689_220_994_011_349,
         timestamp: "20250419202039",
         digest: "AAI25E376IFWIIDZPZGVJPQJ3AQTDY5L",
+    },
+    // Included media without public metrics.
+    Capture {
+        screen_name: "ScienceMagazine",
+        id: 1_849_873_649_966_383_628,
+        timestamp: "20241025180021",
+        digest: "AAF6P64IHMPDDBZLYHEQMPQEAVVM4KN6",
+    },
+    // A place-resource error, located via the archive's CDX index rather than the corpus sample.
+    Capture {
+        screen_name: "DavidFo25871896",
+        id: 2_068_171_939_407_892_930,
+        timestamp: "20260620031949",
+        digest: "AEASHYRNE4KHMNGUKYH7BTSCH5JISQKJ",
     },
 ];
 

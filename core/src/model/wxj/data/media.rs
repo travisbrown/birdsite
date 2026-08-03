@@ -73,29 +73,3 @@ pub struct MediaMetadata<'a> {
     pub height: usize,
     pub width: usize,
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn deserialize_media_examples() {
-        let lines = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/data/wxj/media.ndjson"
-        ))
-        .split('\n')
-        .filter(|line| !line.is_empty());
-
-        for (i, line) in lines.enumerate() {
-            let result = serde_json::from_str::<super::Media<'_>>(line);
-
-            if let Err(error) = &result {
-                println!(
-                    "Line {}: {line:?} is an invalid media object: {error}",
-                    i + 1
-                );
-            }
-
-            assert!(result.is_ok());
-        }
-    }
-}
