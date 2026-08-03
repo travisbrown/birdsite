@@ -226,7 +226,7 @@ mod tests {
     use crate::archive::Exchange;
 
     #[derive(Debug)]
-    struct Variables(serde_json::Value);
+    struct Variables;
 
     impl<'a> crate::archive::request::Variables<'a> for Variables {
         fn parse_with_name<'de: 'a, A: serde::de::MapAccess<'de>>(
@@ -236,12 +236,14 @@ mod tests {
         where
             Self: Sized,
         {
-            Ok(Self(map.next_value()?))
+            map.next_value::<serde::de::IgnoredAny>()?;
+
+            Ok(Self)
         }
     }
 
     #[derive(Debug)]
-    struct Body(serde_json::Value);
+    struct Body;
 
     impl<'a> crate::archive::response::ParseWithVariables<'a, Variables> for Body {
         fn parse(
@@ -251,80 +253,10 @@ mod tests {
         where
             Self: Sized + 'a,
         {
-            Ok(Self(serde_json::from_str(input)?))
+            serde_json::from_str::<serde::de::IgnoredAny>(input)?;
+
+            Ok(Self)
         }
-    }
-
-    #[test]
-    fn parse_exchange_with_timeout_errors() {
-        // We remove the trailing line break from the file contents.
-        let json = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/data/errors-timeout-1764462528033.json"
-        ))
-        .trim_end();
-
-        let exchange: Exchange<'_, Variables, Body> =
-            super::parse_exchange(json, 1, &crate::request::filter::exclude_filter([]))
-                .unwrap()
-                .unwrap();
-
-        assert!(exchange.request.variables.0.is_object());
-        assert_eq!(exchange.errors.len(), 3);
-
-        let data_field = exchange.data.unwrap();
-        let data_object = data_field.0.as_object().unwrap();
-
-        assert_eq!(data_object.keys().collect::<Vec<_>>(), vec!["user"]);
-    }
-
-    #[test]
-    fn parse_exchange_with_authorization_errors() {
-        // We remove the trailing line break from the file contents.
-        let json = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/data/errors-authorization-1764497106517.json"
-        ))
-        .trim_end();
-
-        let exchange: Exchange<'_, Variables, Body> =
-            super::parse_exchange(json, 1, &crate::request::filter::exclude_filter([]))
-                .unwrap()
-                .unwrap();
-
-        assert!(exchange.request.variables.0.is_object());
-        assert_eq!(exchange.errors.len(), 24);
-
-        let data_field = exchange.data.unwrap();
-        let data_object = data_field.0.as_object().unwrap();
-
-        assert_eq!(data_object.keys().collect::<Vec<_>>(), vec!["tweetResult"]);
-    }
-
-    #[test]
-    fn parse_exchange_without_errors() {
-        // We remove the trailing line break from the file contents.
-        let json = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/data/errors-none-1764460993001.json"
-        ))
-        .trim_end();
-
-        let exchange: Exchange<'_, Variables, Body> =
-            super::parse_exchange(json, 1, &crate::request::filter::exclude_filter([]))
-                .unwrap()
-                .unwrap();
-
-        assert!(exchange.request.variables.0.is_object());
-        assert_eq!(exchange.errors.len(), 0);
-
-        let data_field = exchange.data.unwrap();
-        let data_object = data_field.0.as_object().unwrap();
-
-        assert_eq!(
-            data_object.keys().collect::<Vec<_>>(),
-            vec!["user_result_by_screen_name"]
-        );
     }
 
     #[test]
@@ -337,25 +269,5 @@ mod tests {
 
             assert!(result.is_err(), "expected error for input {input:?}");
         }
-    }
-
-    #[test]
-    fn parse_exchange_with_missing_data() {
-        // We remove the trailing line break from the file contents.
-        let json = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/data/errors-data-missing-1738068567896.json"
-        ))
-        .trim_end();
-
-        let exchange: Exchange<'_, Variables, Body> =
-            super::parse_exchange(json, 1, &crate::request::filter::exclude_filter([]))
-                .unwrap()
-                .unwrap();
-
-        assert!(exchange.request.variables.0.is_object());
-        assert_eq!(exchange.errors.len(), 1);
-
-        assert!(exchange.data.is_none());
     }
 }

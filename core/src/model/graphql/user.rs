@@ -1,7 +1,10 @@
 use std::borrow::Cow;
 
+// `deny_unknown_fields` cannot be used here: it is unsupported in combination with the flattened
+// variant payload, and rejects every field of any record (serde matches keys against the named
+// variant fields only, so even the flattened variant's own fields count as unknown).
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(tag = "__typename", deny_unknown_fields)]
+#[serde(tag = "__typename")]
 pub enum UserResult<'a, U> {
     User {
         #[serde(flatten)]

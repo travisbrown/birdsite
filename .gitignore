@@ -4,3 +4,4 @@ tmp/
 .RData
 .Rhistory
 **/tests/data/.cache/
+**/tests/data/local/
