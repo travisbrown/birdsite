@@ -6,8 +6,8 @@ use archivindex_wbm_json::{context::Context, format::Format};
 use archivindex_wbm_json_processing::io::write::SnapshotWriter;
 use cli_helpers::prelude::*;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::PathBuf;
+use std::io::{BufRead, BufReader, Write};
+use std::path::{Path, PathBuf};
 
 mod db;
 
@@ -104,6 +104,7 @@ fn main() -> Result<(), Error> {
             output,
             level,
         } => compact_snapshots(&input, &output, level)?,
+        Command::GittRaw { input } => print_gitt_lines(&input)?,
     }
 
     Ok(())
@@ -159,6 +160,12 @@ enum Command {
         #[clap(long, default_value_t = 14)]
         level: u16,
     },
+    /// Print WXJ lines containing a tweet that asks Grok whether something is true.
+    GittRaw {
+        /// Path to a Zstandard-compressed WXJ JSONL file.
+        #[clap(long)]
+        input: PathBuf,
+    },
 }
 
 #[derive(Debug, Parser)]
@@ -182,6 +189,49 @@ enum WxjCommand {
         #[clap(long)]
         input: PathBuf,
     },
+}
+
+/// Returns whether any single tweet text contains both GITT phrases, ignoring ASCII case.
+fn tweets_match_gitt<'a>(texts: impl IntoIterator<Item = &'a str>) -> bool {
+    texts.into_iter().any(|text| {
+        let text = text.to_ascii_lowercase();
+        text.contains("@grok") && text.contains("is this true")
+    })
+}
+
+/// Prints matching lines from a Zstandard-compressed WXJ data-model JSONL file.
+fn print_gitt_lines(input: &Path) -> Result<(), Error> {
+    let reader = BufReader::new(File::open(input)?);
+    let decoder = BufReader::new(zstd::Decoder::with_buffer(reader)?);
+    let stdout = std::io::stdout();
+    let mut output = stdout.lock();
+
+    for (i, result) in decoder.lines().enumerate() {
+        let line = result?;
+        let snapshot = serde_json::from_str::<
+            WxjWrapper<birdsite::model::wxj::data::TweetSnapshot<'_>>,
+        >(&line)
+        .map_err(|error| Error::Wxj {
+            error,
+            line_number: i + 1,
+        })?;
+
+        let texts = std::iter::once(snapshot.content.data.text.as_ref()).chain(
+            snapshot
+                .content
+                .includes
+                .tweets
+                .iter()
+                .flatten()
+                .map(|tweet| tweet.text.as_ref()),
+        );
+
+        if tweets_match_gitt(texts) {
+            writeln!(output, "{line}")?;
+        }
+    }
+
+    Ok(())
 }
 
 /// Prints one CSV row for each tweet by `author_id` found in the directory of WXJ snapshot files at
@@ -346,4 +396,27 @@ struct WxjWrapper<S> {
     // Never read: deserializing it is the validation.
     #[allow(dead_code)]
     content: S,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::tweets_match_gitt;
+
+    #[test]
+    fn gitt_match_is_case_insensitive() {
+        assert!(tweets_match_gitt(["Hey @GrOk, IS THIS TRUE?"]));
+    }
+
+    #[test]
+    fn gitt_match_requires_both_phrases_in_one_tweet() {
+        assert!(!tweets_match_gitt(["@grok", "is this true?"]));
+    }
+
+    #[test]
+    fn gitt_match_checks_every_tweet() {
+        assert!(tweets_match_gitt([
+            "unrelated",
+            "@grok could you tell me: is this true?",
+        ]));
+    }
 }
