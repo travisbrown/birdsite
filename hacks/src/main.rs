@@ -10,6 +10,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 
 mod db;
+mod extract_tweets;
 
 /// Author whose tweets the `wxj extract` command selects (the Grok account).
 const GROK_USER_ID: u64 = 1_720_665_183_188_922_368;
@@ -106,6 +107,7 @@ fn main() -> Result<(), Error> {
         } => compact_snapshots(&input, &output, level)?,
         Command::GittRaw { input } => print_gitt_lines(&input)?,
         Command::Gitt { input } => print_gitt_csv(&input)?,
+        Command::ExtractTweets { input, remaining } => extract_tweets::run(&input, &remaining)?,
     }
 
     Ok(())
@@ -126,6 +128,8 @@ pub enum Error {
     },
     #[error("TweetsDB error")]
     TweetsDb(#[from] db::tweets::Error),
+    #[error("Tweet extraction error")]
+    ExtractTweets(#[from] extract_tweets::Error),
 }
 
 #[derive(Debug, Parser)]
@@ -172,6 +176,15 @@ enum Command {
         /// Path to a Zstandard-compressed WXJ JSONL file.
         #[clap(long)]
         input: PathBuf,
+    },
+    /// Extract selected `TweetResultsByRestIds` results from an archived GraphQL file.
+    ExtractTweets {
+        /// Path to a Zstandard-compressed GraphQL exchange NDJSON file.
+        #[clap(long)]
+        input: PathBuf,
+        /// Output path for requested tweet IDs that were not found.
+        #[clap(long)]
+        remaining: PathBuf,
     },
 }
 
@@ -240,7 +253,7 @@ fn url_tweet_id(url: &birdsite::model::wxj::data::entity::Url<'_>) -> Option<u64
     .find_map(tweet_id_from_url)
 }
 
-/// Prints one CSV row for each matching tweet in a Zstandard-compressed WXJ data-model JSONL file.
+/// Prints one CSV row for each referenced or linked tweet ID belonging to a matching tweet.
 fn print_gitt_csv(input: &Path) -> Result<(), Error> {
     let reader = BufReader::new(File::open(input)?);
     let decoder = BufReader::new(zstd::Decoder::with_buffer(reader)?);
@@ -252,7 +265,7 @@ fn print_gitt_csv(input: &Path) -> Result<(), Error> {
     for (i, result) in decoder.lines().enumerate() {
         let line = result?;
         let snapshot = serde_json::from_str::<
-            WxjWrapper<birdsite::model::wxj::data::TweetSnapshot<'_>>,
+            WxjDigestWrapper<birdsite::model::wxj::data::TweetSnapshot<'_>>,
         >(&line)
         .map_err(|error| Error::Wxj {
             error,
@@ -266,43 +279,40 @@ fn print_gitt_csv(input: &Path) -> Result<(), Error> {
 
         for tweet in tweets.filter(|tweet| tweets_match_gitt([tweet.text.as_ref()])) {
             let referenced_tweets = tweet.referenced_tweets.as_deref().unwrap_or_default();
-            if referenced_tweets.len() > 1 {
-                log::warn!(
-                    "Tweet {} has {} referenced tweets; using the first",
-                    tweet.id,
-                    referenced_tweets.len()
-                );
-            }
-            let reference = referenced_tweets.first();
+            let username = snapshot
+                .content
+                .lookup_user(tweet.author_id)
+                .map(|user| user.username.as_ref());
 
-            let mut url_tweet_ids = tweet
+            for reference in referenced_tweets {
+                output.serialize((
+                    snapshot.digest.as_str(),
+                    tweet.id,
+                    tweet.author_id,
+                    username,
+                    reference.id,
+                    reference_type_name(reference.reference_type),
+                ))?;
+            }
+
+            let url_tweet_ids = tweet
                 .entities
                 .as_ref()
                 .and_then(|entities| entities.urls.as_ref())
                 .into_iter()
                 .flatten()
                 .filter_map(url_tweet_id);
-            let url_tweet_id = url_tweet_ids.next();
-            let additional_url_tweet_ids = url_tweet_ids.count();
-            if additional_url_tweet_ids > 0 {
-                log::warn!(
-                    "Tweet {} has {} tweet IDs in entities.urls; using the first",
-                    tweet.id,
-                    additional_url_tweet_ids + 1
-                );
-            }
 
-            output.serialize((
-                tweet.id,
-                tweet.author_id,
-                snapshot
-                    .content
-                    .lookup_user(tweet.author_id)
-                    .map(|user| user.username.as_ref()),
-                reference.map(|reference| reference.id),
-                reference.map(|reference| reference_type_name(reference.reference_type)),
-                url_tweet_id,
-            ))?;
+            for linked_id in url_tweet_ids {
+                output.serialize((
+                    snapshot.digest.as_str(),
+                    tweet.id,
+                    tweet.author_id,
+                    username,
+                    linked_id,
+                    "linked",
+                ))?;
+            }
         }
     }
 
@@ -507,6 +517,12 @@ struct IdPair {
 struct WxjWrapper<S> {
     // Never read: deserializing it is the validation.
     #[allow(dead_code)]
+    content: S,
+}
+
+#[derive(serde::Deserialize)]
+struct WxjDigestWrapper<S> {
+    digest: String,
     content: S,
 }
 
