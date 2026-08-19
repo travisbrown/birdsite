@@ -29,3 +29,6 @@ thiserror = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
 zstd = "0.13"
+
+[dev-dependencies]
+tempfile = { workspace = true }

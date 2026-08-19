@@ -179,7 +179,7 @@ enum Command {
     },
     /// Extract selected `TweetResultsByRestIds` results from an archived GraphQL file.
     ExtractTweets {
-        /// Path to a Zstandard-compressed GraphQL exchange NDJSON file.
+        /// Path to a Zstandard-compressed GraphQL exchange NDJSON file or a directory of them.
         #[clap(long)]
         input: PathBuf,
         /// Output path for requested tweet IDs that were not found.
