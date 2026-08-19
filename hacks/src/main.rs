@@ -105,6 +105,7 @@ fn main() -> Result<(), Error> {
             level,
         } => compact_snapshots(&input, &output, level)?,
         Command::GittRaw { input } => print_gitt_lines(&input)?,
+        Command::Gitt { input } => print_gitt_csv(&input)?,
     }
 
     Ok(())
@@ -166,6 +167,12 @@ enum Command {
         #[clap(long)]
         input: PathBuf,
     },
+    /// Print CSV metadata for tweets that ask Grok whether something is true.
+    Gitt {
+        /// Path to a Zstandard-compressed WXJ JSONL file.
+        #[clap(long)]
+        input: PathBuf,
+    },
 }
 
 #[derive(Debug, Parser)]
@@ -197,6 +204,111 @@ fn tweets_match_gitt<'a>(texts: impl IntoIterator<Item = &'a str>) -> bool {
         let text = text.to_ascii_lowercase();
         text.contains("@grok") && text.contains("is this true")
     })
+}
+
+/// Extracts the tweet ID from the first `/status/<digits>` path segment in a URL.
+fn tweet_id_from_url(url: &str) -> Option<u64> {
+    let (_, suffix) = url.split_once("/status/")?;
+    let end = suffix
+        .find(|character: char| !character.is_ascii_digit())
+        .unwrap_or(suffix.len());
+
+    suffix.get(..end)?.parse().ok()
+}
+
+const fn reference_type_name(
+    reference_type: birdsite::model::wxj::data::ReferenceType,
+) -> &'static str {
+    use birdsite::model::wxj::data::ReferenceType;
+
+    match reference_type {
+        ReferenceType::Retweeted => "retweeted",
+        ReferenceType::RepliedTo => "replied_to",
+        ReferenceType::Quoted => "quoted",
+    }
+}
+
+fn url_tweet_id(url: &birdsite::model::wxj::data::entity::Url<'_>) -> Option<u64> {
+    [
+        url.expanded_url.as_deref(),
+        url.unwound_url.as_deref(),
+        url.display_url.as_deref(),
+        Some(url.url.as_ref()),
+    ]
+    .into_iter()
+    .flatten()
+    .find_map(tweet_id_from_url)
+}
+
+/// Prints one CSV row for each matching tweet in a Zstandard-compressed WXJ data-model JSONL file.
+fn print_gitt_csv(input: &Path) -> Result<(), Error> {
+    let reader = BufReader::new(File::open(input)?);
+    let decoder = BufReader::new(zstd::Decoder::with_buffer(reader)?);
+    let stdout = std::io::stdout();
+    let mut output = csv::WriterBuilder::new()
+        .has_headers(false)
+        .from_writer(stdout.lock());
+
+    for (i, result) in decoder.lines().enumerate() {
+        let line = result?;
+        let snapshot = serde_json::from_str::<
+            WxjWrapper<birdsite::model::wxj::data::TweetSnapshot<'_>>,
+        >(&line)
+        .map_err(|error| Error::Wxj {
+            error,
+            line_number: i + 1,
+        })?;
+
+        let mut seen_tweet_ids = std::collections::HashSet::new();
+        let tweets = std::iter::once(&snapshot.content.data)
+            .chain(snapshot.content.includes.tweets.iter().flatten())
+            .filter(|tweet| seen_tweet_ids.insert(tweet.id));
+
+        for tweet in tweets.filter(|tweet| tweets_match_gitt([tweet.text.as_ref()])) {
+            let referenced_tweets = tweet.referenced_tweets.as_deref().unwrap_or_default();
+            if referenced_tweets.len() > 1 {
+                log::warn!(
+                    "Tweet {} has {} referenced tweets; using the first",
+                    tweet.id,
+                    referenced_tweets.len()
+                );
+            }
+            let reference = referenced_tweets.first();
+
+            let mut url_tweet_ids = tweet
+                .entities
+                .as_ref()
+                .and_then(|entities| entities.urls.as_ref())
+                .into_iter()
+                .flatten()
+                .filter_map(url_tweet_id);
+            let url_tweet_id = url_tweet_ids.next();
+            let additional_url_tweet_ids = url_tweet_ids.count();
+            if additional_url_tweet_ids > 0 {
+                log::warn!(
+                    "Tweet {} has {} tweet IDs in entities.urls; using the first",
+                    tweet.id,
+                    additional_url_tweet_ids + 1
+                );
+            }
+
+            output.serialize((
+                tweet.id,
+                tweet.author_id,
+                snapshot
+                    .content
+                    .lookup_user(tweet.author_id)
+                    .map(|user| user.username.as_ref()),
+                reference.map(|reference| reference.id),
+                reference.map(|reference| reference_type_name(reference.reference_type)),
+                url_tweet_id,
+            ))?;
+        }
+    }
+
+    output.flush()?;
+
+    Ok(())
 }
 
 /// Prints matching lines from a Zstandard-compressed WXJ data-model JSONL file.
@@ -400,7 +512,7 @@ struct WxjWrapper<S> {
 
 #[cfg(test)]
 mod tests {
-    use super::tweets_match_gitt;
+    use super::{tweet_id_from_url, tweets_match_gitt};
 
     #[test]
     fn gitt_match_is_case_insensitive() {
@@ -418,5 +530,19 @@ mod tests {
             "unrelated",
             "@grok could you tell me: is this true?",
         ]));
+    }
+
+    #[test]
+    fn extracts_tweet_id_from_url_with_trailing_path() {
+        assert_eq!(
+            tweet_id_from_url("https://x.com/HieroBorschtEsq/status/2008995132025258106/photo/1"),
+            Some(2_008_995_132_025_258_106)
+        );
+    }
+
+    #[test]
+    fn url_without_status_id_does_not_match() {
+        assert_eq!(tweet_id_from_url("https://x.com/user/status/nope"), None);
+        assert_eq!(tweet_id_from_url("https://example.com/123"), None);
     }
 }
