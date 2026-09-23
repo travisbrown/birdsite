@@ -45,7 +45,7 @@ impl Cubic {
 
             // Safety guard to avoid infinite looping on pathological cases.
             for _ in 0..64 {
-                mid = (start + end) * 0.5;
+                mid = f64::midpoint(start, end);
 
                 let x_est = calculate(x1, x2, mid);
 

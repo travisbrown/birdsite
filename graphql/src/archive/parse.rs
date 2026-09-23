@@ -167,7 +167,7 @@ fn find_request_open_brace(input_bytes: &[u8]) -> Option<usize> {
     if found { Some(current) } else { None }
 }
 
-fn find_errors_closing_bracket(input_bytes: &[u8]) -> Option<usize> {
+const fn find_errors_closing_bracket(input_bytes: &[u8]) -> Option<usize> {
     let mut current = 13;
     let mut bracket_depth = 1;
     let mut found = false;

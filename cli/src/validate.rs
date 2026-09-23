@@ -8,16 +8,16 @@
 //! fields), so validation checks the full schema rather than the presence of a few fields.
 
 use archivindex_wbm_json::{context::Context, exact::ExactSnapshot};
-use archivindex_wbm_json_processing::io::read::SnapshotReader;
+use archivindex_wbm_json_processing::io::read::{Error as ReadError, SnapshotReader};
 use birdsite::model::wxj;
 use sha1::Sha1;
 use std::path::Path;
 
 /// Validation error.
 ///
-/// Only I/O failures abort validation; per-line problems (unparseable lines, digest mismatches,
-/// out-of-order digests, invalid metadata, and schema mismatches) are recorded in the summary
-/// instead.
+/// I/O failures and rejected input lines (blank, overlong, or invalid UTF-8) abort validation.
+/// Other per-line problems (unparseable snapshots, digest mismatches, out-of-order digests,
+/// invalid metadata, and schema mismatches) are recorded in the summary instead.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("I/O error")]
@@ -83,10 +83,7 @@ fn schema_error(content: &str, flat: bool) -> Option<serde_json::Error> {
 /// schema.
 ///
 /// This is the core of [`validate`], separated from file I/O so it can be tested directly.
-fn validate_results<
-    'a,
-    I: IntoIterator<Item = Result<ExactSnapshot<'a>, archivindex_wbm_json::Error>>,
->(
+fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadError>>>(
     results: I,
     context: &Context,
     flat: bool,
@@ -154,7 +151,7 @@ fn validate_results<
             }
             // Read failures are fatal (the `?` propagates them out of the loop); a line that fails
             // to parse as a compact snapshot record is recorded like a schema mismatch.
-            Err(archivindex_wbm_json::Error::Io(error)) => Err(error)?,
+            Err(ReadError::Read(error)) => Err(std::io::Error::from(error))?,
             Err(error) => summary.schema_errors.push(LineError {
                 line_number,
                 digest: None,
@@ -181,8 +178,8 @@ fn validate_results<
 ///
 /// # Errors
 ///
-/// Returns `Error::Io` if the file cannot be opened or read; per-line problems are recorded in the
-/// summary rather than returned as errors.
+/// Returns `Error::Io` if the file cannot be opened or read, or the reader rejects a blank,
+/// overlong, or invalid UTF-8 line. Other per-line problems are recorded in the summary.
 pub fn validate<P: AsRef<Path>>(
     input: &P,
     context: &Context,
@@ -348,14 +345,54 @@ mod tests {
         let context = Context::default();
 
         let summary = validate_results(
-            [Err(archivindex_wbm_json::Error::InvalidLine)],
+            SnapshotReader::with_source(
+                &b"not a snapshot\nstill not a snapshot\n"[..],
+                "input.jsonl",
+            ),
             &context,
             false,
         )
         .expect("validation should not fail on I/O");
 
-        assert_eq!(summary.schema_errors.len(), 1);
+        assert_eq!(summary.line_count, 2);
+        assert_eq!(summary.schema_errors.len(), 2);
+        assert_eq!(summary.schema_errors[0].line_number, 1);
+        assert_eq!(summary.schema_errors[1].line_number, 2);
+        assert!(summary.schema_errors[0].error.contains("input.jsonl:1"));
+        assert!(summary.schema_errors[1].error.contains("input.jsonl:2"));
         assert!(summary.schema_errors[0].digest.is_none());
         assert_eq!(summary.valid_count, 0);
+    }
+
+    /// A failed read must abort validation, retaining both its kind and source location.
+    #[test]
+    fn validate_results_propagates_read_failure() {
+        struct FailingReader;
+
+        impl std::io::Read for FailingReader {
+            fn read(&mut self, _: &mut [u8]) -> Result<usize, std::io::Error> {
+                Err(std::io::ErrorKind::PermissionDenied.into())
+            }
+        }
+
+        let reader = SnapshotReader::with_source(FailingReader, "input.jsonl");
+        let Error::Io(error) = validate_results(reader, &Context::default(), false)
+            .expect_err("a failed read must abort validation");
+
+        assert_eq!(error.kind(), std::io::ErrorKind::PermissionDenied);
+        assert!(error.to_string().contains("input.jsonl:1"));
+    }
+
+    /// Rejected input ends the reader, so validation must not return a partial summary.
+    #[test]
+    fn validate_results_aborts_on_rejected_input() {
+        for input in [&b"\n"[..], &b"\xff\n"[..]] {
+            let reader = SnapshotReader::with_source(input, "input.jsonl");
+            let Error::Io(error) = validate_results(reader, &Context::default(), false)
+                .expect_err("rejected input must abort validation");
+
+            assert_eq!(error.kind(), std::io::ErrorKind::InvalidData);
+            assert!(error.to_string().contains("input.jsonl:1"));
+        }
     }
 }

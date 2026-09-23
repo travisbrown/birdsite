@@ -138,6 +138,7 @@ fn extract<R: BufRead, W: Write>(
         let Some(data) = exchange.data else {
             continue;
         };
+        let timestamp_ms = exchange.request.timestamp.timestamp_millis().to_string();
 
         for (requested_id, element) in exchange
             .request
@@ -146,12 +147,19 @@ fn extract<R: BufRead, W: Write>(
             .into_iter()
             .zip(data.results)
         {
-            let Some(result) = element.result else {
+            let Some(mut result) = element.result else {
                 continue;
             };
 
             if result_tweet_id(&result) == Some(requested_id) && requested_ids.remove(&requested_id)
             {
+                result
+                    .as_object_mut()
+                    .expect("tweet results are JSON objects")
+                    .insert(
+                        "timestamp_ms".to_owned(),
+                        Value::String(timestamp_ms.clone()),
+                    );
                 serde_json::to_writer(&mut *output, &result)?;
                 writeln!(output)?;
             }
@@ -232,8 +240,8 @@ mod tests {
         assert_eq!(
             String::from_utf8(output).unwrap(),
             concat!(
-                "{\"__typename\":\"Tweet\",\"rest_id\":\"42\",\"text\":\"found\"}\n",
-                "{\"__typename\":\"TweetWithVisibilityResults\",\"tweet\":{\"rest_id\":\"8\",\"text\":\"limited\"}}\n"
+                "{\"__typename\":\"Tweet\",\"rest_id\":\"42\",\"text\":\"found\",\"timestamp_ms\":\"1782885597308\"}\n",
+                "{\"__typename\":\"TweetWithVisibilityResults\",\"tweet\":{\"rest_id\":\"8\",\"text\":\"limited\"},\"timestamp_ms\":\"1782885597308\"}\n"
             )
         );
         assert_eq!(requested_ids, BTreeSet::from([7, 9, 10, 99]));

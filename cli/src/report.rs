@@ -6,7 +6,7 @@
 //! seconds) at which the user was seen.
 
 use archivindex_wbm_json::exact::ExactSnapshot;
-use archivindex_wbm_json_processing::io::read::SnapshotReader;
+use archivindex_wbm_json_processing::io::read::{Error as ReadError, SnapshotReader};
 use birdsite::model::wxj::{self, TweetSnapshot, metadata::tweet::TweetMetadata};
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
@@ -22,7 +22,7 @@ pub enum Error {
         /// One-based line number.
         line_number: usize,
         #[source]
-        error: archivindex_wbm_json::Error,
+        error: ReadError,
     },
     #[error("content JSON parsing error on line {line_number}")]
     Json {
@@ -83,7 +83,7 @@ fn content_users<'s>(content: &'s TweetSnapshot<'_>) -> Vec<(u64, &'s str)> {
 /// This is the core of [`tweet_ids`], separated from file I/O so it can be tested directly.
 fn write_tweet_ids<'a, I, W>(results: I, flat: bool, writer: &mut W) -> Result<Summary, Error>
 where
-    I: IntoIterator<Item = Result<ExactSnapshot<'a>, archivindex_wbm_json::Error>>,
+    I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadError>>,
     W: Write,
 {
     let mut summary = Summary::default();
@@ -118,7 +118,7 @@ fn write_user_observations<'a, I, W>(
     writer: &mut W,
 ) -> Result<Summary, Error>
 where
-    I: IntoIterator<Item = Result<ExactSnapshot<'a>, archivindex_wbm_json::Error>>,
+    I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadError>>,
     W: Write,
 {
     let mut summary = Summary::default();
@@ -194,8 +194,8 @@ where
 ///
 /// # Errors
 ///
-/// Returns [`Error::Io`] if file I/O fails, [`Error::Snapshot`] if a line is not a compact
-/// snapshot, [`Error::Json`] if a snapshot's content does not match the selected schema, or
+/// Returns [`Error::Io`] if opening the input or writing output fails, [`Error::Snapshot`] if a
+/// line cannot be read or parsed, [`Error::Json`] if its content does not match the selected schema, or
 /// [`Error::Format`] if a wxj/data tweet's referenced-tweet fields are invalid.
 pub fn tweet_ids<P: AsRef<Path>, W: Write>(
     input: &P,
@@ -221,9 +221,9 @@ pub fn tweet_ids<P: AsRef<Path>, W: Write>(
 ///
 /// # Errors
 ///
-/// Returns [`Error::Io`] if file I/O fails, [`Error::Snapshot`] if a line is not a compact
-/// snapshot, or [`Error::Json`] if a timestamped snapshot's content does not match the selected
-/// schema.
+/// Returns [`Error::Io`] if opening the input or writing output fails, [`Error::Snapshot`] if a
+/// line cannot be read or parsed, or [`Error::Json`] if a timestamped snapshot's content does not
+/// match the selected schema.
 pub fn user_observations<P: AsRef<Path>, W: Write>(
     input: &P,
     flat: bool,
@@ -292,7 +292,9 @@ mod tests {
         let result = write_tweet_ids(
             [
                 Ok(example_snapshot(&bytes, &context)),
-                Err(archivindex_wbm_json::Error::InvalidLine),
+                SnapshotReader::new(&b"not a snapshot\n"[..])
+                    .next()
+                    .expect("one invalid line"),
             ],
             false,
             &mut output,
@@ -429,5 +431,26 @@ mod tests {
             }
         );
         assert!(output.is_empty());
+    }
+
+    /// Both reports retain the reader's source location when a snapshot cannot be parsed.
+    #[test]
+    fn reports_preserve_snapshot_error_context() {
+        for user_report in [false, true] {
+            let reader = SnapshotReader::with_source(&b"not a snapshot\n"[..], "input.jsonl");
+            let mut output = Vec::new();
+            let result = if user_report {
+                write_user_observations(reader, false, false, &mut output)
+            } else {
+                write_tweet_ids(reader, false, &mut output)
+            };
+            let Err(Error::Snapshot { line_number, error }) = result else {
+                panic!("expected a snapshot error");
+            };
+
+            assert_eq!(line_number, 1);
+            assert!(error.to_string().contains("input.jsonl:1"));
+            assert!(output.is_empty());
+        }
     }
 }

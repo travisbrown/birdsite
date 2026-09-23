@@ -10,9 +10,9 @@ license.workspace = true
 publish = false
 
 [dependencies]
-archivindex-wbm = { git = "ssh://git@github.com/travisbrown/archivindex.git" }
-archivindex-wbm-json = { git = "ssh://git@github.com/travisbrown/archivindex.git" }
-archivindex-wbm-json-processing = { git = "ssh://git@github.com/travisbrown/archivindex.git" }
+archivindex-wbm = { workspace = true }
+archivindex-wbm-json = { workspace = true }
+archivindex-wbm-json-processing = { workspace = true }
 birdsite = { path = "../core/" }
 birdsite-graphql = { path = "../graphql/" }
 bounded-static = { workspace = true }
@@ -22,13 +22,13 @@ csv = "1"
 futures = "0.3"
 globwalk = "0.9"
 itertools = "0.15"
-rocksdb = { version = "0.24", features = ["zstd"] }
+rocksdb = { version = "0.25", features = ["zstd"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
-zstd = "0.13"
+zstd = "0.14"
 
 [dev-dependencies]
 tempfile = { workspace = true }
