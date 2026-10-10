@@ -195,7 +195,7 @@ mod tests {
 
         assert_eq!(summary.read_count, 2);
         assert_eq!(summary.matched_count, 0);
-        assert!(output.is_empty());
+        assert_eq!(output, "");
     }
 
     #[test]

@@ -316,6 +316,6 @@ mod tests {
             .single()
             .unwrap();
         assert_eq!(transaction_id.timestamp, expected);
-        assert!(!transaction_id.value.is_empty());
+        assert_ne!(transaction_id.value, "");
     }
 }

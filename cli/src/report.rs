@@ -430,7 +430,7 @@ mod tests {
                 written_count: 0
             }
         );
-        assert!(output.is_empty());
+        assert_eq!(output, b"");
     }
 
     /// Both reports retain the reader's source location when a snapshot cannot be parsed.
@@ -450,7 +450,7 @@ mod tests {
 
             assert_eq!(line_number, 1);
             assert!(error.to_string().contains("input.jsonl:1"));
-            assert!(output.is_empty());
+            assert_eq!(output, b"");
         }
     }
 }
