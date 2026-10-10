@@ -8,8 +8,8 @@ use std::sync::LazyLock;
 const HOME_URL: &str = "https://x.com/";
 
 // Upper bound on the number of chunks we download while walking the `x-web` import chain from the
-// entry chunk to the sign module (home to entry to sentry filter to sign, so a few hops in
-// practice); a backstop against an unexpected build shape looping indefinitely.
+// entry chunk to the sign module, possibly through a transaction ID plugin or sentry filter.
+// This bounds downloads if the import chain contains a cycle.
 const MAX_MODULE_HOPS: usize = 4;
 const USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36";
 
@@ -32,15 +32,15 @@ static ONDEMAND_NAME_V2_INDEX_RE: LazyLock<Regex> =
 
 // 2. The Vite `x-web` build (first seen 2026-06-23) instead names an entry chunk on the home page
 //    that, directly or through intermediate chunks, dynamically imports a `sign.o-<hash>.js` module
-//    holding the indices. Two shapes have been seen: until around June 2026 the home page named the
-//    `sentry-filter` chunk (which imports `sign.o`) directly; since around July 2026 it names an
+//    holding the indices. Until around June 2026 the home page named the `sentry-filter` chunk
+//    (which imports `sign.o`) directly; since around July 2026 it names an
 //    `entry-client-logged-out` chunk that imports `sentry-filter`, which imports `sign.o`. We match
-//    either as the entry point and follow the import chain to the sign module (see
-//    `resolve_sign_module`). Note that this depends on those chunk source names, which may change
-//    across builds.
+//    either as the entry point and follow the import chain to the sign module. Since October 2026,
+//    `client-transaction-id-plugin` imports the sign module instead of `sentry-filter`. Prefer that
+//    plugin when both appear in the entry chunk. These source names may change across builds.
 static TRANSACTION_ENTRY_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"https://abs\.twimg\.com/[\w./-]*?(?:entry-client-logged-out|sentry-filter)-[\w-]+\.js",
+        r"https://abs\.twimg\.com/[\w./-]*?(?:entry-client-logged-out|client-transaction-id-plugin|sentry-filter)-[\w-]+\.js",
     )
     .expect("valid regex")
 });
@@ -50,6 +50,10 @@ static TRANSACTION_ENTRY_RE: LazyLock<Regex> = LazyLock::new(|| {
 // and any subdirectory) so `join_url` can resolve them against the importing chunk's URL.
 static SIGN_MODULE_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\.\.?/[\w./-]*?sign\.o-[\w-]+\.js").expect("valid regex"));
+
+static TRANSACTION_PLUGIN_IMPORT_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\.\.?/[\w./-]*?client-transaction-id-plugin-[\w-]+\.js").expect("valid regex")
+});
 
 static SENTRY_FILTER_IMPORT_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\.\.?/[\w./-]*?sentry-filter-[\w-]+\.js").expect("valid regex"));
@@ -272,9 +276,10 @@ impl Client {
     /// `sign.o-<hash>.js` module that holds the key-byte indices.
     ///
     /// Depending on the build the entry chunk imports the sign module directly or through an
-    /// intermediate `sentry-filter` chunk, so at each hop we return the sign module if it's
-    /// imported and otherwise follow the `sentry-filter` import. The hop count is bounded so an
-    /// unexpected build shape fails with [`Error::MissingSignModule`] rather than looping.
+    /// intermediate transaction ID plugin or `sentry-filter` chunk. Prefer the plugin when both
+    /// are imported, since newer builds no longer import the sign module from `sentry-filter`.
+    /// The hop count is bounded so an unexpected build shape fails with [`Error::MissingSignModule`]
+    /// rather than looping.
     async fn resolve_sign_module(&self, entry_url: &str) -> Result<String, Error> {
         let mut current_url = entry_url.to_string();
 
@@ -288,10 +293,7 @@ impl Client {
                 return Ok(url);
             }
 
-            match SENTRY_FILTER_IMPORT_RE
-                .find(&content)
-                .and_then(|module_match| join_url(&current_url, module_match.as_str()))
-            {
+            match next_transaction_module_url(&current_url, &content) {
                 Some(next_url) => current_url = next_url,
                 None => return Err(Error::MissingSignModule),
             }
@@ -430,6 +432,13 @@ impl Home {
             Err(Error::InvalidFrames)
         }
     }
+}
+
+fn next_transaction_module_url(base_url: &str, content: &str) -> Option<String> {
+    TRANSACTION_PLUGIN_IMPORT_RE
+        .find(content)
+        .or_else(|| SENTRY_FILTER_IMPORT_RE.find(content))
+        .and_then(|module_match| join_url(base_url, module_match.as_str()))
 }
 
 /// Resolve a relative module specifier (as written in an `import(...)`) against the URL of the
@@ -582,10 +591,7 @@ mod tests {
 
         // The entry chunk imports the `sentry-filter` chunk from an `assets/` subdirectory.
         let entry_chunk = r#"...be,z as xe}from"./assets/sentry-filter-5XCpxgG0.js";imp..."#;
-        let sentry_url = SENTRY_FILTER_IMPORT_RE
-            .find(entry_chunk)
-            .and_then(|module_match| join_url(&entry_url, module_match.as_str()))
-            .unwrap();
+        let sentry_url = next_transaction_module_url(&entry_url, entry_chunk).unwrap();
         assert_eq!(
             sentry_url,
             "https://abs.twimg.com/x-web/x-web/assets/sentry-filter-5XCpxgG0.js"
@@ -600,6 +606,57 @@ mod tests {
         assert_eq!(
             sign_url,
             "https://abs.twimg.com/x-web/x-web/assets/sign.o-B8kyqbDd.js"
+        );
+    }
+
+    #[test]
+    fn x_web_transaction_plugin_import() {
+        // The entry chunk still imports sentry-filter first, but it no longer leads to sign.o.
+        let entry_url = "https://abs.twimg.com/x-web/x-web/entry-client-logged-out-CS1PUiRh.js";
+        let entry_chunk = r#"import{a}from"./assets/sentry-filter-CgS_2xNo.js";import{b}from"./assets/client-transaction-id-plugin-D9bD8e7X.js";"#;
+        let plugin_url = next_transaction_module_url(entry_url, entry_chunk).unwrap();
+        assert_eq!(
+            plugin_url,
+            "https://abs.twimg.com/x-web/x-web/assets/client-transaction-id-plugin-D9bD8e7X.js"
+        );
+
+        let plugin_chunk =
+            r"s??=n(()=>import(`./sign.o-Oxxhj9hP.js`).then(e=>e.default()),[],import.meta.url)";
+        let sign_url = SIGN_MODULE_RE
+            .find(plugin_chunk)
+            .and_then(|module_match| join_url(&plugin_url, module_match.as_str()))
+            .unwrap();
+        assert_eq!(
+            sign_url,
+            "https://abs.twimg.com/x-web/x-web/assets/sign.o-Oxxhj9hP.js"
+        );
+    }
+
+    #[test]
+    fn x_web_transaction_plugin_index_source() {
+        let body = r#"<link rel="modulepreload" href="https://abs.twimg.com/x-web/x-web/assets/client-transaction-id-plugin-D9bD8e7X.js"/>"#;
+        let home = Home {
+            body: body.to_string(),
+            html: Html::parse_document(body),
+        };
+
+        match home.index_source().unwrap() {
+            IndexSource::ViaModule(url) => assert_eq!(
+                url,
+                "https://abs.twimg.com/x-web/x-web/assets/client-transaction-id-plugin-D9bD8e7X.js"
+            ),
+            IndexSource::Direct(url) => panic!("expected x-web module URL, got {url}"),
+        }
+    }
+
+    #[test]
+    fn unrelated_import_has_no_transaction_module() {
+        assert_eq!(
+            next_transaction_module_url(
+                "https://abs.twimg.com/x-web/x-web/entry-client-logged-out-CS1PUiRh.js",
+                r#"import{a}from"./assets/react-DjnrwM1I.js";"#,
+            ),
+            None
         );
     }
 
