@@ -4,11 +4,12 @@
 //! wxj/data tweet object; a line matches when the content's `includes.users` array contains a user
 //! with the requested ID. Matching lines are copied to the output verbatim, in input order.
 
-use archivindex_wbm_json::exact::ExactSnapshot;
 use std::borrow::Cow;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::Path;
+
+use archivindex_wbm_json::exact::ExactSnapshot;
 
 /// Extraction error.
 #[derive(Debug, thiserror::Error)]

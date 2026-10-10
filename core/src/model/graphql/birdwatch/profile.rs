@@ -1,5 +1,7 @@
-use chrono::{DateTime, Utc, serde::ts_milliseconds};
 use std::borrow::Cow;
+
+use chrono::serde::ts_milliseconds;
+use chrono::{DateTime, Utc};
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
 #[serde(deny_unknown_fields)]

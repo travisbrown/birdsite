@@ -12,12 +12,10 @@
 //! model does not yet support, so the committed fixtures remain the coverage for available
 //! communities); Birdwatch notes covering both classifications and every observed tag, status,
 //! and metadata field; and both Birdwatch manifest bundle shapes.
-use birdsite::model::graphql::{
-    birdwatch::manifest::Bundle,
-    birdwatch::note::Note,
-    community::CommunityResult,
-    user::{User, UserResult},
-};
+use birdsite::model::graphql::birdwatch::manifest::Bundle;
+use birdsite::model::graphql::birdwatch::note::Note;
+use birdsite::model::graphql::community::CommunityResult;
+use birdsite::model::graphql::user::{User, UserResult};
 
 /// The portion of an exchange line the model tests care about; the `request` and `errors` fields
 /// are exercised by the `birdsite-graphql` crate's tests instead.

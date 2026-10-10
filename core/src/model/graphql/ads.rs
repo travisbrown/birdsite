@@ -1,5 +1,6 @@
-use crate::model::KeyValuePair;
 use std::borrow::Cow;
+
+use crate::model::KeyValuePair;
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum DisclosureType {

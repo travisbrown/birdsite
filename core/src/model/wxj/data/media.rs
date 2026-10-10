@@ -1,9 +1,9 @@
-use crate::model::{
-    media::{MediaType, MediaVariant},
-    metrics::MediaPublicMetrics,
-};
-use bounded_static_derive_more::ToStatic;
 use std::borrow::Cow;
+
+use bounded_static_derive_more::ToStatic;
+
+use crate::model::media::{MediaType, MediaVariant};
+use crate::model::metrics::MediaPublicMetrics;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "type", deny_unknown_fields)]

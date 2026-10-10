@@ -5,8 +5,12 @@ authors.workspace = true
 repository.workspace = true
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = false
+
+[lints]
+workspace = true
 
 [dependencies]
 archivindex-wbm-cdx-index = { workspace = true }

@@ -1,7 +1,8 @@
+use std::borrow::Cow;
+
 use bounded_static_derive_more::ToStatic;
 use num_rational::Ratio;
 use serde_field_attributes::ratio_i64;
-use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]

@@ -1,10 +1,13 @@
 //! Models for the affiliation label fields of user objects, which identify automated accounts
 //! and business affiliates.
-use crate::model::graphql::{ResultWrapper, unavailable::UserUnavailableReason};
-use regex::Regex;
-use serde::de::{Deserialize, Deserializer};
 use std::borrow::Cow;
 use std::sync::LazyLock;
+
+use regex::Regex;
+use serde::de::{Deserialize, Deserializer};
+
+use crate::model::graphql::ResultWrapper;
+use crate::model::graphql::unavailable::UserUnavailableReason;
 
 static AFFILIATE_URL_PATTERN: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^https://twitter.com/(\w+)$").expect("valid regex"));
@@ -215,9 +218,10 @@ impl<'a, 'de: 'a> Deserialize<'de> for Affiliation<'a, ()> {
 }
 
 mod internal {
+    use std::borrow::Cow;
+
     use crate::model::graphql::ResultWrapper;
     use crate::model::url::Url;
-    use std::borrow::Cow;
 
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]

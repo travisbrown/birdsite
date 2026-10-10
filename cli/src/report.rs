@@ -5,12 +5,14 @@
 //! `user_observations` prints a row per observed user with the capture timestamps (Unix epoch
 //! seconds) at which the user was seen.
 
-use archivindex_wbm_json::exact::ExactSnapshot;
-use archivindex_wbm_json_processing::io::read::{Error as ReadError, SnapshotReader};
-use birdsite::model::wxj::{self, TweetSnapshot, metadata::tweet::TweetMetadata};
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
 use std::path::Path;
+
+use archivindex_wbm_json::exact::ExactSnapshot;
+use archivindex_wbm_json_processing::io::read::{Error as ReadError, SnapshotReader};
+use birdsite::model::wxj::metadata::tweet::TweetMetadata;
+use birdsite::model::wxj::{self, TweetSnapshot};
 
 /// Report error.
 #[derive(Debug, thiserror::Error)]
@@ -235,9 +237,11 @@ pub fn user_observations<P: AsRef<Path>, W: Write>(
 
 #[cfg(test)]
 mod tests {
+    use archivindex_wbm_json::context::Context;
+    use archivindex_wbm_json::format::Format;
+
     use super::*;
     use crate::test_data::{EXAMPLE_A, example_bytes};
-    use archivindex_wbm_json::{context::Context, format::Format};
 
     fn example_snapshot<'a>(bytes: &'a [u8], context: &Context) -> ExactSnapshot<'a> {
         context

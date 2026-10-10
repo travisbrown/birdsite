@@ -6,8 +6,12 @@ authors.workspace = true
 homepage.workspace = true
 repository.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 publish = false
+
+[lints]
+workspace = true
 
 [dependencies]
 archivindex-wbm = { workspace = true }

@@ -1,6 +1,8 @@
-use bounded_static_derive_more::ToStatic;
-use chrono::{DateTime, Utc, serde::ts_milliseconds};
 use std::borrow::Cow;
+
+use bounded_static_derive_more::ToStatic;
+use chrono::serde::ts_milliseconds;
+use chrono::{DateTime, Utc};
 
 /// Current helpfulness status of a Community Note.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]

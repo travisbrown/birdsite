@@ -1,6 +1,7 @@
-use rocksdb::{DB, Options};
 use std::path::Path;
 use std::sync::Arc;
+
+use rocksdb::{DB, Options};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

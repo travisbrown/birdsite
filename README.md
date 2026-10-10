@@ -7,6 +7,39 @@
 
 This project is a small Rust library for working with Twitter data.
 
+## Development
+
+Rust 1.98 or later is required. The committed lockfile fixes the dependency versions used in CI;
+a separate CI job tests the newest compatible dependencies.
+
+Run the main checks with:
+
+```console
+cargo +nightly fmt --all -- --check
+cargo clippy --locked --all-targets --all-features -- -D warnings
+cargo test --locked --all-features
+RUSTDOCFLAGS="-D warnings" cargo doc --locked --all-features --no-deps
+rumdl check .
+taplo fmt --check --diff
+taplo lint
+cargo deny --workspace check
+```
+
+Rust formatting uses nightly for import grouping. CI uses rumdl 0.2.79 and Taplo 0.10.
+The default workspace members include the libraries and CLI. The `birdsite-hacks` experiments
+are checked separately on Linux because building RocksDB requires a C++ compiler and libclang.
+Use `cargo test --locked -p birdsite-hacks` to run their tests locally.
+
+The transaction ID integration test contacts the live X website and is opt-in:
+
+```console
+cargo test --locked -p birdsite-graphql-ctid --test integration_test -- --ignored
+```
+
+Archived snapshot tests use a local cache and may download captures from the Wayback Machine.
+Private fixture tests skip when their data is absent. CI decrypts the fixture bundles only when
+the fixture secret is available, then runs those tests with all output suppressed.
+
 ## License
 
 This project is licensed under the [GNU Affero General Public License, version 3

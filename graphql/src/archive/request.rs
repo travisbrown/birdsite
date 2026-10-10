@@ -1,7 +1,9 @@
-use crate::request::name::RequestName;
-use chrono::{DateTime, Utc};
 use std::borrow::Cow;
 use std::marker::PhantomData;
+
+use chrono::{DateTime, Utc};
+
+use crate::request::name::RequestName;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Request<'a, V> {

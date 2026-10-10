@@ -1,13 +1,12 @@
-#![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
-#![allow(clippy::missing_errors_doc)]
-#![forbid(unsafe_code)]
-use archivindex_wbm::digest::Sha1Digest;
-use archivindex_wbm_json::{context::Context, format::Format};
-use archivindex_wbm_json_processing::io::write::SnapshotWriter;
-use cli_helpers::prelude::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
+
+use archivindex_wbm::digest::Sha1Digest;
+use archivindex_wbm_json::context::Context;
+use archivindex_wbm_json::format::Format;
+use archivindex_wbm_json_processing::io::write::SnapshotWriter;
+use cli_helpers::prelude::*;
 
 mod db;
 mod extract_tweets;

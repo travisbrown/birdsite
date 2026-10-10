@@ -7,10 +7,9 @@
 //! [generator-blog-1]: https://antibot.blog/posts/1741552025433
 //! [python-generator]: https://github.com/iSarabjitDhiman/XClientTransaction
 
-#![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
-#![forbid(unsafe_code)]
-use chrono::{DateTime, SubsecRound, Utc};
 use std::borrow::Cow;
+
+use chrono::{DateTime, SubsecRound, Utc};
 
 pub mod client;
 pub mod generator;

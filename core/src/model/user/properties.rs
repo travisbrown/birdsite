@@ -1,5 +1,6 @@
-use bounded_static_derive_more::ToStatic;
 use std::borrow::Cow;
+
+use bounded_static_derive_more::ToStatic;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum VerifiedType {

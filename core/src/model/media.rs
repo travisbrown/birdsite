@@ -1,7 +1,8 @@
-use bounded_static_derive_more::ToStatic;
-use serde_field_attributes::range;
 use std::borrow::Cow;
 use std::ops::Range;
+
+use bounded_static_derive_more::ToStatic;
+use serde_field_attributes::range;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum Resize {

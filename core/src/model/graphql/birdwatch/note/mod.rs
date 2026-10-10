@@ -1,7 +1,10 @@
-use crate::model::{entity::TypedEntity, graphql::text::Text};
+use std::borrow::Cow;
+
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
-use std::borrow::Cow;
+
+use crate::model::entity::TypedEntity;
+use crate::model::graphql::text::Text;
 
 pub mod model;
 
@@ -208,8 +211,10 @@ pub struct MediaNoteMatchesV2 {
 }
 
 mod internal {
+    use chrono::serde::ts_milliseconds_option;
+    use chrono::{DateTime, Utc};
+
     use crate::model::graphql::text::Text;
-    use chrono::{DateTime, Utc, serde::ts_milliseconds_option};
 
     // Field names mirror the wire format (`is_media_note` etc.).
     #[allow(clippy::struct_field_names)]

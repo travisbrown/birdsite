@@ -1,14 +1,13 @@
-use crate::model::graphql::{
-    ResultWrapper,
-    ads::{PrerollMetadata, PromotedMetadata},
-    properties::{
-        ConversationAnnotation, CursorType,
-        display::{DisplayTreatment, TweetDisplayType, UserDisplayType},
-    },
-    timeline::context::{ForwardPivot, SocialContext},
-    user::UserResult,
-};
 use std::borrow::Cow;
+
+use crate::model::graphql::ResultWrapper;
+use crate::model::graphql::ads::{PrerollMetadata, PromotedMetadata};
+use crate::model::graphql::properties::display::{
+    DisplayTreatment, TweetDisplayType, UserDisplayType,
+};
+use crate::model::graphql::properties::{ConversationAnnotation, CursorType};
+use crate::model::graphql::timeline::context::{ForwardPivot, SocialContext};
+use crate::model::graphql::user::UserResult;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]

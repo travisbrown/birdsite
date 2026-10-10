@@ -1,15 +1,11 @@
-#![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
-#![allow(clippy::missing_errors_doc)]
-#![forbid(unsafe_code)]
 //! Encoding and decoding of the `x-xp-forwarded-for` header used by the X (Twitter) GraphQL API.
 
-use aes_gcm::{
-    Aes256Gcm, KeyInit,
-    aead::{AeadInOut, Generate, Nonce},
-};
+use std::borrow::Cow;
+
+use aes_gcm::aead::{AeadInOut, Generate, Nonce};
+use aes_gcm::{Aes256Gcm, KeyInit};
 use chrono::{DateTime, Utc};
 use sha2::Digest;
-use std::borrow::Cow;
 
 const BASE_KEY: &str = "0e6be1f1e21ffc33590b888fd4dc81b19713e570e805d4e5df80a493c9571a05";
 

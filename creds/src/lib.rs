@@ -1,8 +1,7 @@
-#![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
-#![forbid(unsafe_code)]
 //! Parsing of X (Twitter) API credentials, including extraction from a copied `curl` command.
-use regex::Regex;
 use std::sync::LazyLock;
+
+use regex::Regex;
 
 /// A set of X (Twitter) API credentials.
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

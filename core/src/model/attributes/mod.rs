@@ -1,10 +1,8 @@
 /// Serde attribute for numeric X (Twitter) IDs that may be encoded as either a JSON number or a
 /// decimal string.
 pub mod id {
-    use serde::{
-        de::{Deserializer, Unexpected, Visitor},
-        ser::Serializer,
-    };
+    use serde::de::{Deserializer, Unexpected, Visitor};
+    use serde::ser::Serializer;
 
     struct IdVisitor;
 
@@ -37,10 +35,8 @@ pub mod id {
 
 /// Optional variant of [`id`].
 pub mod optional_id {
-    use serde::{
-        de::{Deserialize, Deserializer},
-        ser::{Serialize, Serializer},
-    };
+    use serde::de::{Deserialize, Deserializer};
+    use serde::ser::{Serialize, Serializer};
 
     struct Id(u64);
 
@@ -68,10 +64,8 @@ pub mod optional_id {
 /// attribute documents the wire shape: [`id`] means either encoding may appear, while this one
 /// means the value is always a string.
 pub mod id_str {
-    use serde::{
-        de::{Deserializer, Unexpected, Visitor},
-        ser::Serializer,
-    };
+    use serde::de::{Deserializer, Unexpected, Visitor};
+    use serde::ser::Serializer;
 
     struct IdStrVisitor;
 
@@ -99,10 +93,8 @@ pub mod id_str {
 
 /// Optional variant of [`id_str`].
 pub mod optional_id_str {
-    use serde::{
-        de::{Deserialize, Deserializer},
-        ser::{Serialize, Serializer},
-    };
+    use serde::de::{Deserialize, Deserializer};
+    use serde::ser::{Serialize, Serializer};
 
     struct Id(u64);
 
@@ -135,11 +127,10 @@ pub mod optional_id_str {
 /// Deserialization always produces an owned vector (a JSON array has no zero-copy `[u64]`
 /// representation); the `Cow` allows serialization to borrow an existing slice.
 pub mod ids {
-    use serde::{
-        de::{Deserializer, Visitor},
-        ser::{SerializeSeq, Serializer},
-    };
     use std::borrow::Cow;
+
+    use serde::de::{Deserializer, Visitor};
+    use serde::ser::{SerializeSeq, Serializer};
 
     struct IdsVisitor;
 
@@ -192,11 +183,10 @@ pub mod ids {
 
 /// Optional variant of [`ids`].
 pub mod optional_ids {
-    use serde::{
-        de::{Deserialize, Deserializer},
-        ser::{Serialize, Serializer},
-    };
     use std::borrow::Cow;
+
+    use serde::de::{Deserialize, Deserializer};
+    use serde::ser::{Serialize, Serializer};
 
     struct Ids(Vec<u64>);
 
@@ -237,11 +227,10 @@ pub mod optional_ids {
 /// Like [`id_str`], this attribute rejects JSON numbers on deserialization, documenting that the
 /// elements are always strings; use [`optional_ids`] where either encoding may appear.
 pub mod optional_ids_str {
-    use serde::{
-        de::{Deserialize, Deserializer, Visitor},
-        ser::{Serialize, SerializeSeq, Serializer},
-    };
     use std::borrow::Cow;
+
+    use serde::de::{Deserialize, Deserializer, Visitor};
+    use serde::ser::{Serialize, SerializeSeq, Serializer};
 
     struct IdsVisitor;
 
@@ -327,10 +316,8 @@ pub mod optional_ids_str {
 /// Like [`id_str`], this attribute rejects JSON numbers on deserialization, documenting that the
 /// value is always a string on the wire.
 pub mod count_str {
-    use serde::{
-        de::{Deserializer, Unexpected, Visitor},
-        ser::Serializer,
-    };
+    use serde::de::{Deserializer, Unexpected, Visitor};
+    use serde::ser::Serializer;
 
     struct CountStrVisitor;
 
@@ -358,10 +345,8 @@ pub mod count_str {
 
 /// Optional variant of [`count_str`].
 pub mod optional_count_str {
-    use serde::{
-        de::{Deserialize, Deserializer},
-        ser::{Serialize, Serializer},
-    };
+    use serde::de::{Deserialize, Deserializer};
+    use serde::ser::{Serialize, Serializer};
 
     struct Count(usize);
 
@@ -396,10 +381,8 @@ pub mod optional_count_str {
 /// Deserialization maps `-1` to `None` and any unsigned value to `Some`; any other negative
 /// value is rejected. Serialization writes `None` back as `-1`.
 pub mod optional_count_with_sentinel {
-    use serde::{
-        de::{Deserializer, Unexpected, Visitor},
-        ser::Serializer,
-    };
+    use serde::de::{Deserializer, Unexpected, Visitor};
+    use serde::ser::Serializer;
 
     const EXPECTED: &str = "optional unsigned integer";
 
@@ -445,12 +428,11 @@ pub mod optional_count_with_sentinel {
 }
 
 pub mod text_timestamp {
-    use crate::model::timestamp::TextTimestamp;
     use chrono::{DateTime, Utc};
-    use serde::{
-        de::{Deserialize, Deserializer},
-        ser::{Serialize, Serializer},
-    };
+    use serde::de::{Deserialize, Deserializer};
+    use serde::ser::{Serialize, Serializer};
+
+    use crate::model::timestamp::TextTimestamp;
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
         deserializer: D,
@@ -468,12 +450,11 @@ pub mod text_timestamp {
 
 /// Optional variant of [`text_timestamp`].
 pub mod optional_text_timestamp {
-    use crate::model::timestamp::TextTimestamp;
     use chrono::{DateTime, Utc};
-    use serde::{
-        de::{Deserialize, Deserializer},
-        ser::{Serialize, Serializer},
-    };
+    use serde::de::{Deserialize, Deserializer};
+    use serde::ser::{Serialize, Serializer};
+
+    use crate::model::timestamp::TextTimestamp;
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
         deserializer: D,
@@ -492,8 +473,9 @@ pub mod optional_text_timestamp {
 
 #[cfg(test)]
 mod tests {
-    use chrono::{DateTime, TimeZone, Utc};
     use std::borrow::Cow;
+
+    use chrono::{DateTime, TimeZone, Utc};
 
     const SAMPLE_TEXT_TIMESTAMP: &str = "Thu Jun 25 16:18:41 +0000 2009";
     const SAMPLE_EPOCH_S: i64 = 1_245_946_721;

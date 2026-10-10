@@ -1,8 +1,9 @@
-use crate::{Endpoint, SiteInfo, TransactionId};
 use base64::prelude::*;
 use chrono::{TimeZone, Utc};
 use rand::RngExt;
 use sha2::Digest;
+
+use crate::{Endpoint, SiteInfo, TransactionId};
 
 mod color;
 mod cubic;

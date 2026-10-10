@@ -1,13 +1,16 @@
 //! Extract selected tweet results from archived `TweetResultsByRestIds` GraphQL exchanges.
 
-use birdsite_graphql::archive::{Exchange, parse::parse_exchange};
-use birdsite_graphql::request::{filter::include_filter, name::RequestName};
-use cli_helpers::prelude::log;
-use serde_json::Value;
 use std::collections::BTreeSet;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
+
+use birdsite_graphql::archive::Exchange;
+use birdsite_graphql::archive::parse::parse_exchange;
+use birdsite_graphql::request::filter::include_filter;
+use birdsite_graphql::request::name::RequestName;
+use cli_helpers::prelude::log;
+use serde_json::Value;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -215,10 +218,11 @@ pub fn run(input: &Path, remaining: &Path) -> Result<(), Error> {
 
 #[cfg(test)]
 mod tests {
-    use super::{extract, input_paths, read_status_ids};
     use std::collections::BTreeSet;
     use std::fs::File;
     use std::io::Cursor;
+
+    use super::{extract, input_paths, read_status_ids};
 
     const TWEET: &str = r#"{"data":{"tweetResult":[{"result":{"__typename":"Tweet","rest_id":"42","text":"found"}},{"result":{"__typename":"TweetUnavailable","reason":"Deleted"}},{"result":{"__typename":"TweetWithVisibilityResults","tweet":{"rest_id":"8","text":"limited"}}},{},{"result":null}]},"request":{"name":"TweetResultsByRestIds","timestamp_ms":"1782885597308","variables":{"tweetIds":[42,7,8,9,10]}}}"#;
 

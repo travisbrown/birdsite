@@ -1,5 +1,6 @@
-use crate::model::wxj::{TweetSnapshot, data, flat};
 use chrono::{DateTime, Utc};
+
+use crate::model::wxj::{TweetSnapshot, data, flat};
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct UserMetadata {

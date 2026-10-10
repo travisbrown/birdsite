@@ -1,8 +1,9 @@
-use serde::de::{Deserializer, Visitor};
 use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::str::FromStr;
 use std::sync::LazyLock;
+
+use serde::de::{Deserializer, Visitor};
 
 /// May be a stock symbol, a crypto abbreviation, or an arbitrary sequence of letters.
 ///

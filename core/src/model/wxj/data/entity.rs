@@ -1,6 +1,7 @@
+use std::borrow::Cow;
+
 use bounded_static_derive_more::ToStatic;
 use serde_field_attributes::ratio_u64;
-use std::borrow::Cow;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -146,8 +147,9 @@ pub struct Cashtag {
 }
 
 mod possible_u64 {
-    use serde::de::Deserializer;
     use std::borrow::Cow;
+
+    use serde::de::Deserializer;
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
         deserializer: D,

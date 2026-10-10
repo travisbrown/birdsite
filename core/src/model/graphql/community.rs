@@ -1,6 +1,9 @@
-use crate::model::graphql::ResultWrapper;
-use chrono::{DateTime, Utc, serde::ts_milliseconds};
 use std::borrow::Cow;
+
+use chrono::serde::ts_milliseconds;
+use chrono::{DateTime, Utc};
+
+use crate::model::graphql::ResultWrapper;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "__typename", deny_unknown_fields)]

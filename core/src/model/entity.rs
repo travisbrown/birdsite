@@ -1,6 +1,7 @@
-use crate::model::url::{Url, UrlType};
 use std::borrow::Cow;
 use std::ops::Range;
+
+use crate::model::url::{Url, UrlType};
 
 /// A URL representation that uses snake case (used in the untyped entity representation).
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

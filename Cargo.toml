@@ -1,27 +1,27 @@
 [workspace]
-resolver = "2"
+resolver = "3"
 members = [
-    "core",
-    "cli",
-    "hacks",
-    "rate-limits",
-    "creds",
-    "graphql",
-    "graphql-ctid",
-    "graphql-xpff",
-    "graphql-creds",
-    "birdwatch",
+  "core",
+  "cli",
+  "hacks",
+  "rate-limits",
+  "creds",
+  "graphql",
+  "graphql-ctid",
+  "graphql-xpff",
+  "graphql-creds",
+  "birdwatch",
 ]
 default-members = [
-    "core",
-    "cli",
-    "rate-limits",
-    "creds",
-    "graphql",
-    "graphql-ctid",
-    "graphql-xpff",
-    "graphql-creds",
-    "birdwatch",
+  "core",
+  "cli",
+  "rate-limits",
+  "creds",
+  "graphql",
+  "graphql-ctid",
+  "graphql-xpff",
+  "graphql-creds",
+  "birdwatch",
 ]
 
 [workspace.package]
@@ -30,15 +30,16 @@ homepage = "https://github.com/travisbrown/birdsite"
 repository = "https://github.com/travisbrown/birdsite"
 keywords = ["twitter"]
 edition = "2024"
+rust-version = "1.98"
 license = "AGPL-3.0-only"
 version = "0.1.0"
 
 [workspace.dependencies]
-archivindex-wbm = { git = "ssh://git@github.com/travisbrown/archivindex-wbm.git" }
-archivindex-wbm-cdx-index = { git = "ssh://git@github.com/travisbrown/archivindex-wbm.git" }
-archivindex-wbm-json = { git = "ssh://git@github.com/travisbrown/archivindex-wbm.git" }
-archivindex-wbm-json-processing = { git = "ssh://git@github.com/travisbrown/archivindex-wbm.git" }
-archivindex-wbm-test-data = { git = "ssh://git@github.com/travisbrown/archivindex-wbm.git" }
+archivindex-wbm = { git = "https://github.com/travisbrown/archivindex-wbm" }
+archivindex-wbm-cdx-index = { git = "https://github.com/travisbrown/archivindex-wbm" }
+archivindex-wbm-json = { git = "https://github.com/travisbrown/archivindex-wbm" }
+archivindex-wbm-json-processing = { git = "https://github.com/travisbrown/archivindex-wbm" }
+archivindex-wbm-test-data = { git = "https://github.com/travisbrown/archivindex-wbm" }
 bounded-static = "0.8"
 bounded-static-derive-more = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
@@ -55,3 +56,14 @@ tempfile = "3"
 test-strategy = "0.4"
 thiserror = "2"
 url = { version = "2", features = ["serde"] }
+
+[workspace.lints.rust]
+# Enable missing_docs once the public model fields are documented.
+rust_2018_idioms = { level = "warn", priority = -1 }
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+missing_errors_doc = "allow"

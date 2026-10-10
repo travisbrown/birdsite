@@ -1,5 +1,6 @@
 use super::Exchange;
-use crate::request::{filter::RequestFilter, name::RequestName};
+use crate::request::filter::RequestFilter;
+use crate::request::name::RequestName;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

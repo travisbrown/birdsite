@@ -4,9 +4,18 @@ description = "Credential parsing for the X (Twitter) API"
 authors = { workspace = true }
 repository = { workspace = true }
 version = { workspace = true }
-edition = { workspace = true }
+edition.workspace = true
+rust-version.workspace = true
 license = { workspace = true }
 keywords = { workspace = true }
+readme = "../README.md"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[lints]
+workspace = true
 
 [dependencies]
 regex = { workspace = true }

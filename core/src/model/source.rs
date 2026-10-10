@@ -1,9 +1,10 @@
-use regex::Regex;
-use serde::de::{Deserializer, Unexpected, Visitor};
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::str::FromStr;
 use std::sync::LazyLock;
+
+use regex::Regex;
+use serde::de::{Deserializer, Unexpected, Visitor};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SourceName {

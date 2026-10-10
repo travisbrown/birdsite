@@ -1,7 +1,8 @@
-use bounded_static_derive_more::ToStatic;
-use serde_field_attributes::range;
 use std::borrow::Cow;
 use std::ops::Range;
+
+use bounded_static_derive_more::ToStatic;
+use serde_field_attributes::range;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]

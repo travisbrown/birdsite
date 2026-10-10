@@ -7,11 +7,13 @@
 //! each line's content is deserialized with the `birdsite` wxj model types (which reject unknown
 //! fields), so validation checks the full schema rather than the presence of a few fields.
 
-use archivindex_wbm_json::{context::Context, exact::ExactSnapshot};
+use std::path::Path;
+
+use archivindex_wbm_json::context::Context;
+use archivindex_wbm_json::exact::ExactSnapshot;
 use archivindex_wbm_json_processing::io::read::{Error as ReadError, SnapshotReader};
 use birdsite::model::wxj;
 use sha1::Sha1;
-use std::path::Path;
 
 /// Validation error.
 ///
@@ -190,9 +192,10 @@ pub fn validate<P: AsRef<Path>>(
 
 #[cfg(test)]
 mod tests {
+    use archivindex_wbm_json::format::Format;
+
     use super::*;
     use crate::test_data::{EXAMPLE_A, EXAMPLE_B, example_bytes};
-    use archivindex_wbm_json::format::Format;
 
     fn example_snapshot<'a>(bytes: &'a [u8], context: &Context) -> ExactSnapshot<'a> {
         context

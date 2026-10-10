@@ -4,8 +4,10 @@
 //!
 //! The numbers here should not be interpreted as exact distributions for accounts or tweets for
 //! any particular time period, but are rather provided as useful general approximations.
+use std::collections::HashMap;
+use std::sync::LazyLock;
+
 use super::Language;
-use std::{collections::HashMap, sync::LazyLock};
 
 pub const TOTAL_COUNT: usize = 935_214_304;
 

@@ -88,8 +88,9 @@ pub enum ConversationSection {
 }
 
 pub mod event {
-    use serde_field_attributes::integer_str;
     use std::borrow::Cow;
+
+    use serde_field_attributes::integer_str;
 
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]

@@ -1,9 +1,8 @@
-use serde::{
-    Deserialize, Deserializer, Serialize, Serializer,
-    de::{Unexpected, Visitor},
-};
 use std::fmt::Display;
 use std::str::FromStr;
+
+use serde::de::{Unexpected, Visitor};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -91,8 +90,9 @@ impl Serialize for Color {
 
 #[cfg(test)]
 mod tests {
-    use super::Color;
     use serde_json::json;
+
+    use super::Color;
 
     const EXAMPLE_TEXT_TIMESTAMP: &str = "6D5C18";
 

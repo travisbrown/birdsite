@@ -1,18 +1,18 @@
 //! This data format appears for tweets in the Wayback Machine until at least 2022 (current last seen is 22 November 2022).
-use crate::model::{
-    attributes::text_timestamp,
-    color::Color,
-    country::Country,
-    lang::Lang,
-    place::{Place, TypedCoordinates},
-    source::SourceAnchor,
-    time_zone::TimeZone,
-};
+use std::borrow::Cow;
+use std::ops::Range;
+
 use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
 use serde_field_attributes::{optional_range, optional_timestamp_millis_str, range};
-use std::borrow::Cow;
-use std::ops::Range;
+
+use crate::model::attributes::text_timestamp;
+use crate::model::color::Color;
+use crate::model::country::Country;
+use crate::model::lang::Lang;
+use crate::model::place::{Place, TypedCoordinates};
+use crate::model::source::SourceAnchor;
+use crate::model::time_zone::TimeZone;
 
 pub mod entity;
 

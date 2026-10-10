@@ -1,9 +1,12 @@
-use crate::{Endpoint, SiteInfo, TransactionId, generator::Generator};
+use std::sync::LazyLock;
+
 use base64::prelude::*;
 use regex::Regex;
 use reqwest::StatusCode;
 use scraper::{Html, Selector};
-use std::sync::LazyLock;
+
+use crate::generator::Generator;
+use crate::{Endpoint, SiteInfo, TransactionId};
 
 const HOME_URL: &str = "https://x.com/";
 

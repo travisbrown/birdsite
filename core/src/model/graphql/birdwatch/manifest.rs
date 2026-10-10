@@ -1,5 +1,6 @@
-use chrono::{DateTime, NaiveDate, Utc};
 use std::path::{Path, PathBuf};
+
+use chrono::{DateTime, NaiveDate, Utc};
 use url::Url;
 
 #[derive(thiserror::Error, Debug)]

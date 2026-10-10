@@ -1,10 +1,9 @@
-use chrono::{DateTime, Utc};
-use serde::{
-    de::{Deserialize, Deserializer, Unexpected, Visitor},
-    ser::{Serialize, Serializer},
-};
 use std::fmt::Display;
 use std::str::FromStr;
+
+use chrono::{DateTime, Utc};
+use serde::de::{Deserialize, Deserializer, Unexpected, Visitor};
+use serde::ser::{Serialize, Serializer};
 
 const TWITTER_DATE_TIME_FMT: &str = "%a %b %d %H:%M:%S %z %Y";
 
@@ -56,9 +55,11 @@ impl Serialize for TextTimestamp {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::timestamp::TextTimestamp;
-    use chrono::{TimeZone, Utc};
     use std::io::Cursor;
+
+    use chrono::{TimeZone, Utc};
+
+    use crate::model::timestamp::TextTimestamp;
 
     const SAMPLE_TEXT_TIMESTAMP: &str = "Thu Jun 25 16:18:41 +0000 2009";
     const SAMPLE_EPOCH_S: i64 = 1_245_946_721;

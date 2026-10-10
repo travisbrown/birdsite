@@ -1,7 +1,10 @@
 Cargo.lock
+!/Cargo.lock
 target/
 tmp/
 .RData
 .Rhistory
 **/tests/data/.cache/
 **/tests/data/local/
+.rumdl_cache/
+lcov.info

@@ -1,5 +1,6 @@
-use bounded_static_derive_more::ToStatic;
 use std::borrow::Cow;
+
+use bounded_static_derive_more::ToStatic;
 
 pub mod attributes;
 pub mod cashtag;

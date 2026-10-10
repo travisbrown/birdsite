@@ -1,14 +1,13 @@
-use crate::model::graphql::{
-    ResultWrapper,
-    ads::PromotedMetadata,
-    image::{Image, OriginalImage},
-    properties::{
-        TombstoneInfo,
-        display::{LabelDisplayType, PivotDisplayType, TombstoneDisplayType},
-    },
-    trends::TrendMetadata,
-};
 use std::borrow::Cow;
+
+use crate::model::graphql::ResultWrapper;
+use crate::model::graphql::ads::PromotedMetadata;
+use crate::model::graphql::image::{Image, OriginalImage};
+use crate::model::graphql::properties::TombstoneInfo;
+use crate::model::graphql::properties::display::{
+    LabelDisplayType, PivotDisplayType, TombstoneDisplayType,
+};
+use crate::model::graphql::trends::TrendMetadata;
 
 pub mod client;
 pub mod context;

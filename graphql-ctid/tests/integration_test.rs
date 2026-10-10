@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[tokio::test]
+    #[ignore = "requires access to the live X website"]
     async fn download_and_generate() -> Result<(), birdsite_graphql_ctid::client::Error> {
         let endpoint =
             birdsite_graphql_ctid::Endpoint::new("UsersByRestIds", "1hjT2eXW1Zcw-2xk8EbvoA");

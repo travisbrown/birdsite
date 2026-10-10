@@ -7,13 +7,11 @@
 //! Twitter-specific pieces (the default closing whitespace and the CEL query that infers a
 //! tweet's canonical URL) live in the bundled `twitter.toml` context configuration; the
 //! operations themselves come from `archivindex-wbm-json-processing`.
-#![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
-#![allow(clippy::missing_errors_doc)]
-#![forbid(unsafe_code)]
-use archivindex_wbm_json::context::Context;
-use cli_helpers::prelude::*;
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
+
+use archivindex_wbm_json::context::Context;
+use cli_helpers::prelude::*;
 
 mod extract;
 mod report;

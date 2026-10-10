@@ -1,14 +1,14 @@
-#![warn(clippy::all, clippy::pedantic, clippy::nursery, rust_2018_idioms)]
-#![forbid(unsafe_code)]
 //! Parsing and concurrent tracking of X (Twitter) API rate-limit headers.
 //!
 //! [`RateLimit`] parses the `x-rate-limit-reset` and `x-rate-limit-remaining` headers from a
 //! [`reqwest::header::HeaderMap`], a JSON object, or any iterator of name-value pairs, and
 //! [`RateLimits`] is a cheaply cloneable concurrent map that tracks the current limit per scope.
-use chrono::{DateTime, TimeDelta, TimeZone, Utc};
 use std::hash::Hash;
-use std::sync::{Arc, atomic::AtomicU64};
+use std::sync::Arc;
+use std::sync::atomic::AtomicU64;
 use std::time::Duration;
+
+use chrono::{DateTime, TimeDelta, TimeZone, Utc};
 
 /// Default name of the header carrying the rate-limit reset time (epoch seconds).
 pub const DEFAULT_RATE_LIMIT_RESET_HEADER_NAME: &str = "x-rate-limit-reset";
@@ -318,9 +318,11 @@ fn rate_limit_from_atomic64(value: &AtomicU64) -> Option<RateLimit> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use chrono::{SubsecRound, Utc};
     use std::collections::HashSet;
+
+    use chrono::{SubsecRound, Utc};
+
+    use super::*;
 
     #[test]
     fn parse_headers_iter_ignores_header_name_case() {

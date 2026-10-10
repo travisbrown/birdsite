@@ -5,45 +5,93 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  format:
+    name: Rust formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+      - name: Check formatting
+        run: cargo +nightly fmt --all -- --check
+
+  markdown:
+    name: Markdown formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: rumdl@0.2.79
+      - name: Check formatting
+        run: rumdl check .
+
+  toml:
+    name: TOML formatting and lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Formatting output can change between minor releases.
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: taplo@0.10
+      - name: Check formatting
+        run: taplo fmt --check --diff
+      - name: Lint
+        run: taplo lint
+
   build:
-    name: Build and test
+    name: Build, test, lint, and document
     runs-on: ubuntu-latest
     env:
       BIRDSITE_FIXTURES_PASSPHRASE: ${{ secrets.FIXTURES_PASSPHRASE }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
+          components: clippy
       - uses: Swatinem/rust-cache@v2
-      - name: Check formatting
-        run: cargo fmt --check
-      - name: Lint
-        run: cargo clippy --all-targets -- -D warnings
+      - uses: taiki-e/install-action@cargo-hack
+      # Check each package independently. The RocksDB experiments have their own job below.
+      - name: Lint every feature combination
+        run: >-
+          cargo hack clippy --locked --workspace --exclude birdsite-hacks
+          --feature-powerset --depth 2 --all-targets -- -D warnings
+      - name: Check documentation
+        run: cargo doc --locked --all-features --no-deps
+        env:
+          RUSTDOCFLAGS: -D warnings
       - name: Build
-        run: cargo build --all-targets
-      # The local fixture tests skip themselves while the fixtures are still encrypted, so this
-      # visible run cannot leak their contents.
+        run: cargo build --locked --all-targets --all-features
+      # The local fixture tests skip themselves while the fixtures are still encrypted.
       - name: Test
-        run: cargo test
-      # The remaining steps run only when the decryption passphrase is available (it is not, for
-      # example, on pull requests from forks).
+        run: cargo test --locked --all-features
+      - name: Test with system SQLite
+        run: cargo test --locked -p birdsite-graphql-creds
+      # Fork pull requests do not have access to the decryption passphrase.
       - name: Unpack local fixtures
         if: env.BIRDSITE_FIXTURES_PASSPHRASE != ''
         run: ./data/fixtures.sh unpack data/fixtures/
-      # The fixtures must never appear in logs, so all test output is suppressed and only a
-      # pass-or-fail line is reported.
+      # The fixtures must never appear in logs, so only a pass-or-fail line is reported.
       - name: Run local fixture tests (output suppressed)
         if: env.BIRDSITE_FIXTURES_PASSPHRASE != ''
         run: |
           if {
-            cargo test -p birdsite --test graphql_local &&
-              cargo test -p birdsite-graphql --test local_exchanges &&
-              cargo test -p birdsite-cli
+            cargo test --locked -p birdsite --test graphql_local &&
+              cargo test --locked -p birdsite-graphql --test local_exchanges &&
+              cargo test --locked -p birdsite-cli
           } > /dev/null 2>&1; then
             echo "local fixture tests passed"
           else
@@ -51,21 +99,104 @@ jobs:
             exit 1
           fi
 
+  hacks:
+    name: Build, test, and lint the RocksDB experiments
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      # RocksDB builds C++ sources and uses bindgen.
+      - name: Install the native toolchain
+        run: sudo apt-get update && sudo apt-get install -y cmake libclang-dev
+      - uses: Swatinem/rust-cache@v2
+      - name: Lint
+        run: cargo clippy --locked -p birdsite-hacks --all-targets --all-features -- -D warnings
+      - name: Build
+        run: cargo build --locked -p birdsite-hacks --all-targets --all-features
+      - name: Test
+        run: cargo test --locked -p birdsite-hacks --all-features
+
+  fresh-deps:
+    name: Test with the newest compatible dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Update dependencies
+        run: cargo update
+      - name: Lint
+        run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Test
+        run: cargo test --all-features
+
+  package:
+    name: Check package contents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Inspect the publishable crates
+        run: cargo package --locked --list --workspace --exclude birdsite-cli --exclude birdsite-hacks
+
+  deny:
+    name: Check the dependency policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@cargo-deny
+      - name: Check the workspace
+        run: cargo deny --workspace check
+
+  platforms:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Test
+        run: cargo test --locked --all-features
+
+  msrv:
+    name: Rust 1.98 compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.98.0
+      - name: Install the native toolchain
+        run: sudo apt-get update && sudo apt-get install -y cmake libclang-dev
+      - uses: Swatinem/rust-cache@v2
+      - name: Check workspace
+        run: cargo check --locked --workspace --all-targets --all-features
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview
       - uses: taiki-e/install-action@cargo-llvm-cov
       - uses: Swatinem/rust-cache@v2
-      - name: Generate coverage report
-        run: cargo llvm-cov --all-features --lcov --output-path lcov.info
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Generate coverage
+        run: cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
         with:
           files: lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+          # Fork pull requests do not have access to the token.
+          fail_ci_if_error: false

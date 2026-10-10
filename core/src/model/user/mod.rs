@@ -1,7 +1,9 @@
-use crate::model::country::Country;
+use std::borrow::Cow;
+
 use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
-use std::borrow::Cow;
+
+use crate::model::country::Country;
 
 pub mod affiliation;
 pub mod entities;

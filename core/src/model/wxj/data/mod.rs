@@ -1,14 +1,14 @@
 //! This data format appears for tweets in the Wayback Machine from around 9 December 2022 until into 2025.
-use crate::model::{
-    country::Country,
-    lang::Lang,
-    metrics::{TweetPublicMetrics, UserPublicMetrics},
-    place::TypedCoordinates,
-    source::SourceName,
-};
+use std::borrow::Cow;
+
 use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
-use std::borrow::Cow;
+
+use crate::model::country::Country;
+use crate::model::lang::Lang;
+use crate::model::metrics::{TweetPublicMetrics, UserPublicMetrics};
+use crate::model::place::TypedCoordinates;
+use crate::model::source::SourceName;
 
 pub mod context;
 pub mod entity;
