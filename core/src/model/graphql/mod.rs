@@ -1,3 +1,8 @@
+#![allow(
+    clippy::empty_enums,
+    reason = "Serde derives for empty objects generate empty field enums outside the annotated type."
+)]
+
 pub mod ads;
 pub mod birdwatch;
 pub mod community;

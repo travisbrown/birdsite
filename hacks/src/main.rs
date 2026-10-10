@@ -389,20 +389,15 @@ fn extract_tweets(input: PathBuf, author_id: u64) -> Result<(), Error> {
                                 tweet.author_id,
                                 tweet.id,
                                 tweet.created_at,
-                                in_reply_to_user_id
-                                    .map(|user_id| user_id.to_string())
-                                    .unwrap_or_default(),
+                                in_reply_to_user_id.map_or_default(|user_id| user_id.to_string()),
                                 in_reply_to_info
                                     .as_ref()
-                                    .map(|(screen_name, _)| screen_name.to_string())
-                                    .unwrap_or_default(),
+                                    .map_or_default(|(screen_name, _)| screen_name.to_string()),
                                 in_reply_to_info
                                     .as_ref()
-                                    .map(|(_, verified)| verified.to_string())
-                                    .unwrap_or_default(),
+                                    .map_or_default(|(_, verified)| verified.to_string()),
                                 user.and_then(|user| user.public_metrics.tweet_count)
-                                    .map(|tweet_count| tweet_count.to_string())
-                                    .unwrap_or_default()
+                                    .map_or_default(|tweet_count| tweet_count.to_string())
                             );
                         }
                     }

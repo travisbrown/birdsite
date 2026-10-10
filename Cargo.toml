@@ -26,7 +26,6 @@ default-members = [
 
 [workspace.package]
 authors = ["Travis Brown <travisrobertbrown@gmail.com>"]
-homepage = "https://github.com/travisbrown/birdsite"
 repository = "https://github.com/travisbrown/birdsite"
 keywords = ["twitter"]
 edition = "2024"

@@ -82,8 +82,7 @@ impl Bundle {
 
         let segments = url
             .path_segments()
-            .map(std::iter::Iterator::collect::<Vec<_>>)
-            .unwrap_or_default();
+            .map_or_default(std::iter::Iterator::collect::<Vec<_>>);
 
         if segments.len() < 4 {
             Err(Error::InvalidUrl(url.clone()))

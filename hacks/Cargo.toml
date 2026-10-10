@@ -3,7 +3,6 @@ name = "birdsite-hacks"
 workspace = ".."
 version.workspace = true
 authors.workspace = true
-homepage.workspace = true
 repository.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -24,8 +23,6 @@ chrono = { workspace = true }
 cli-helpers = "0.1"
 csv = "1"
 futures = "0.3"
-globwalk = "0.9"
-itertools = "0.15"
 rocksdb = { version = "0.25", features = ["zstd"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
