@@ -11,8 +11,8 @@ use crate::{Endpoint, SiteInfo, TransactionId};
 const HOME_URL: &str = "https://x.com/";
 
 // Upper bound on the number of chunks we download while walking the `x-web` import chain from the
-// entry chunk to the sign module, possibly through a transaction ID plugin or sentry filter.
-// This bounds downloads if the import chain contains a cycle.
+// entry chunk to the sign module, possibly through a startup chunk, transaction ID plugin, or sentry
+// filter. This bounds downloads if the import chain contains a cycle.
 const MAX_MODULE_HOPS: usize = 4;
 const USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36";
 
@@ -40,10 +40,11 @@ static ONDEMAND_NAME_V2_INDEX_RE: LazyLock<Regex> =
 //    `entry-client-logged-out` chunk that imports `sentry-filter`, which imports `sign.o`. We match
 //    either as the entry point and follow the import chain to the sign module. Since October 2026,
 //    `client-transaction-id-plugin` imports the sign module instead of `sentry-filter`. Prefer that
-//    plugin when both appear in the entry chunk. These source names may change across builds.
+//    plugin when both appear in the entry chunk. Later October builds import `sign.o` from
+//    `startup-dynamic` instead. These source names may change across builds.
 static TRANSACTION_ENTRY_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"https://abs\.twimg\.com/[\w./-]*?(?:entry-client-logged-out|client-transaction-id-plugin|sentry-filter)-[\w-]+\.js",
+        r"https://abs\.twimg\.com/[\w./-]*?(?:entry-client-logged-out|startup-dynamic|client-transaction-id-plugin|sentry-filter)-[\w-]+\.js",
     )
     .expect("valid regex")
 });
@@ -53,6 +54,10 @@ static TRANSACTION_ENTRY_RE: LazyLock<Regex> = LazyLock::new(|| {
 // and any subdirectory) so `join_url` can resolve them against the importing chunk's URL.
 static SIGN_MODULE_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\.\.?/[\w./-]*?sign\.o-[\w-]+\.js").expect("valid regex"));
+
+static STARTUP_DYNAMIC_IMPORT_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\.\.?/[\w./-]*?startup-dynamic-[\w-]+\.js").expect("valid regex")
+});
 
 static TRANSACTION_PLUGIN_IMPORT_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"\.\.?/[\w./-]*?client-transaction-id-plugin-[\w-]+\.js").expect("valid regex")
@@ -279,8 +284,9 @@ impl Client {
     /// `sign.o-<hash>.js` module that holds the key-byte indices.
     ///
     /// Depending on the build the entry chunk imports the sign module directly or through an
-    /// intermediate transaction ID plugin or `sentry-filter` chunk. Prefer the plugin when both
-    /// are imported, since newer builds no longer import the sign module from `sentry-filter`.
+    /// intermediate startup, transaction ID plugin, or `sentry-filter` chunk. Prefer the startup
+    /// chunk, then the plugin, since newer builds no longer import the sign module from
+    /// `sentry-filter`.
     /// The hop count is bounded so an unexpected build shape fails with [`Error::MissingSignModule`]
     /// rather than looping.
     async fn resolve_sign_module(&self, entry_url: &str) -> Result<String, Error> {
@@ -438,8 +444,9 @@ impl Home {
 }
 
 fn next_transaction_module_url(base_url: &str, content: &str) -> Option<String> {
-    TRANSACTION_PLUGIN_IMPORT_RE
+    STARTUP_DYNAMIC_IMPORT_RE
         .find(content)
+        .or_else(|| TRANSACTION_PLUGIN_IMPORT_RE.find(content))
         .or_else(|| SENTRY_FILTER_IMPORT_RE.find(content))
         .and_then(|module_match| join_url(base_url, module_match.as_str()))
 }
@@ -647,6 +654,46 @@ mod tests {
             IndexSource::ViaModule(url) => assert_eq!(
                 url,
                 "https://abs.twimg.com/x-web/x-web/assets/client-transaction-id-plugin-D9bD8e7X.js"
+            ),
+            IndexSource::Direct(url) => panic!("expected x-web module URL, got {url}"),
+        }
+    }
+
+    #[test]
+    fn x_web_startup_dynamic_import() {
+        // The October startup chunk contains the plugin and imports sign.o directly. Older
+        // transaction modules can still appear in the entry chunk, so prefer startup-dynamic.
+        let entry_url = "https://abs.twimg.com/x-web/x-web/entry-client-logged-out-dczARPQh.js";
+        let entry_chunk = r#"import{a}from"./assets/sentry-filter-old.js";import{b}from"./assets/client-transaction-id-plugin-old.js";import{c}from"./assets/startup-dynamic-CZ_11KXN.js";"#;
+        let startup_url = next_transaction_module_url(entry_url, entry_chunk).unwrap();
+        assert_eq!(
+            startup_url,
+            "https://abs.twimg.com/x-web/x-web/assets/startup-dynamic-CZ_11KXN.js"
+        );
+
+        let startup_chunk = r"cd??=N(()=>import(`./sign.o-DqxfVb5x.js`).then(e=>e.default()),[])";
+        let sign_url = SIGN_MODULE_RE
+            .find(startup_chunk)
+            .and_then(|module_match| join_url(&startup_url, module_match.as_str()))
+            .unwrap();
+        assert_eq!(
+            sign_url,
+            "https://abs.twimg.com/x-web/x-web/assets/sign.o-DqxfVb5x.js"
+        );
+    }
+
+    #[test]
+    fn x_web_startup_dynamic_index_source() {
+        let body = r#"<link rel="modulepreload" href="https://abs.twimg.com/x-web/x-web/assets/startup-dynamic-CZ_11KXN.js"/>"#;
+        let home = Home {
+            body: body.to_string(),
+            html: Html::parse_document(body),
+        };
+
+        match home.index_source().unwrap() {
+            IndexSource::ViaModule(url) => assert_eq!(
+                url,
+                "https://abs.twimg.com/x-web/x-web/assets/startup-dynamic-CZ_11KXN.js"
             ),
             IndexSource::Direct(url) => panic!("expected x-web module URL, got {url}"),
         }
