@@ -6,12 +6,26 @@ use serde_field_attributes::ratio_u64;
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ArticleEntities<'a> {
+    pub cashtags: Option<Vec<Cashtag>>,
+    #[serde(borrow)]
+    pub code: Option<Vec<ArticleCode<'a>>>,
     #[serde(borrow)]
     pub hashtags: Option<Vec<ArticleHashtag<'a>>>,
     #[serde(borrow)]
     pub mentions: Option<Vec<UserMention<'a>>>,
     pub tweets: Option<Vec<ArticleTweet>>,
     pub urls: Option<Vec<ArticleUrl<'a>>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArticleCode<'a> {
+    #[serde(borrow)]
+    pub code: Cow<'a, str>,
+    #[serde(borrow)]
+    pub content: Cow<'a, str>,
+    #[serde(borrow)]
+    pub language: Cow<'a, str>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]

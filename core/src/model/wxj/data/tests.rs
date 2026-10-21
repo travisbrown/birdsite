@@ -79,6 +79,11 @@ fn snapshot_with_new_fields() -> Value {
                 "preview_text": "Preview text",
                 "media_entities": ["3_456"],
                 "entities": {
+                    "cashtags": [{"start": 0, "end": 4, "tag": "BTC"}, {"start": 5, "end": 9, "tag": "1M+"}],
+                    "code": [
+                        {"code": "let x = 1;", "content": "```javascript\nlet x = 1;\n```", "language": "javascript"},
+                        {"code": "", "content": "| Name | Value |", "language": "none"}
+                    ],
                     "hashtags": [{"start": 0, "end": 8, "text": "Example"}],
                     "mentions": [{"start": 0, "end": 8, "username": "example"}],
                     "tweets": [{"id": "18446744073709551615"}, {"id": "3"}],
@@ -215,10 +220,10 @@ fn article_tweets_can_be_absent_or_empty() {
     ] {
         let article = serde_json::from_str::<Article<'_>>(json).unwrap();
 
-        assert_eq!(
-            article.entities.unwrap().tweets.as_ref().map(Vec::len),
-            expected_count
-        );
+        let entities = article.entities.unwrap();
+        assert_eq!(entities.cashtags, None);
+        assert_eq!(entities.code, None);
+        assert_eq!(entities.tweets.as_ref().map(Vec::len), expected_count);
     }
 }
 
@@ -317,6 +322,15 @@ fn user_fields_can_be_absent_and_affiliation_can_be_empty() {
 fn new_fields_reject_malformed_values() {
     for (pointer, value) in [
         ("/data/card_uri", json!(123)),
+        ("/data/article/entities/cashtags/0/tag", json!(123)),
+        ("/data/article/entities/cashtags/0/start", json!(-1)),
+        ("/data/article/entities/code/0/code", json!(123)),
+        ("/data/article/entities/code/0/content", json!(123)),
+        ("/data/article/entities/code/0/language", json!(123)),
+        (
+            "/data/article/entities/code/0",
+            json!({"code": "", "language": "none"}),
+        ),
         ("/data/article/entities/hashtags/0/text", json!(123)),
         ("/data/article/entities/hashtags/0/start", json!(-1)),
         (
@@ -402,6 +416,8 @@ fn new_objects_reject_unknown_fields() {
         "/data/suggested_source_links_with_counts/0",
         "/data/article",
         "/data/article/entities",
+        "/data/article/entities/cashtags/0",
+        "/data/article/entities/code/0",
         "/data/article/entities/tweets/0",
         "/data/article/entities/hashtags/0",
         "/data/article/entities/urls/0",
@@ -547,4 +563,68 @@ fn note_request_suggestion_can_omit_text() {
     )
     .unwrap();
     assert_eq!(escaped.suggestion.as_deref(), Some("An older\nvideo"));
+}
+
+#[test]
+fn partial_users_preserve_account_metadata_without_exposing_a_profile() {
+    let user = json!({
+        "affiliation": {},
+        "created_at": "1970-01-01T00:00:00Z",
+        "id": "3",
+        "public_metrics": {
+            "followers_count": 0, "following_count": 0, "like_count": 0,
+            "listed_count": 0, "media_count": 0, "tweet_count": 0
+        },
+        "verified": false,
+        "verified_type": "none"
+    });
+    let mut input = snapshot_with_new_fields();
+    input["includes"]["users"]
+        .as_array_mut()
+        .unwrap()
+        .push(user.clone());
+    let text = input.to_string();
+    let snapshot = serde_json::from_str::<TweetSnapshot<'_>>(&text).unwrap();
+    let entry = &snapshot.includes.users[1];
+    assert_eq!(entry.id(), 3);
+    assert_eq!(entry.user(), None);
+    assert_eq!(snapshot.lookup_user(3), None);
+    assert_eq!(snapshot.includes.users().count(), 1);
+    let super::UserEntry::PartialUser(partial) = entry else {
+        panic!("expected a partial user");
+    };
+    assert_eq!(partial.created_at.timestamp(), 0);
+    assert_eq!(partial.public_metrics.tweet_count, Some(0));
+    assert!(!partial.verified);
+    assert_eq!(partial.verified_type, Some(VerifiedType::None));
+
+    let serialized = serde_json::to_string(&snapshot).unwrap();
+    assert_eq!(
+        snapshot,
+        serde_json::from_str::<TweetSnapshot<'_>>(&serialized).unwrap()
+    );
+    let emitted: Value = serde_json::from_str(&serialized).unwrap();
+    for field in [
+        "id",
+        "created_at",
+        "public_metrics",
+        "verified",
+        "verified_type",
+    ] {
+        assert_eq!(emitted["includes"]["users"][1][field], user[field]);
+    }
+
+    for (field, value) in [
+        ("id", json!(3)),
+        ("verified", json!("false")),
+        ("unknown", json!(true)),
+        ("username", json!(123)),
+    ] {
+        let mut malformed = user.clone();
+        malformed[field] = value;
+        assert!(serde_json::from_str::<super::UserEntry<'_>>(&malformed.to_string()).is_err());
+    }
+    let derived = serde_json::from_str::<super::UserEntry<'_>>(r#"{"id":"4"}"#).unwrap();
+    assert!(matches!(derived, super::UserEntry::DerivedUser(_)));
+    assert_eq!(derived.id(), 4);
 }

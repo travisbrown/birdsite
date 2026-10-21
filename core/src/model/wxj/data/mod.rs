@@ -326,6 +326,7 @@ pub enum ReplySettings {
 #[serde(deny_unknown_fields, untagged)]
 pub enum UserEntry<'a> {
     User(#[serde(borrow)] Box<User<'a>>),
+    PartialUser(#[serde(borrow)] Box<PartialUser<'a>>),
     DerivedUser(DerivedUser<'a>),
 }
 
@@ -334,6 +335,7 @@ impl<'a> UserEntry<'a> {
     pub fn id(&self) -> u64 {
         match self {
             Self::User(user) => user.id,
+            Self::PartialUser(user) => user.id,
             Self::DerivedUser(user) => user.id,
         }
     }
@@ -342,7 +344,7 @@ impl<'a> UserEntry<'a> {
     pub fn user(&self) -> Option<&User<'a>> {
         match self {
             Self::User(user) => Some(user.as_ref()),
-            Self::DerivedUser(_) => None,
+            Self::PartialUser(_) | Self::DerivedUser(_) => None,
         }
     }
 }
@@ -382,6 +384,20 @@ pub struct User<'a> {
     pub withheld: Option<Withheld>,
     #[serde(borrow)]
     pub derived: Option<Derived<'a>>,
+}
+
+/// A user entry with account metadata but no profile details such as a username.
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PartialUser<'a> {
+    #[serde(borrow)]
+    pub affiliation: Option<Affiliation<'a>>,
+    #[serde(with = "crate::model::attributes::id_str")]
+    pub id: u64,
+    pub created_at: DateTime<Utc>,
+    pub public_metrics: UserPublicMetrics,
+    pub verified: bool,
+    pub verified_type: Option<VerifiedType>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
