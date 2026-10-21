@@ -13,13 +13,15 @@ use archivindex_wbm_json::context::Context;
 use archivindex_wbm_json::exact::ExactSnapshot;
 use archivindex_wbm_json_processing::io::read::{Error as ReadError, SnapshotReader};
 use birdsite::model::wxj;
+use cli_helpers::prelude::log;
 use sha1::Sha1;
 
 /// Validation error.
 ///
 /// I/O failures and rejected input lines (blank, overlong, or invalid UTF-8) abort validation.
 /// Other per-line problems (unparseable snapshots, digest mismatches, out-of-order digests,
-/// invalid metadata, and schema mismatches) are recorded in the summary instead.
+/// invalid metadata, and schema mismatches) are logged at info level as they are found and
+/// recorded in the summary instead.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("I/O error")]
@@ -112,6 +114,10 @@ fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadErr
                     summary.missing_metadata_count += 1;
 
                     if snapshot.url.is_some() {
+                        log::info!(
+                            "Line {line_number} ({}): invalid metadata: URL without timestamp",
+                            snapshot.digest
+                        );
                         summary.invalid_metadata_count += 1;
                         valid = false;
                     }
@@ -119,6 +125,11 @@ fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadErr
 
                 match max_digest {
                     Some(max) if snapshot.digest <= max => {
+                        log::info!(
+                            "Line {line_number} ({}): order error: \
+                             digest is not greater than earlier digest {max}",
+                            snapshot.digest
+                        );
                         summary.order_errors.push(LineError {
                             line_number,
                             digest: Some(snapshot.digest.to_string()),
@@ -130,6 +141,10 @@ fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadErr
                 }
 
                 if let Err(error) = context.verify(&snapshot, &mut hasher) {
+                    log::info!(
+                        "Line {line_number} ({}): digest error: {error}",
+                        snapshot.digest
+                    );
                     summary.digest_errors.push(LineError {
                         line_number,
                         digest: Some(snapshot.digest.to_string()),
@@ -139,6 +154,10 @@ fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadErr
                 }
 
                 if let Some(error) = schema_error(snapshot.content.as_str(), flat) {
+                    log::info!(
+                        "Line {line_number} ({}): schema error: {error}",
+                        snapshot.digest
+                    );
                     summary.schema_errors.push(LineError {
                         line_number,
                         digest: Some(snapshot.digest.to_string()),
@@ -154,11 +173,14 @@ fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadErr
             // Read failures are fatal (the `?` propagates them out of the loop); a line that fails
             // to parse as a compact snapshot record is recorded like a schema mismatch.
             Err(ReadError::Read(error)) => Err(std::io::Error::from(error))?,
-            Err(error) => summary.schema_errors.push(LineError {
-                line_number,
-                digest: None,
-                error: error.to_string(),
-            }),
+            Err(error) => {
+                log::info!("Line {line_number}: parse error: {error}");
+                summary.schema_errors.push(LineError {
+                    line_number,
+                    digest: None,
+                    error: error.to_string(),
+                });
+            }
         }
     }
 
@@ -181,7 +203,8 @@ fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadErr
 /// # Errors
 ///
 /// Returns `Error::Io` if the file cannot be opened or read, or the reader rejects a blank,
-/// overlong, or invalid UTF-8 line. Other per-line problems are recorded in the summary.
+/// overlong, or invalid UTF-8 line. Other per-line problems are logged at info level as they are
+/// found and recorded in the summary.
 pub fn validate<P: AsRef<Path>>(
     input: &P,
     context: &Context,
