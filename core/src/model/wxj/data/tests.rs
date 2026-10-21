@@ -79,6 +79,7 @@ fn snapshot_with_new_fields() -> Value {
                 "preview_text": "Preview text",
                 "media_entities": ["3_456"],
                 "entities": {
+                    "hashtags": [{"start": 0, "end": 8, "text": "Example"}],
                     "mentions": [{"start": 0, "end": 8, "username": "example"}],
                     "tweets": [{"id": "18446744073709551615"}, {"id": "3"}],
                     "urls": [{"text": "https://example.com/"}]
@@ -131,7 +132,10 @@ fn new_tweet_and_article_fields_round_trip() {
     assert_eq!(media[1].alt_text, None);
     assert_eq!(media[1].description, None);
     assert_eq!(media[1].title, None);
-    assert_eq!(snapshot.data.card_uri.as_deref(), Some("card://123"));
+    assert_eq!(
+        snapshot.data.card_uri,
+        Some(super::media::Card::Uri(Cow::Borrowed("card://123")))
+    );
     assert_eq!(snapshot.data.community_id, Some(u64::MAX));
     let article_entities = snapshot
         .data
@@ -146,7 +150,10 @@ fn new_tweet_and_article_fields_round_trip() {
     assert_eq!(article_tweets[1].id, 3);
     let suggestions = snapshot.data.note_request_suggestions.as_ref().unwrap();
     assert_eq!(suggestions[0].suggestion_id, u64::MAX);
-    assert_eq!(suggestions[0].suggestion, "Check the source");
+    assert_eq!(
+        suggestions[0].suggestion.as_deref(),
+        Some("Check the source")
+    );
     assert_eq!(suggestions[1].source_link, None);
     assert_eq!(
         snapshot
@@ -223,8 +230,8 @@ fn note_request_suggestion_accepts_missing_source_and_borrows_text() {
     .unwrap();
 
     assert_eq!(suggestion.source_link, None);
-    assert_eq!(suggestion.suggestion, Cow::Borrowed("An older video"));
-    assert!(matches!(suggestion.suggestion, Cow::Borrowed(_)));
+    assert_eq!(suggestion.suggestion.as_deref(), Some("An older video"));
+    assert!(matches!(suggestion.suggestion, Some(Cow::Borrowed(_))));
     assert_eq!(suggestion.suggestion_id, 4);
 }
 
@@ -310,6 +317,12 @@ fn user_fields_can_be_absent_and_affiliation_can_be_empty() {
 fn new_fields_reject_malformed_values() {
     for (pointer, value) in [
         ("/data/card_uri", json!(123)),
+        ("/data/article/entities/hashtags/0/text", json!(123)),
+        ("/data/article/entities/hashtags/0/start", json!(-1)),
+        (
+            "/data/article/entities/hashtags/0",
+            json!({"start": 0, "end": 8, "tag": "Example"}),
+        ),
         ("/data/community_id", json!(123)),
         ("/data/community_id", json!("-1")),
         ("/data/community_id", json!("18446744073709551616")),
@@ -325,10 +338,6 @@ fn new_fields_reject_malformed_values() {
         ("/data/note_request_suggestions/0/suggestion_id", json!(123)),
         ("/data/note_request_suggestions/0/source_link", json!(123)),
         ("/data/note_request_suggestions/0/suggestion", json!(123)),
-        (
-            "/data/note_request_suggestions/0",
-            json!({"suggestion_id": "3"}),
-        ),
         (
             "/data/note_request_suggestions/0",
             json!({"suggestion": "No ID"}),
@@ -394,6 +403,7 @@ fn new_objects_reject_unknown_fields() {
         "/data/article",
         "/data/article/entities",
         "/data/article/entities/tweets/0",
+        "/data/article/entities/hashtags/0",
         "/data/article/entities/urls/0",
         "/data/article/entities/mentions/0",
         "/includes/users/0/affiliation",
@@ -405,4 +415,136 @@ fn new_objects_reject_unknown_fields() {
             "accepted unknown field at {pointer}"
         );
     }
+}
+
+#[test]
+fn media_cards_round_trip_and_reject_malformed_objects() {
+    for card in [
+        json!("https://example.com/card"),
+        json!({"media_keys": ["7_123", "13_456"]}),
+    ] {
+        let mut input = snapshot_with_new_fields();
+        for pointer in ["/data/card_uri", "/includes/tweets/0/card_uri"] {
+            *input.pointer_mut(pointer).unwrap() = card.clone();
+        }
+        let text = input.to_string();
+        let snapshot = serde_json::from_str::<TweetSnapshot<'_>>(&text).unwrap();
+        let serialized = serde_json::to_string(&snapshot).unwrap();
+        assert_eq!(
+            snapshot,
+            serde_json::from_str::<TweetSnapshot<'_>>(&serialized).unwrap()
+        );
+        let emitted: Value = serde_json::from_str(&serialized).unwrap();
+        for pointer in ["/data/card_uri", "/includes/tweets/0/card_uri"] {
+            assert_eq!(emitted.pointer(pointer), Some(&card));
+        }
+    }
+
+    for card in [
+        json!({}),
+        json!({"media_keys": [123]}),
+        json!({"media_keys": [], "unknown": true}),
+    ] {
+        assert!(serde_json::from_str::<super::media::Card<'_>>(&card.to_string()).is_err());
+    }
+}
+
+#[test]
+fn polls_accept_options_without_metadata() {
+    for metadata in [
+        json!({}),
+        json!({
+            "id": "123", "voting_status": "closed", "duration_minutes": 60,
+            "end_datetime": "2026-10-21T12:00:00Z"
+        }),
+    ] {
+        let mut input = metadata;
+        input["options"] = json!([{"label": "Yes", "position": 1, "votes": 47}]);
+        let text = input.to_string();
+        let poll = serde_json::from_str::<super::Poll<'_>>(&text).unwrap();
+        assert_eq!(poll.id.is_some(), input.get("id").is_some());
+        assert_eq!(
+            poll.voting_status.is_some(),
+            input.get("voting_status").is_some()
+        );
+        assert_eq!(
+            poll.duration_minutes.is_some(),
+            input.get("duration_minutes").is_some()
+        );
+        assert_eq!(
+            poll.end_datetime.is_some(),
+            input.get("end_datetime").is_some()
+        );
+        assert_eq!(poll.options[0].votes, 47);
+        let serialized = serde_json::to_string(&poll).unwrap();
+        assert_eq!(
+            poll,
+            serde_json::from_str::<super::Poll<'_>>(&serialized).unwrap()
+        );
+        let emitted: Value = serde_json::from_str(&serialized).unwrap();
+        for (field, value) in input.as_object().unwrap() {
+            assert_eq!(&emitted[field], value);
+        }
+    }
+
+    for input in [
+        json!({}),
+        json!({"options": [], "id": 123}),
+        json!({"options": [], "voting_status": "invalid"}),
+    ] {
+        assert!(serde_json::from_str::<super::Poll<'_>>(&input.to_string()).is_err());
+    }
+}
+
+/// Missing authors are valid snapshot data, but cannot supply required user metadata.
+#[test]
+fn missing_authors_are_explicit_in_accessors_and_metadata_errors() {
+    for pointer in ["/data", "/includes/tweets/0"] {
+        let mut input = snapshot_with_new_fields();
+        input
+            .pointer_mut(pointer)
+            .unwrap()
+            .as_object_mut()
+            .unwrap()
+            .remove("author_id");
+        input["data"]["referenced_tweets"] = json!([{"type": "retweeted", "id": "2"}]);
+        let text = input.to_string();
+        let snapshot = serde_json::from_str::<TweetSnapshot<'_>>(&text).unwrap();
+        assert!(matches!(
+            crate::model::wxj::metadata::tweet::TweetMetadata::from_data_tweet_snapshot(&snapshot),
+            Err(super::FormatError::MissingAuthor(2))
+        ));
+        let snapshot = crate::model::wxj::TweetSnapshot::Data(snapshot);
+        if pointer == "/data" {
+            assert_eq!(snapshot.user_id(), None);
+            assert_eq!(snapshot.user_screen_name(), None);
+            assert_eq!(snapshot.canonical_url(false), None);
+        } else {
+            assert_eq!(snapshot.user_id(), Some(1));
+            assert_eq!(snapshot.user_screen_name(), Some("example"));
+        }
+    }
+}
+
+#[test]
+fn note_request_suggestion_can_omit_text() {
+    let suggestion = serde_json::from_str::<NoteRequestSuggestion<'_>>(
+        r#"{"source_link":"https://example.com/source","suggestion_id":"4"}"#,
+    )
+    .unwrap();
+    assert_eq!(suggestion.suggestion, None);
+    assert_eq!(
+        suggestion.source_link.as_deref(),
+        Some("https://example.com/source")
+    );
+    let serialized = serde_json::to_string(&suggestion).unwrap();
+    assert_eq!(
+        suggestion,
+        serde_json::from_str::<NoteRequestSuggestion<'_>>(&serialized).unwrap()
+    );
+    let escaped = serde_json::from_str::<NoteRequestSuggestion<'_>>(
+        r#"{"suggestion":"An older\nvideo","suggestion_id":"4"}"#,
+    )
+    .unwrap();
+    assert_eq!(escaped.suggestion.as_deref(), Some("An older\nvideo"));
 }

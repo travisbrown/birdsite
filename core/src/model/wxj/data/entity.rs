@@ -7,9 +7,20 @@ use serde_field_attributes::ratio_u64;
 #[serde(deny_unknown_fields)]
 pub struct ArticleEntities<'a> {
     #[serde(borrow)]
+    pub hashtags: Option<Vec<ArticleHashtag<'a>>>,
+    #[serde(borrow)]
     pub mentions: Option<Vec<UserMention<'a>>>,
     pub tweets: Option<Vec<ArticleTweet>>,
     pub urls: Option<Vec<ArticleUrl<'a>>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArticleHashtag<'a> {
+    pub start: usize,
+    pub end: usize,
+    #[serde(borrow)]
+    pub text: Cow<'a, str>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]

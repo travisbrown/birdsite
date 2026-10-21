@@ -5,6 +5,14 @@ use bounded_static_derive_more::ToStatic;
 use crate::model::media::{MediaType, MediaVariant};
 use crate::model::metrics::MediaPublicMetrics;
 
+/// A tweet's `card_uri`, which can identify either a URI or a group of media keys.
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(untagged, deny_unknown_fields)]
+pub enum Card<'a> {
+    Uri(#[serde(borrow)] Cow<'a, str>),
+    MediaKeys { media_keys: Vec<Cow<'a, str>> },
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "type", deny_unknown_fields)]
 pub enum Media<'a> {

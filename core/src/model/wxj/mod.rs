@@ -29,18 +29,20 @@ impl TweetSnapshot<'_> {
     }
 
     #[must_use]
-    pub const fn user_id(&self) -> u64 {
+    /// The author's ID, when it is present in the snapshot.
+    pub const fn user_id(&self) -> Option<u64> {
         match self {
             Self::Data(snapshot) => snapshot.data.author_id,
-            Self::Flat(snapshot) => snapshot.user.id,
+            Self::Flat(snapshot) => Some(snapshot.user.id),
         }
     }
 
     #[must_use]
     pub fn user_screen_name(&self) -> Option<&str> {
         match self {
-            Self::Data(snapshot) => snapshot
-                .lookup_user(self.user_id())
+            Self::Data(snapshot) => self
+                .user_id()
+                .and_then(|id| snapshot.lookup_user(id))
                 .map(|user| user.username.as_ref()),
             Self::Flat(snapshot) => Some(&snapshot.user.screen_name),
         }

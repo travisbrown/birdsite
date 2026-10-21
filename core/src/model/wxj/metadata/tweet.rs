@@ -120,11 +120,12 @@ impl TweetMetadata {
         snapshot: &data::TweetSnapshot<'_>,
         data: &data::Tweet<'_>,
     ) -> Result<Self, data::FormatError> {
+        let author_id = data
+            .author_id
+            .ok_or(data::FormatError::MissingAuthor(data.id))?;
         let user = UserMetadata::new(
-            data.author_id,
-            snapshot
-                .lookup_user(data.author_id)
-                .map(|user| user.created_at),
+            author_id,
+            snapshot.lookup_user(author_id).map(|user| user.created_at),
         );
 
         Ok(Self::new(

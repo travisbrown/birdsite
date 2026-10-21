@@ -26,6 +26,8 @@ pub enum FormatError {
     MissingReferencedTweet(u64),
     #[error("Missing user: {0}")]
     MissingUser(u64),
+    #[error("Missing author for tweet: {0}")]
+    MissingAuthor(u64),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
@@ -86,10 +88,10 @@ pub struct Tweet<'a> {
     pub attachments: Option<Attachments>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
-    #[serde(with = "crate::model::attributes::id_str")]
-    pub author_id: u64,
+    #[serde(with = "crate::model::attributes::optional_id_str", default)]
+    pub author_id: Option<u64>,
     #[serde(borrow)]
-    pub card_uri: Option<Cow<'a, str>>,
+    pub card_uri: Option<media::Card<'a>>,
     #[serde(with = "crate::model::attributes::optional_id_str", default)]
     pub community_id: Option<u64>,
     pub context_annotations: Option<Vec<context::ContextAnnotation<'a>>>,
@@ -202,11 +204,11 @@ impl<'a> TweetIncludes<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Poll<'a> {
-    #[serde(with = "crate::model::attributes::id_str")]
-    pub id: u64,
-    pub voting_status: PollVotingStatus,
-    pub duration_minutes: usize,
-    pub end_datetime: DateTime<Utc>,
+    #[serde(with = "crate::model::attributes::optional_id_str", default)]
+    pub id: Option<u64>,
+    pub voting_status: Option<PollVotingStatus>,
+    pub duration_minutes: Option<usize>,
+    pub end_datetime: Option<DateTime<Utc>>,
     #[serde(borrow)]
     pub options: Vec<PollOption<'a>>,
 }
@@ -258,10 +260,22 @@ pub struct NoteTweet<'a> {
 pub struct NoteRequestSuggestion<'a> {
     #[serde(borrow)]
     pub source_link: Option<Cow<'a, str>>,
-    #[serde(borrow)]
-    pub suggestion: Cow<'a, str>,
+    #[serde(borrow, default, deserialize_with = "deserialize_optional_text")]
+    pub suggestion: Option<Cow<'a, str>>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub suggestion_id: u64,
+}
+
+// Preserve borrowing of unescaped text even when the field is optional.
+fn deserialize_optional_text<'de, D: serde::de::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<Cow<'de, str>>, D::Error> {
+    use serde::de::Deserialize;
+
+    #[derive(serde::Deserialize)]
+    struct Text<'a>(#[serde(borrow)] Cow<'a, str>);
+
+    Option::<Text<'de>>::deserialize(deserializer).map(|text| text.map(|Text(value)| value))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]

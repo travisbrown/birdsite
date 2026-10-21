@@ -278,9 +278,9 @@ fn print_gitt_csv(input: &Path) -> Result<(), Error> {
 
         for tweet in tweets.filter(|tweet| tweets_match_gitt([tweet.text.as_ref()])) {
             let referenced_tweets = tweet.referenced_tweets.as_deref().unwrap_or_default();
-            let username = snapshot
-                .content
-                .lookup_user(tweet.author_id)
+            let username = tweet
+                .author_id
+                .and_then(|id| snapshot.content.lookup_user(id))
                 .map(|user| user.username.as_ref());
 
             for reference in referenced_tweets {
@@ -373,7 +373,7 @@ fn extract_tweets(input: PathBuf, author_id: u64) -> Result<(), Error> {
                     serde_json::from_str::<birdsite::model::wxj::data::TweetSnapshot<'_>>(&contents)
                 {
                     for tweet in snapshot.includes.tweets.iter().flatten() {
-                        if tweet.author_id == author_id {
+                        if tweet.author_id == Some(author_id) {
                             let user = snapshot.lookup_user(author_id);
 
                             let in_reply_to_user_id = tweet.in_reply_to_user_id;
@@ -386,7 +386,7 @@ fn extract_tweets(input: PathBuf, author_id: u64) -> Result<(), Error> {
 
                             println!(
                                 "{},{},{},{},{},{},{}",
-                                tweet.author_id,
+                                author_id,
                                 tweet.id,
                                 tweet.created_at,
                                 in_reply_to_user_id.map_or_default(|user_id| user_id.to_string()),
