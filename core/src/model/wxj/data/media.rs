@@ -73,3 +73,13 @@ pub struct MediaMetadata<'a> {
     pub height: usize,
     pub width: usize,
 }
+
+/// Media metadata embedded in a tweet, separate from the expanded media in `includes`.
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct TweetMediaMetadata<'a> {
+    #[serde(borrow)]
+    pub media_key: Cow<'a, str>,
+    #[serde(borrow)]
+    pub alt_text: Option<Cow<'a, str>>,
+}

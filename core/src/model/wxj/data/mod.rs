@@ -1,8 +1,10 @@
-//! This data format appears for tweets in the Wayback Machine from around 9 December 2022 until into 2025.
+//! This data format appears for tweets in the Wayback Machine from around 9 December 2022 onward.
 use std::borrow::Cow;
+use std::ops::Range;
 
 use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
+use serde_field_attributes::optional_range;
 
 use crate::model::country::Country;
 use crate::model::lang::Lang;
@@ -90,13 +92,17 @@ pub struct Tweet<'a> {
     #[serde(with = "crate::model::attributes::id_str")]
     pub conversation_id: u64,
     pub created_at: DateTime<Utc>,
+    #[serde(with = "optional_range", default)]
+    pub display_text_range: Option<Range<usize>>,
     pub edit_controls: Option<EditControls>,
     #[serde(with = "crate::model::attributes::optional_ids_str", default)]
     pub edit_history_tweet_ids: Option<Cow<'a, [u64]>>,
     pub lang: Lang,
     pub entities: Option<entity::TweetEntities<'a>>,
     pub geo: Option<Geo<'a>>,
+    pub media_metadata: Option<Vec<media::TweetMediaMetadata<'a>>>,
     pub note_tweet: Option<NoteTweet<'a>>,
+    pub paid_partnership: Option<bool>,
     pub possibly_sensitive: bool,
     pub public_metrics: TweetPublicMetrics,
     pub referenced_tweets: Option<Vec<ReferencedTweet>>,
@@ -303,6 +309,8 @@ impl<'a> UserEntry<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct User<'a> {
+    #[serde(borrow)]
+    pub affiliation: Option<Affiliation<'a>>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
     #[serde(borrow)]
@@ -318,15 +326,43 @@ pub struct User<'a> {
     pub url: Option<Cow<'a, str>>,
     #[serde(borrow)]
     pub profile_image_url: Cow<'a, str>,
+    #[serde(borrow)]
+    pub profile_banner_url: Option<Cow<'a, str>>,
+    #[serde(with = "crate::model::attributes::optional_id_str", default)]
+    pub most_recent_tweet_id: Option<u64>,
     #[serde(with = "crate::model::attributes::optional_id_str", default)]
     pub pinned_tweet_id: Option<u64>,
     pub entities: Option<entity::UserEntities<'a>>,
     pub verified: bool,
+    pub verified_type: Option<VerifiedType>,
+    pub is_identity_verified: Option<bool>,
     pub protected: bool,
     pub public_metrics: UserPublicMetrics,
     pub withheld: Option<Withheld>,
     #[serde(borrow)]
     pub derived: Option<Derived<'a>>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum VerifiedType {
+    None,
+    Blue,
+    Business,
+    Government,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Affiliation<'a> {
+    #[serde(borrow)]
+    pub badge_url: Option<Cow<'a, str>>,
+    #[serde(borrow)]
+    pub description: Option<Cow<'a, str>>,
+    #[serde(borrow)]
+    pub url: Option<Cow<'a, str>>,
+    #[serde(with = "crate::model::attributes::optional_ids_str", default)]
+    pub user_id: Option<Cow<'a, [u64]>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
@@ -371,26 +407,16 @@ pub struct Withheld {
 #[serde(deny_unknown_fields)]
 pub struct Article<'a> {
     #[serde(borrow)]
+    pub cover_media: Option<Cow<'a, str>>,
+    pub entities: Option<entity::ArticleEntities<'a>>,
+    pub media_entities: Option<Vec<Cow<'a, str>>>,
+    #[serde(borrow)]
+    pub plain_text: Option<Cow<'a, str>>,
+    #[serde(borrow)]
+    pub preview_text: Option<Cow<'a, str>>,
+    #[serde(borrow)]
     pub title: Option<Cow<'a, str>>,
 }
 
 #[cfg(test)]
-mod tests {
-    /// Regression: `Tweet::text` must deserialize as `Cow::Borrowed` for escape-free input,
-    /// confirming the `#[serde(borrow)]` attribute preserves the crate's zero-copy design.
-    #[test]
-    fn tweet_text_borrows_when_unescaped() {
-        let json = concat!(
-            r#"{"data":{"author_id":"1","conversation_id":"2","#,
-            r#""created_at":"2026-05-19T13:42:45.000Z","id":"2","lang":"en","#,
-            r#""possibly_sensitive":false,"public_metrics":{"retweet_count":0,"#,
-            r#""reply_count":0,"like_count":0,"quote_count":0},"#,
-            r#""reply_settings":"everyone","text":"hello world"},"#,
-            r#""includes":{"users":[]}}"#
-        );
-
-        let snapshot = serde_json::from_str::<super::TweetSnapshot<'_>>(json).unwrap();
-
-        assert!(matches!(snapshot.data.text, std::borrow::Cow::Borrowed(_)));
-    }
-}
+mod tests;

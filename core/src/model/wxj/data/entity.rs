@@ -5,6 +5,21 @@ use serde_field_attributes::ratio_u64;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
+pub struct ArticleEntities<'a> {
+    #[serde(borrow)]
+    pub mentions: Option<Vec<UserMention<'a>>>,
+    pub urls: Option<Vec<ArticleUrl<'a>>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArticleUrl<'a> {
+    #[serde(borrow)]
+    pub text: Cow<'a, str>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct UserEntities<'a> {
     #[serde(borrow)]
     pub description: Option<DescriptionEntities<'a>>,
