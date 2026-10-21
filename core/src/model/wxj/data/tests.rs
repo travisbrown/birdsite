@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use serde_json::{Value, json};
 
-use super::{Article, TweetSnapshot, VerifiedType};
+use super::{Article, NoteRequestSuggestion, TweetSnapshot, VerifiedType};
 
 const SNAPSHOT: &str = concat!(
     r#"{"data":{"author_id":"1","conversation_id":"2","#,
@@ -29,6 +29,10 @@ fn older_snapshots_omit_new_tweet_and_article_fields() {
     assert_eq!(snapshot.data.display_text_range, None);
     assert_eq!(snapshot.data.paid_partnership, None);
     assert_eq!(snapshot.data.media_metadata, None);
+    assert_eq!(snapshot.data.card_uri, None);
+    assert_eq!(snapshot.data.note_request_suggestions, None);
+    assert_eq!(snapshot.data.suggested_source_links, None);
+    assert_eq!(snapshot.data.suggested_source_links_with_counts, None);
 
     for json in ["{}", r#"{"title":"Article title"}"#] {
         let article = serde_json::from_str::<Article<'_>>(json).unwrap();
@@ -47,11 +51,24 @@ fn snapshot_with_new_fields() -> Value {
     let tweet = snapshot["data"].as_object_mut().unwrap();
     tweet.extend(
         json!({
+            "card_uri": "card://123",
             "display_text_range": [1, 11],
             "paid_partnership": false,
             "media_metadata": [
-                {"media_key": "3_123", "alt_text": "A photo"},
+                {"media_key": "3_123", "alt_text": "A photo", "description": "", "title": ""},
                 {"media_key": "3_456"}
+            ],
+            "note_request_suggestions": [
+                {
+                    "source_link": "https://example.com/source",
+                    "suggestion": "Check the source",
+                    "suggestion_id": "18446744073709551615"
+                },
+                {"source_link": null, "suggestion": "An older video", "suggestion_id": "4"}
+            ],
+            "suggested_source_links": ["https://example.com/source"],
+            "suggested_source_links_with_counts": [
+                {"count": "3", "url": "https://example.com/source"}
             ],
             "article": {
                 "title": "Article title",
@@ -106,7 +123,25 @@ fn new_tweet_and_article_fields_round_trip() {
     let media = snapshot.data.media_metadata.as_ref().unwrap();
     assert_eq!(media[0].media_key, "3_123");
     assert_eq!(media[0].alt_text.as_deref(), Some("A photo"));
+    assert_eq!(media[0].description.as_deref(), Some(""));
+    assert_eq!(media[0].title.as_deref(), Some(""));
     assert_eq!(media[1].alt_text, None);
+    assert_eq!(media[1].description, None);
+    assert_eq!(media[1].title, None);
+    assert_eq!(snapshot.data.card_uri.as_deref(), Some("card://123"));
+    let suggestions = snapshot.data.note_request_suggestions.as_ref().unwrap();
+    assert_eq!(suggestions[0].suggestion_id, u64::MAX);
+    assert_eq!(suggestions[0].suggestion, "Check the source");
+    assert_eq!(suggestions[1].source_link, None);
+    assert_eq!(
+        snapshot
+            .data
+            .suggested_source_links_with_counts
+            .as_ref()
+            .unwrap()[0]
+            .count,
+        3
+    );
     assert_eq!(
         snapshot
             .data
@@ -124,7 +159,15 @@ fn new_tweet_and_article_fields_round_trip() {
     assert_eq!(snapshot, reparsed);
     let emitted: Value = serde_json::from_str(&serialized).unwrap();
     for pointer in ["/data", "/includes/tweets/0"] {
-        for field in ["display_text_range", "paid_partnership", "article"] {
+        for field in [
+            "display_text_range",
+            "paid_partnership",
+            "article",
+            "card_uri",
+            "note_request_suggestions",
+            "suggested_source_links",
+            "suggested_source_links_with_counts",
+        ] {
             assert_eq!(
                 emitted.pointer(pointer).unwrap()[field],
                 input["data"][field]
@@ -139,6 +182,19 @@ fn new_tweet_and_article_fields_round_trip() {
             "3_456"
         );
     }
+}
+
+#[test]
+fn note_request_suggestion_accepts_missing_source_and_borrows_text() {
+    let suggestion = serde_json::from_str::<NoteRequestSuggestion<'_>>(
+        r#"{"suggestion":"An older video","suggestion_id":"4"}"#,
+    )
+    .unwrap();
+
+    assert_eq!(suggestion.source_link, None);
+    assert_eq!(suggestion.suggestion, Cow::Borrowed("An older video"));
+    assert!(matches!(suggestion.suggestion, Cow::Borrowed(_)));
+    assert_eq!(suggestion.suggestion_id, 4);
 }
 
 #[test]
@@ -222,6 +278,40 @@ fn user_fields_can_be_absent_and_affiliation_can_be_empty() {
 #[test]
 fn new_fields_reject_malformed_values() {
     for (pointer, value) in [
+        ("/data/card_uri", json!(123)),
+        ("/data/note_request_suggestions", json!({})),
+        ("/data/note_request_suggestions/0/suggestion_id", json!(123)),
+        ("/data/note_request_suggestions/0/source_link", json!(123)),
+        ("/data/note_request_suggestions/0/suggestion", json!(123)),
+        (
+            "/data/note_request_suggestions/0",
+            json!({"suggestion_id": "3"}),
+        ),
+        (
+            "/data/note_request_suggestions/0",
+            json!({"suggestion": "No ID"}),
+        ),
+        (
+            "/data/suggested_source_links",
+            json!("https://example.com/"),
+        ),
+        ("/data/suggested_source_links", json!([123])),
+        ("/data/media_metadata/0/description", json!(123)),
+        ("/data/media_metadata/0/title", json!(123)),
+        ("/data/suggested_source_links_with_counts/0/count", json!(3)),
+        (
+            "/data/suggested_source_links_with_counts/0/count",
+            json!("-1"),
+        ),
+        (
+            "/data/suggested_source_links_with_counts/0/count",
+            json!("many"),
+        ),
+        ("/data/suggested_source_links_with_counts/0/url", json!(3)),
+        (
+            "/data/suggested_source_links_with_counts/0",
+            json!({"count": "3"}),
+        ),
         ("/data/display_text_range", json!([0])),
         ("/data/display_text_range", json!([0, 1, 2])),
         ("/data/display_text_range", json!([-1, 2])),
@@ -257,6 +347,8 @@ fn new_fields_reject_malformed_values() {
 fn new_objects_reject_unknown_fields() {
     for pointer in [
         "/data/media_metadata/0",
+        "/data/note_request_suggestions/0",
+        "/data/suggested_source_links_with_counts/0",
         "/data/article",
         "/data/article/entities",
         "/data/article/entities/urls/0",

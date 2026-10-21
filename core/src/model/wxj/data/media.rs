@@ -82,4 +82,8 @@ pub struct TweetMediaMetadata<'a> {
     pub media_key: Cow<'a, str>,
     #[serde(borrow)]
     pub alt_text: Option<Cow<'a, str>>,
+    #[serde(borrow)]
+    pub description: Option<Cow<'a, str>>,
+    #[serde(borrow)]
+    pub title: Option<Cow<'a, str>>,
 }

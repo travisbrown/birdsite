@@ -88,6 +88,8 @@ pub struct Tweet<'a> {
     pub id: u64,
     #[serde(with = "crate::model::attributes::id_str")]
     pub author_id: u64,
+    #[serde(borrow)]
+    pub card_uri: Option<Cow<'a, str>>,
     pub context_annotations: Option<Vec<context::ContextAnnotation<'a>>>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub conversation_id: u64,
@@ -101,6 +103,7 @@ pub struct Tweet<'a> {
     pub entities: Option<entity::TweetEntities<'a>>,
     pub geo: Option<Geo<'a>>,
     pub media_metadata: Option<Vec<media::TweetMediaMetadata<'a>>>,
+    pub note_request_suggestions: Option<Vec<NoteRequestSuggestion<'a>>>,
     pub note_tweet: Option<NoteTweet<'a>>,
     pub paid_partnership: Option<bool>,
     pub possibly_sensitive: bool,
@@ -112,6 +115,8 @@ pub struct Tweet<'a> {
     #[serde(with = "crate::model::attributes::optional_id_str", default)]
     pub in_reply_to_user_id: Option<u64>,
     pub source: Option<SourceName>,
+    pub suggested_source_links: Option<Vec<Cow<'a, str>>>,
+    pub suggested_source_links_with_counts: Option<Vec<SuggestedSourceLink<'a>>>,
     pub withheld: Option<Withheld>,
 }
 
@@ -244,6 +249,26 @@ pub struct NoteTweet<'a> {
     pub entities: Option<entity::TweetEntities<'a>>,
     #[serde(borrow)]
     pub text: Option<Cow<'a, str>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct NoteRequestSuggestion<'a> {
+    #[serde(borrow)]
+    pub source_link: Option<Cow<'a, str>>,
+    #[serde(borrow)]
+    pub suggestion: Cow<'a, str>,
+    #[serde(with = "crate::model::attributes::id_str")]
+    pub suggestion_id: u64,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SuggestedSourceLink<'a> {
+    #[serde(with = "serde_field_attributes::integer_str")]
+    pub count: usize,
+    #[serde(borrow)]
+    pub url: Cow<'a, str>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
