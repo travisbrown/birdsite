@@ -30,6 +30,7 @@ fn older_snapshots_omit_new_tweet_and_article_fields() {
     assert_eq!(snapshot.data.paid_partnership, None);
     assert_eq!(snapshot.data.media_metadata, None);
     assert_eq!(snapshot.data.card_uri, None);
+    assert_eq!(snapshot.data.community_id, None);
     assert_eq!(snapshot.data.note_request_suggestions, None);
     assert_eq!(snapshot.data.suggested_source_links, None);
     assert_eq!(snapshot.data.suggested_source_links_with_counts, None);
@@ -52,6 +53,7 @@ fn snapshot_with_new_fields() -> Value {
     tweet.extend(
         json!({
             "card_uri": "card://123",
+            "community_id": "18446744073709551615",
             "display_text_range": [1, 11],
             "paid_partnership": false,
             "media_metadata": [
@@ -78,6 +80,7 @@ fn snapshot_with_new_fields() -> Value {
                 "media_entities": ["3_456"],
                 "entities": {
                     "mentions": [{"start": 0, "end": 8, "username": "example"}],
+                    "tweets": [{"id": "18446744073709551615"}, {"id": "3"}],
                     "urls": [{"text": "https://example.com/"}]
                 }
             }
@@ -129,6 +132,18 @@ fn new_tweet_and_article_fields_round_trip() {
     assert_eq!(media[1].description, None);
     assert_eq!(media[1].title, None);
     assert_eq!(snapshot.data.card_uri.as_deref(), Some("card://123"));
+    assert_eq!(snapshot.data.community_id, Some(u64::MAX));
+    let article_entities = snapshot
+        .data
+        .article
+        .as_ref()
+        .unwrap()
+        .entities
+        .as_ref()
+        .unwrap();
+    let article_tweets = article_entities.tweets.as_ref().unwrap();
+    assert_eq!(article_tweets[0].id, u64::MAX);
+    assert_eq!(article_tweets[1].id, 3);
     let suggestions = snapshot.data.note_request_suggestions.as_ref().unwrap();
     assert_eq!(suggestions[0].suggestion_id, u64::MAX);
     assert_eq!(suggestions[0].suggestion, "Check the source");
@@ -164,6 +179,7 @@ fn new_tweet_and_article_fields_round_trip() {
             "paid_partnership",
             "article",
             "card_uri",
+            "community_id",
             "note_request_suggestions",
             "suggested_source_links",
             "suggested_source_links_with_counts",
@@ -180,6 +196,21 @@ fn new_tweet_and_article_fields_round_trip() {
         assert_eq!(
             emitted.pointer(pointer).unwrap()["media_metadata"][1]["media_key"],
             "3_456"
+        );
+    }
+}
+
+#[test]
+fn article_tweets_can_be_absent_or_empty() {
+    for (json, expected_count) in [
+        (r#"{"entities":{}}"#, None),
+        (r#"{"entities":{"tweets":[]}}"#, Some(0)),
+    ] {
+        let article = serde_json::from_str::<Article<'_>>(json).unwrap();
+
+        assert_eq!(
+            article.entities.unwrap().tweets.as_ref().map(Vec::len),
+            expected_count
         );
     }
 }
@@ -279,6 +310,17 @@ fn user_fields_can_be_absent_and_affiliation_can_be_empty() {
 fn new_fields_reject_malformed_values() {
     for (pointer, value) in [
         ("/data/card_uri", json!(123)),
+        ("/data/community_id", json!(123)),
+        ("/data/community_id", json!("-1")),
+        ("/data/community_id", json!("18446744073709551616")),
+        ("/data/article/entities/tweets", json!(["3"])),
+        ("/data/article/entities/tweets/0", json!({})),
+        ("/data/article/entities/tweets/0/id", json!(3)),
+        ("/data/article/entities/tweets/0/id", json!("-1")),
+        (
+            "/data/article/entities/tweets/0/id",
+            json!("18446744073709551616"),
+        ),
         ("/data/note_request_suggestions", json!({})),
         ("/data/note_request_suggestions/0/suggestion_id", json!(123)),
         ("/data/note_request_suggestions/0/source_link", json!(123)),
@@ -351,6 +393,7 @@ fn new_objects_reject_unknown_fields() {
         "/data/suggested_source_links_with_counts/0",
         "/data/article",
         "/data/article/entities",
+        "/data/article/entities/tweets/0",
         "/data/article/entities/urls/0",
         "/data/article/entities/mentions/0",
         "/includes/users/0/affiliation",

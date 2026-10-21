@@ -8,7 +8,15 @@ use serde_field_attributes::ratio_u64;
 pub struct ArticleEntities<'a> {
     #[serde(borrow)]
     pub mentions: Option<Vec<UserMention<'a>>>,
+    pub tweets: Option<Vec<ArticleTweet>>,
     pub urls: Option<Vec<ArticleUrl<'a>>>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ArticleTweet {
+    #[serde(with = "crate::model::attributes::id_str")]
+    pub id: u64,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]

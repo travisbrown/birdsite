@@ -90,6 +90,8 @@ pub struct Tweet<'a> {
     pub author_id: u64,
     #[serde(borrow)]
     pub card_uri: Option<Cow<'a, str>>,
+    #[serde(with = "crate::model::attributes::optional_id_str", default)]
+    pub community_id: Option<u64>,
     pub context_annotations: Option<Vec<context::ContextAnnotation<'a>>>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub conversation_id: u64,
