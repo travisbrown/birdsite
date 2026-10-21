@@ -395,6 +395,10 @@ pub mod optional_count_with_sentinel {
             formatter.write_str(EXPECTED)
         }
 
+        fn visit_unit<E: serde::de::Error>(self) -> Result<Self::Value, E> {
+            Ok(None)
+        }
+
         fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> {
             v.try_into()
                 .map_err(|_| E::invalid_value(Unexpected::Unsigned(v), &EXPECTED))
