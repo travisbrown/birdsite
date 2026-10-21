@@ -172,11 +172,11 @@ pub struct VideoInfo<'a> {
     pub variants: Vec<MediaVariant<'a>>,
 }
 
-/// Source-tweet provenance for media reposted from another tweet.
+/// Source tweet and user identifiers associated with a media item.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct MediaSourceMetadata {
-    /// Numeric identifier of the tweet this media originally appeared in.
-    pub status_id: u64,
+    /// Numeric identifier of the tweet this media originally appeared in, when provided.
+    pub status_id: Option<u64>,
     /// Numeric identifier of the user who originally posted the media; absent in older (2015-era)
     /// archives, which carry only the status pair.
     pub user_id: Option<u64>,
@@ -189,8 +189,8 @@ mod internal {
     ///
     /// A derived `Option<MediaSourceMetadata>` flatten would treat a partial set of keys as
     /// `None`, silently dropping the present values; this wrapper reads the four fields as
-    /// individually optional and requires each identifier pair to be complete and consistent. The
-    /// status pair may appear without the user pair (2015-era archives), but not vice versa.
+    /// individually optional and requires each identifier pair to be complete and consistent.
+    /// Either pair may appear without the other.
     #[derive(Clone, Debug, Eq, PartialEq)]
     pub(super) struct MaybeMediaSourceMetadata(pub(super) Option<super::MediaSourceMetadata>);
 
@@ -252,13 +252,10 @@ mod internal {
 
             match (status_id, user_id) {
                 (None, None) => Ok(Self(None)),
-                (Some(status_id), user_id) => Ok(Self(Some(super::MediaSourceMetadata {
+                (status_id, user_id) => Ok(Self(Some(super::MediaSourceMetadata {
                     status_id,
                     user_id,
                 }))),
-                (None, Some(_)) => Err(serde::de::Error::custom(
-                    "expected source_status_id media fields alongside source_user_id",
-                )),
             }
         }
     }
@@ -273,8 +270,8 @@ mod internal {
                     source_user_id_str: None,
                 },
                 |value| Fields {
-                    source_status_id: Some(value.status_id),
-                    source_status_id_str: Some(value.status_id),
+                    source_status_id: value.status_id,
+                    source_status_id_str: value.status_id,
                     source_user_id: value.user_id,
                     source_user_id_str: value.user_id,
                 },
@@ -334,7 +331,7 @@ mod tests {
 
         let media = serde_json::from_str::<Media<'_>>(&json).unwrap();
         let expected = MediaSourceMetadata {
-            status_id: 12,
+            status_id: Some(12),
             user_id: Some(34),
         };
         assert_eq!(media.source_metadata(), Some(&expected));
@@ -352,6 +349,7 @@ mod tests {
 
         let reserialized = serde_json::to_string(&media).unwrap();
         assert!(!reserialized.contains("source_status_id"));
+        assert!(!reserialized.contains("source_user_id"));
         assert_eq!(
             serde_json::from_str::<Media<'_>>(&reserialized).unwrap(),
             media
@@ -365,7 +363,7 @@ mod tests {
 
         let media = serde_json::from_str::<Media<'_>>(&json).unwrap();
         let expected = MediaSourceMetadata {
-            status_id: 12,
+            status_id: Some(12),
             user_id: None,
         };
         assert_eq!(media.source_metadata(), Some(&expected));
@@ -379,21 +377,49 @@ mod tests {
     }
 
     #[test]
+    fn round_trips_source_metadata_without_status_pair() {
+        // Archived media can identify its source user without identifying a source tweet.
+        let json = media_json(r#","source_user_id":34,"source_user_id_str":"34""#);
+        let media = serde_json::from_str::<Media<'_>>(&json).unwrap();
+        let expected = MediaSourceMetadata {
+            status_id: None,
+            user_id: Some(34),
+        };
+        assert_eq!(media.source_metadata(), Some(&expected));
+
+        let reserialized = serde_json::to_string(&media).unwrap();
+        assert!(!reserialized.contains("source_status_id"));
+        assert_eq!(
+            serde_json::from_str::<Media<'_>>(&reserialized).unwrap(),
+            media
+        );
+    }
+
+    #[test]
     fn rejects_partial_source_metadata() {
         // Regression: a partial set of `source_*` fields used to deserialize successfully as
         // `None`, silently dropping the present values.
-        let half_pair = media_json(r#","source_status_id":12"#);
-        assert!(serde_json::from_str::<Media<'_>>(&half_pair).is_err());
-
-        let user_without_status = media_json(r#","source_user_id":34,"source_user_id_str":"34""#);
-        assert!(serde_json::from_str::<Media<'_>>(&user_without_status).is_err());
+        for fields in [
+            r#","source_status_id":12"#,
+            r#","source_status_id_str":"12""#,
+            r#","source_user_id":34"#,
+            r#","source_user_id_str":"34""#,
+        ] {
+            let json = media_json(fields);
+            assert!(serde_json::from_str::<Media<'_>>(&json).is_err());
+        }
     }
 
     #[test]
     fn rejects_mismatched_source_metadata() {
-        let json = media_json(
+        for fields in [
+            r#","source_status_id":12,"source_status_id_str":"13""#,
+            r#","source_user_id":34,"source_user_id_str":"35""#,
             r#","source_status_id":12,"source_status_id_str":"13","source_user_id":34,"source_user_id_str":"34""#,
-        );
-        assert!(serde_json::from_str::<Media<'_>>(&json).is_err());
+            r#","source_status_id":12,"source_status_id_str":"12","source_user_id":34,"source_user_id_str":"35""#,
+        ] {
+            let json = media_json(fields);
+            assert!(serde_json::from_str::<Media<'_>>(&json).is_err());
+        }
     }
 }
