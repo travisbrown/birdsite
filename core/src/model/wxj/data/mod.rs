@@ -425,6 +425,8 @@ pub struct Affiliation<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DerivedUser<'a> {
+    #[serde(borrow)]
+    pub affiliation: Option<Affiliation<'a>>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
     #[serde(borrow)]

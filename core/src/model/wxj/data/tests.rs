@@ -628,3 +628,47 @@ fn partial_users_preserve_account_metadata_without_exposing_a_profile() {
     assert!(matches!(derived, super::UserEntry::DerivedUser(_)));
     assert_eq!(derived.id(), 4);
 }
+
+#[test]
+fn derived_users_accept_optional_affiliation() {
+    for affiliation in [None, Some(json!({})), Some(json!({"user_id": ["3"]}))] {
+        let mut input = json!({
+            "id": "4",
+            "derived": {"locations": [{
+                "full_name": "United States", "country_code": "US",
+                "geo": {"type": "Point", "coordinates": [-98.5, 39.76]}
+            }]}
+        });
+        if let Some(affiliation) = &affiliation {
+            input["affiliation"] = affiliation.clone();
+        }
+        let text = input.to_string();
+        let entry = serde_json::from_str::<super::UserEntry<'_>>(&text).unwrap();
+        let super::UserEntry::DerivedUser(user) = &entry else {
+            panic!("expected a derived user");
+        };
+        assert_eq!(entry.id(), 4);
+        assert_eq!(entry.user(), None);
+        assert_eq!(user.affiliation.is_some(), affiliation.is_some());
+        assert_eq!(user.derived.as_ref().unwrap().locations.len(), 1);
+        let serialized = serde_json::to_string(&entry).unwrap();
+        assert_eq!(
+            entry,
+            serde_json::from_str::<super::UserEntry<'_>>(&serialized).unwrap()
+        );
+        let emitted: Value = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(
+            emitted["affiliation"]["user_id"],
+            input["affiliation"]["user_id"]
+        );
+    }
+
+    for affiliation in [
+        json!("invalid"),
+        json!({"user_id": [3]}),
+        json!({"unknown": true}),
+    ] {
+        let input = json!({"id": "4", "affiliation": affiliation});
+        assert!(serde_json::from_str::<super::UserEntry<'_>>(&input.to_string()).is_err());
+    }
+}
