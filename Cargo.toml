@@ -47,7 +47,7 @@ chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["derive"] }
 log = "0.4"
 num-rational = "0.4"
-proptest = "1"
+proptest = { version = "1", features = ["attr-macro"] }
 rand = "0.10"
 regex = "1"
 reqwest = "0.13"
@@ -56,7 +56,6 @@ serde-field-attributes = "0.7"
 serde_json = { version = "1", features = ["preserve_order"] }
 sha2 = "0.11"
 tempfile = "3"
-test-strategy = "0.4"
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt"] }
 url = { version = "2", features = ["serde"] }

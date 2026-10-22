@@ -127,7 +127,7 @@ mod tests {
     }
 
     /// Property: every 24-bit color round-trips through its JSON representation.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn round_trip_arbitrary_color_json(color: Color) {
         let json = serde_json::to_string(&color).unwrap();
         let parsed: Color = serde_json::from_str(&json).unwrap();
@@ -136,8 +136,8 @@ mod tests {
     }
 
     /// Property: three-digit CSS shorthand parses identically to its six-digit expansion.
-    #[test_strategy::proptest]
-    fn shorthand_matches_expanded_form(#[strategy("[0-9A-Fa-f]{3}")] shorthand: String) {
+    #[proptest::property_test]
+    fn shorthand_matches_expanded_form(#[strategy = "[0-9A-Fa-f]{3}"] shorthand: String) {
         let expanded: String = shorthand.chars().flat_map(|digit| [digit, digit]).collect();
 
         proptest::prop_assert_eq!(
@@ -148,7 +148,7 @@ mod tests {
 
     /// Property: parsing never panics on arbitrary input (regression: multibyte input used to
     /// panic on a byte-index slice), and any accepted input's canonical form round-trips.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn parse_arbitrary_string_never_panics(input: String) {
         if let Ok(color) = input.parse::<Color>() {
             proptest::prop_assert_eq!(color.to_string().parse::<Color>().unwrap(), color);

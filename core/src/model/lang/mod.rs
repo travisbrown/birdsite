@@ -1750,7 +1750,7 @@ mod test {
     }
 
     /// Property: every `Lang` value round-trips through its JSON representation.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn round_trip_arbitrary_lang_json(lang: Lang) {
         let json = serde_json::to_string(&lang).unwrap();
         let parsed: Lang = serde_json::from_str(&json).unwrap();
@@ -1759,7 +1759,7 @@ mod test {
     }
 
     /// Property: every `Language` value round-trips through its JSON representation.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn round_trip_arbitrary_language_json(language: Language) {
         let json = serde_json::to_string(&language).unwrap();
         let parsed: Language = serde_json::from_str(&json).unwrap();
@@ -1768,7 +1768,7 @@ mod test {
     }
 
     /// Property: every `Special` value round-trips through its JSON representation.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn round_trip_arbitrary_special_json(special: Special) {
         let json = serde_json::to_string(&special).unwrap();
         let parsed: Special = serde_json::from_str(&json).unwrap();

@@ -109,7 +109,7 @@ mod tests {
     /// Property: every second-precision timestamp round-trips through its JSON representation
     /// (which exercises both `Display` and `FromStr`, since the Serde implementations delegate to
     /// them).
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn round_trip_arbitrary_text_timestamp_json(timestamp: TextTimestamp) {
         let json = serde_json::to_string(&timestamp).unwrap();
         let parsed: TextTimestamp = serde_json::from_str(&json).unwrap();

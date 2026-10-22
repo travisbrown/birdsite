@@ -906,7 +906,7 @@ mod test {
     }
 
     /// Property: every country code round-trips through its JSON representation.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn round_trip_arbitrary_country_json(country: super::Country) {
         let json = serde_json::to_string(&country).unwrap();
         let parsed: super::Country = serde_json::from_str(&json).unwrap();

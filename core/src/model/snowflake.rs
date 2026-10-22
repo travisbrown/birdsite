@@ -52,22 +52,22 @@ mod test {
 
     /// Property: IDs outside the Snowflake range (below it, or beyond `i64::MAX`) have no
     /// timestamp.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn out_of_range_ids_have_no_timestamp(
-        #[strategy(proptest::prop_oneof![
+        #[strategy = proptest::prop_oneof![
             0..super::FIRST_SNOWFLAKE,
             i64::MAX as u64 + 1..=u64::MAX,
-        ])]
+        ]]
         id: u64,
     ) {
         proptest::prop_assert_eq!(super::snowflake_to_date_time(id), None);
     }
 
     /// Property: timestamps are defined and non-decreasing over the entire Snowflake range.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn snowflake_timestamps_are_monotonic(
-        #[strategy(super::FIRST_SNOWFLAKE..=i64::MAX as u64)] first: u64,
-        #[strategy(super::FIRST_SNOWFLAKE..=i64::MAX as u64)] second: u64,
+        #[strategy = super::FIRST_SNOWFLAKE..=i64::MAX as u64] first: u64,
+        #[strategy = super::FIRST_SNOWFLAKE..=i64::MAX as u64] second: u64,
     ) {
         let earlier_time = super::snowflake_to_date_time(first.min(second));
         let later_time = super::snowflake_to_date_time(first.max(second));

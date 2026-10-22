@@ -37,5 +37,4 @@ url = { workspace = true }
 archivindex-wbm-test-data = { workspace = true }
 proptest = { workspace = true }
 serde_json = { workspace = true }
-test-strategy = { workspace = true }
 tokio = { workspace = true }

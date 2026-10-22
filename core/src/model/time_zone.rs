@@ -2725,7 +2725,7 @@ mod tests {
     }
 
     /// Property: every IANA identifier round-trips through its derived JSON representation.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn round_trip_arbitrary_iana_time_zone_json(zone: IanaTimeZone) {
         let json = serde_json::to_string(&zone).expect("should serialize");
         let back: IanaTimeZone = serde_json::from_str(&json).expect("should deserialize");
@@ -2734,7 +2734,7 @@ mod tests {
     }
 
     /// Property: every deprecated alias round-trips through its derived JSON representation.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn round_trip_arbitrary_deprecated_json(zone: Deprecated) {
         let json = serde_json::to_string(&zone).expect("should serialize");
         let back: Deprecated = serde_json::from_str(&json).expect("should deserialize");
@@ -2743,7 +2743,7 @@ mod tests {
     }
 
     /// Property: every abbreviation round-trips through its derived JSON representation.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn round_trip_arbitrary_abbreviation_json(zone: Abbreviation) {
         let json = serde_json::to_string(&zone).expect("should serialize");
         let back: Abbreviation = serde_json::from_str(&json).expect("should deserialize");
@@ -2752,7 +2752,7 @@ mod tests {
     }
 
     /// Property: every display name round-trips through its derived JSON representation.
-    #[test_strategy::proptest]
+    #[proptest::property_test]
     fn round_trip_arbitrary_named_json(zone: Named) {
         let json = serde_json::to_string(&zone).expect("should serialize");
         let back: Named = serde_json::from_str(&json).expect("should deserialize");
