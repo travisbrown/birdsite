@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 use std::ops::Range;
 
+use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
 use serde_field_attributes::range;
 
@@ -29,11 +30,11 @@ pub struct Hashtag<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Url<'a> {
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub expanded_url: Option<Cow<'a, str>>,
     #[serde(borrow)]
     pub url: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub display_url: Option<Cow<'a, str>>,
     #[serde(with = "range")]
     pub indices: Range<usize>,
@@ -47,7 +48,7 @@ pub struct Mention<'a> {
     id_str: Option<u64>,
     #[serde(borrow)]
     pub screen_name: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub name: Option<Cow<'a, str>>,
     #[serde(with = "range")]
     pub indices: Range<usize>,

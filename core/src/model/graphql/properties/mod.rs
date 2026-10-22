@@ -34,6 +34,6 @@ pub struct ConversationAnnotation {
 pub struct TombstoneInfo<'a> {
     #[serde(borrow)]
     text: Cow<'a, str>,
-    #[serde(rename = "richText", borrow)]
+    #[serde(rename = "richText")]
     rich_text: crate::model::graphql::text::Text<'a>,
 }

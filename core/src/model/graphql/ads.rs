@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
+
 use crate::model::KeyValuePair;
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -23,11 +25,19 @@ pub struct PromotedMetadata<'a, U> {
     pub impression_id: &'a str,
     #[serde(rename = "impressionString")]
     pub impression_string: &'a str,
-    #[serde(rename = "promotedTrendName", borrow)]
+    #[serde(rename = "promotedTrendName", default, with = "borrowable_str::option")]
     pub promoted_trend_name: Option<Cow<'a, str>>,
-    #[serde(rename = "promotedTrendQueryTerm", borrow)]
+    #[serde(
+        rename = "promotedTrendQueryTerm",
+        default,
+        with = "borrowable_str::option"
+    )]
     pub promoted_trend_query_term: Option<Cow<'a, str>>,
-    #[serde(rename = "promotedTrendDescription", borrow)]
+    #[serde(
+        rename = "promotedTrendDescription",
+        default,
+        with = "borrowable_str::option"
+    )]
     pub promoted_trend_description: Option<Cow<'a, str>>,
     #[serde(rename = "promotedTrend")]
     pub promoted_trend: Option<PromotedTrend>,
@@ -49,7 +59,12 @@ pub struct AdMetadataContainer<'a> {
     #[serde(rename = "isQuickPromote")]
     pub is_quick_promote: Option<bool>,
     pub remove_promoted_attribution_for_preroll: Option<bool>,
-    #[serde(rename = "unifiedCardOverride", borrow)]
+    #[serde(
+        rename = "unifiedCardOverride",
+        borrow,
+        default,
+        with = "borrowable_str::option"
+    )]
     pub unified_card_override: Option<Cow<'a, str>>,
 }
 
@@ -95,7 +110,7 @@ pub struct MediaInfo<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ClickTrackingInfo<'a> {
-    #[serde(rename = "urlParams", borrow)]
+    #[serde(rename = "urlParams")]
     pub url_params: Vec<KeyValuePair<'a>>,
     #[serde(rename = "urlOverride")]
     pub url_override: Option<&'a str>,

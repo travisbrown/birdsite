@@ -21,6 +21,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 workspace = true
 
 [dependencies]
+archivindex-serde = { workspace = true }
 bounded-static = { workspace = true }
 bounded-static-derive-more = { workspace = true }
 chrono = { workspace = true }

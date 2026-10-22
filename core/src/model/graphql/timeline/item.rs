@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
+
 use crate::model::graphql::ResultWrapper;
 use crate::model::graphql::ads::{PrerollMetadata, PromotedMetadata};
 use crate::model::graphql::properties::display::{
@@ -13,7 +15,7 @@ use crate::model::graphql::user::UserResult;
 #[serde(deny_unknown_fields)]
 pub struct Cursor<'a> {
     /// Present on timeline entry cursors but not on item content cursors.
-    #[serde(rename = "__typename", borrow, default)]
+    #[serde(rename = "__typename", default, with = "borrowable_str::option")]
     pub typename: Option<Cow<'a, str>>,
     #[serde(rename = "cursorType")]
     pub cursor_type: CursorType,
@@ -21,7 +23,7 @@ pub struct Cursor<'a> {
     pub value: Cow<'a, str>,
     #[serde(rename = "stopOnEmptyResponse", default)]
     pub stop_on_empty_response: Option<bool>,
-    #[serde(rename = "displayTreatment", borrow)]
+    #[serde(rename = "displayTreatment")]
     pub display_treatment: Option<DisplayTreatment<'a>>,
 }
 

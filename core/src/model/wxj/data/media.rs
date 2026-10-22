@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
 
 use crate::model::media::{MediaType, MediaVariant};
@@ -10,7 +11,10 @@ use crate::model::metrics::MediaPublicMetrics;
 #[serde(untagged, deny_unknown_fields)]
 pub enum Card<'a> {
     Uri(#[serde(borrow)] Cow<'a, str>),
-    MediaKeys { media_keys: Vec<Cow<'a, str>> },
+    MediaKeys {
+        #[serde(with = "borrowable_str::seq")]
+        media_keys: Vec<Cow<'a, str>>,
+    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
@@ -22,7 +26,7 @@ pub enum Media<'a> {
         metadata: MediaMetadata<'a>,
         #[serde(borrow)]
         url: Cow<'a, str>,
-        #[serde(borrow)]
+        #[serde(default, with = "borrowable_str::option")]
         alt_text: Option<Cow<'a, str>>,
     },
     #[serde(rename = "video")]
@@ -88,10 +92,10 @@ pub struct MediaMetadata<'a> {
 pub struct TweetMediaMetadata<'a> {
     #[serde(borrow)]
     pub media_key: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub alt_text: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub description: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub title: Option<Cow<'a, str>>,
 }

@@ -2,6 +2,7 @@
 use std::borrow::Cow;
 use std::ops::Range;
 
+use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
 use serde_field_attributes::optional_range;
@@ -83,14 +84,12 @@ impl<'a> TweetSnapshot<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Tweet<'a> {
-    #[serde(borrow)]
     pub article: Option<Article<'a>>,
     pub attachments: Option<Attachments>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
     #[serde(with = "crate::model::attributes::optional_id_str", default)]
     pub author_id: Option<u64>,
-    #[serde(borrow)]
     pub card_uri: Option<media::Card<'a>>,
     #[serde(with = "crate::model::attributes::optional_id_str", default)]
     pub community_id: Option<u64>,
@@ -119,6 +118,7 @@ pub struct Tweet<'a> {
     #[serde(with = "crate::model::attributes::optional_id_str", default)]
     pub in_reply_to_user_id: Option<u64>,
     pub source: Option<SourceName>,
+    #[serde(default, deserialize_with = "crate::deserialize::optional_strings")]
     pub suggested_source_links: Option<Vec<Cow<'a, str>>>,
     pub suggested_source_links_with_counts: Option<Vec<SuggestedSourceLink<'a>>>,
     pub withheld: Option<Withheld>,
@@ -233,7 +233,7 @@ pub struct PollOption<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Geo<'a> {
-    #[serde(borrow)]
+    #[serde(borrow, default, with = "borrowable_str::option")]
     pub place_id: Option<Cow<'a, str>>,
     pub coordinates: Option<TypedCoordinates>,
 }
@@ -251,31 +251,19 @@ pub struct EditControls {
 pub struct NoteTweet<'a> {
     #[serde(borrow)]
     pub entities: Option<entity::TweetEntities<'a>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub text: Option<Cow<'a, str>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct NoteRequestSuggestion<'a> {
-    #[serde(borrow)]
+    #[serde(borrow, default, with = "borrowable_str::option")]
     pub source_link: Option<Cow<'a, str>>,
-    #[serde(borrow, default, deserialize_with = "deserialize_optional_text")]
+    #[serde(default, with = "borrowable_str::option")]
     pub suggestion: Option<Cow<'a, str>>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub suggestion_id: u64,
-}
-
-// Preserve borrowing of unescaped text even when the field is optional.
-fn deserialize_optional_text<'de, D: serde::de::Deserializer<'de>>(
-    deserializer: D,
-) -> Result<Option<Cow<'de, str>>, D::Error> {
-    use serde::de::Deserialize;
-
-    #[derive(serde::Deserialize)]
-    struct Text<'a>(#[serde(borrow)] Cow<'a, str>);
-
-    Option::<Text<'de>>::deserialize(deserializer).map(|text| text.map(|Text(value)| value))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
@@ -326,7 +314,7 @@ pub enum ReplySettings {
 #[serde(deny_unknown_fields, untagged)]
 pub enum UserEntry<'a> {
     User(#[serde(borrow)] Box<User<'a>>),
-    PartialUser(#[serde(borrow)] Box<PartialUser<'a>>),
+    PartialUser(Box<PartialUser<'a>>),
     DerivedUser(DerivedUser<'a>),
 }
 
@@ -352,7 +340,6 @@ impl<'a> UserEntry<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct User<'a> {
-    #[serde(borrow)]
     pub affiliation: Option<Affiliation<'a>>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
@@ -363,13 +350,13 @@ pub struct User<'a> {
     pub created_at: DateTime<Utc>,
     #[serde(borrow)]
     pub description: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub location: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub url: Option<Cow<'a, str>>,
     #[serde(borrow)]
     pub profile_image_url: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub profile_banner_url: Option<Cow<'a, str>>,
     #[serde(with = "crate::model::attributes::optional_id_str", default)]
     pub most_recent_tweet_id: Option<u64>,
@@ -382,7 +369,6 @@ pub struct User<'a> {
     pub protected: bool,
     pub public_metrics: UserPublicMetrics,
     pub withheld: Option<Withheld>,
-    #[serde(borrow)]
     pub derived: Option<Derived<'a>>,
 }
 
@@ -412,11 +398,11 @@ pub enum VerifiedType {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Affiliation<'a> {
-    #[serde(borrow)]
+    #[serde(borrow, default, with = "borrowable_str::option")]
     pub badge_url: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub description: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub url: Option<Cow<'a, str>>,
     #[serde(with = "crate::model::attributes::optional_ids_str", default)]
     pub user_id: Option<Cow<'a, [u64]>>,
@@ -429,7 +415,6 @@ pub struct DerivedUser<'a> {
     pub affiliation: Option<Affiliation<'a>>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
-    #[serde(borrow)]
     pub derived: Option<Derived<'a>>,
 }
 
@@ -446,11 +431,11 @@ pub struct Location<'a> {
     #[serde(borrow)]
     pub full_name: Cow<'a, str>,
     pub country_code: Country,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub region: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub sub_region: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub locality: Option<Cow<'a, str>>,
     pub geo: TypedCoordinates,
 }
@@ -465,15 +450,16 @@ pub struct Withheld {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Article<'a> {
-    #[serde(borrow)]
+    #[serde(borrow, default, with = "borrowable_str::option")]
     pub cover_media: Option<Cow<'a, str>>,
     pub entities: Option<entity::ArticleEntities<'a>>,
+    #[serde(default, deserialize_with = "crate::deserialize::optional_strings")]
     pub media_entities: Option<Vec<Cow<'a, str>>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub plain_text: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub preview_text: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub title: Option<Cow<'a, str>>,
 }
 

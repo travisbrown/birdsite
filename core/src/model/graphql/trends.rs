@@ -1,11 +1,13 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
+
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TrendMetadata<'a> {
-    #[serde(borrow)]
+    #[serde(borrow, default, with = "borrowable_str::option")]
     pub domain_context: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub meta_description: Option<Cow<'a, str>>,
     pub url: Option<crate::model::url::Url<'a>>,
 }

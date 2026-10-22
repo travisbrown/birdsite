@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
 use serde_field_attributes::ratio_u64;
 
@@ -9,9 +10,7 @@ pub struct ArticleEntities<'a> {
     pub cashtags: Option<Vec<Cashtag>>,
     #[serde(borrow)]
     pub code: Option<Vec<ArticleCode<'a>>>,
-    #[serde(borrow)]
     pub hashtags: Option<Vec<ArticleHashtag<'a>>>,
-    #[serde(borrow)]
     pub mentions: Option<Vec<UserMention<'a>>>,
     pub tweets: Option<Vec<ArticleTweet>>,
     pub urls: Option<Vec<ArticleUrl<'a>>>,
@@ -81,9 +80,9 @@ pub struct Urls<'a> {
 pub struct UrlDetails<'a> {
     #[serde(borrow)]
     pub url: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub display_url: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub expanded_url: Option<Cow<'a, str>>,
     pub start: usize,
     pub end: usize,
@@ -149,21 +148,21 @@ pub struct TweetMention<'a> {
 pub struct Url<'a> {
     pub start: usize,
     pub end: usize,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub title: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub description: Option<Cow<'a, str>>,
     #[serde(borrow)]
     pub url: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub expanded_url: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub display_url: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub media_key: Option<Cow<'a, str>>,
     // TODO: Use a proper status code representation here.
     pub status: Option<usize>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub unwound_url: Option<Cow<'a, str>>,
     pub images: Option<Vec<UrlImage<'a>>>,
 }

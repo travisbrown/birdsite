@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
 use num_rational::Ratio;
 use serde_field_attributes::ratio_i64;
@@ -20,7 +21,6 @@ pub struct Place<'a> {
     #[serde(borrow)]
     pub full_name: Cow<'a, str>,
     pub bounding_box: Option<BoundingBox>,
-    #[serde(borrow)]
     pub attributes: Option<Attributes<'a>>,
     pub contained_within: Option<Vec<()>>,
 }
@@ -75,6 +75,6 @@ pub enum CoordinatesType {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 pub struct Attributes<'a> {
     /// Street address associated with the place, if provided.
-    #[serde(borrow)]
+    #[serde(borrow, default, with = "borrowable_str::option")]
     pub street_address: Option<Cow<'a, str>>,
 }

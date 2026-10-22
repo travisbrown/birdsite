@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
@@ -17,7 +18,7 @@ pub struct ContextDomain<'a> {
     pub id: u64,
     #[serde(borrow)]
     pub name: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub description: Option<Cow<'a, str>>,
 }
 
@@ -28,6 +29,6 @@ pub struct ContextEntity<'a> {
     pub id: u64,
     #[serde(borrow)]
     pub name: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub description: Option<Cow<'a, str>>,
 }

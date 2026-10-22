@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum UrlType {
     ExternalUrl,
@@ -24,6 +26,6 @@ pub struct Url<'a> {
 pub struct UrtEndpointOptions<'a> {
     #[serde(rename = "requestParams")]
     pub request_params: Vec<crate::model::KeyValuePair<'a>>,
-    #[serde(borrow)]
+    #[serde(borrow, default, with = "borrowable_str::option")]
     pub title: Option<Cow<'a, str>>,
 }

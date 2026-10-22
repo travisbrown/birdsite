@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
 use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Utc};
 
@@ -22,14 +23,15 @@ pub struct Community<'a, U> {
     pub id: u64,
     #[serde(borrow)]
     pub name: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub description: Option<Cow<'a, str>>,
     #[serde(with = "ts_milliseconds")]
     pub created_at: DateTime<Utc>,
     pub default_theme: Option<Theme>,
     pub custom_theme: Option<Theme>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub question: Option<Cow<'a, str>>,
+    #[serde(default, deserialize_with = "crate::deserialize::optional_strings")]
     pub search_tags: Option<Vec<Cow<'a, str>>>,
     pub is_nsfw: Option<bool>,
     pub actions: Actions,
@@ -49,7 +51,7 @@ pub struct Community<'a, U> {
     pub default_banner_media: BannerMedia<'a>,
     pub viewer_relationship: ViewerRelationship,
     pub join_requests_result: JoinRequestsResult,
-    #[serde(rename = "id", borrow)]
+    #[serde(rename = "id", default, with = "borrowable_str::option")]
     _internal_id: Option<Cow<'a, str>>,
     #[serde(
         rename = "rest_id",
@@ -115,7 +117,7 @@ pub struct Rule<'a> {
     pub rest_id: u64,
     #[serde(borrow)]
     pub name: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub description: Option<Cow<'a, str>>,
 }
 

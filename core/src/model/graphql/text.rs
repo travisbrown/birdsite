@@ -9,6 +9,5 @@ pub struct Text<'a> {
     #[serde(borrow)]
     pub text: Cow<'a, str>,
     pub rtl: Option<bool>,
-    #[serde(borrow)]
     pub entities: Vec<TypedEntity<'a>>,
 }

@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
+
 use crate::model::graphql::ResultWrapper;
 use crate::model::graphql::ads::PromotedMetadata;
 use crate::model::graphql::image::{Image, OriginalImage};
@@ -34,21 +36,17 @@ pub enum Instruction<'a, T, U> {
         entries: Vec<Entry<'a, T, U>>,
     },
     #[serde(rename = "TimelinePinEntry")]
-    PinEntry {
-        #[serde(borrow)]
-        entry: Entry<'a, T, U>,
-    },
+    PinEntry { entry: Entry<'a, T, U> },
     #[serde(rename = "TimelineReplaceEntry")]
     ReplaceEntry {
         entry_id_to_replace: EntryId<'a>,
-        #[serde(borrow)]
         entry: Entry<'a, T, U>,
     },
     #[serde(rename = "TimelineAddToModule")]
     AddToModule {
         #[serde(rename = "moduleEntryId")]
         module_entry_id: EntryId<'a>,
-        #[serde(rename = "moduleItems", borrow)]
+        #[serde(rename = "moduleItems")]
         module_items: Vec<ModuleItem<'a, T, U>>,
         prepend: Option<bool>,
     },
@@ -80,12 +78,11 @@ pub struct Entry<'a, T, U> {
 #[serde(tag = "entryType", deny_unknown_fields)]
 pub enum EntryContent<'a, T, U> {
     #[serde(rename = "TimelineTimelineCursor")]
-    Cursor(#[serde(borrow)] item::Cursor<'a>),
+    Cursor(item::Cursor<'a>),
     #[serde(rename = "TimelineTimelineModule")]
     Module {
         #[serde(rename = "__typename")]
         typename: &'a str,
-        #[serde(borrow)]
         items: Vec<ModuleItem<'a, T, U>>,
         metadata: Option<serde_json::Value>,
         #[serde(rename = "displayType")]
@@ -215,7 +212,7 @@ pub enum ItemContent<'a, T, U> {
         typename: &'a str,
         #[serde(borrow)]
         title_text: Cow<'a, str>,
-        #[serde(borrow)]
+        #[serde(default, with = "borrowable_str::option")]
         detail_text: Option<Cow<'a, str>>,
         #[serde(borrow)]
         destination_url: Cow<'a, str>,
@@ -241,14 +238,14 @@ pub enum ItemContent<'a, T, U> {
         typename: &'a str,
         #[serde(borrow)]
         name: Cow<'a, str>,
-        #[serde(borrow)]
+        #[serde(default, with = "borrowable_str::option")]
         description: Option<Cow<'a, str>>,
         social_context: Option<context::SocialContext<'a>>,
         is_ai_trend: Option<bool>,
         trend_url: crate::model::url::Url<'a>,
         trend_metadata: TrendMetadata<'a>,
         grouped_trends: Option<Vec<trends::Trend<'a>>>,
-        #[serde(borrow)]
+        #[serde(default, with = "borrowable_str::option")]
         rank: Option<Cow<'a, str>>,
         thumbnail_image: Option<OriginalImage<'a>>,
         images: Option<Vec<trends::TrendImage<'a>>>,

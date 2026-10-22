@@ -220,6 +220,8 @@ impl<'a, 'de: 'a> Deserialize<'de> for Affiliation<'a, ()> {
 mod internal {
     use std::borrow::Cow;
 
+    use archivindex_serde::borrowable_str;
+
     use crate::model::graphql::ResultWrapper;
     use crate::model::url::Url;
 
@@ -250,10 +252,9 @@ mod internal {
     #[derive(serde::Deserialize)]
     #[serde(tag = "userLabelType", deny_unknown_fields)]
     pub(super) enum IdentityAffiliateLabel<'a> {
-        #[serde(borrow)]
         BusinessLabel(BusinessLabel<'a>),
         AutomatedLabel {
-            #[serde(rename = "badge", borrow)]
+            #[serde(rename = "badge")]
             _badge: Badge<'a>,
             /// This will generally be `"Automated"`, but may be localized.
             #[serde(rename = "description", borrow)]
@@ -264,7 +265,6 @@ mod internal {
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub(super) struct BusinessLabel<'a> {
-        #[serde(borrow)]
         pub url: Url<'a>,
         #[serde(rename = "badge")]
         pub _badge: Badge<'a>,
@@ -280,12 +280,12 @@ mod internal {
     #[derive(serde::Deserialize)]
     #[serde(deny_unknown_fields)]
     pub(super) struct AutomatedLabel<'a> {
-        #[serde(rename = "badge", borrow)]
+        #[serde(rename = "badge")]
         pub _badge: Badge<'a>,
         /// This will generally be `"Automated"`, but may be localized.
         #[serde(rename = "description", borrow)]
         pub _description: Cow<'a, str>,
-        #[serde(rename = "longDescription", borrow)]
+        #[serde(rename = "longDescription")]
         pub long_description: AutomatedLabelLongDescription<'a>,
     }
 
@@ -351,7 +351,7 @@ mod internal {
         },
         UserUnavailable {
             reason: crate::model::graphql::unavailable::UserUnavailableReason,
-            #[serde(rename = "message")]
+            #[serde(rename = "message", default, with = "borrowable_str::option")]
             _message: Option<Cow<'a, str>>,
         },
     }

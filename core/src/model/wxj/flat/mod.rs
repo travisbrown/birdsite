@@ -2,6 +2,7 @@
 use std::borrow::Cow;
 use std::ops::Range;
 
+use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
 use chrono::{DateTime, Utc};
 use serde_field_attributes::{optional_range, optional_timestamp_millis_str, range};
@@ -37,7 +38,7 @@ pub struct TweetSnapshot<'a> {
     #[serde(with = "crate::model::attributes::optional_id_str")]
     in_reply_to_user_id_str: Option<u64>,
     pub user: User<'a>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub in_reply_to_screen_name: Option<Cow<'a, str>>,
     pub geo: Option<TypedCoordinates>,
     pub coordinates: Option<TypedCoordinates>,
@@ -71,7 +72,6 @@ pub struct TweetSnapshot<'a> {
     pub timestamp_ms: Option<DateTime<Utc>>,
     #[serde(with = "optional_range", default)]
     pub display_text_range: Option<Range<usize>>,
-    #[serde(borrow)]
     pub extended_tweet: Option<ExtendedTweet<'a>>,
     pub extended_entities: Option<entity::ExtendedTweetExtendedEntities<'a>>,
     pub withheld_in_countries: Option<Vec<Country>>,
@@ -142,11 +142,11 @@ pub struct User<'a> {
     pub name: Cow<'a, str>,
     #[serde(borrow)]
     pub screen_name: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub location: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub url: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub description: Option<Cow<'a, str>>,
     pub translator_type: Option<TranslatorType>,
     pub protected: bool,
@@ -183,7 +183,7 @@ pub struct User<'a> {
     profile_image_url: Cow<'a, str>,
     #[serde(borrow)]
     pub profile_image_url_https: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub profile_banner_url: Option<Cow<'a, str>>,
     pub default_profile: bool,
     pub default_profile_image: bool,

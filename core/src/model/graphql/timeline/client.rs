@@ -188,7 +188,11 @@ pub mod event {
             position: usize,
             #[serde(rename = "trendName")]
             trend_name: &'a str,
-            #[serde(rename = "relatedTerms")]
+            #[serde(
+                rename = "relatedTerms",
+                default,
+                deserialize_with = "crate::deserialize::optional_strings"
+            )]
             related_terms: Option<Cow<'a, [Cow<'a, str>]>>,
             #[serde(
                 rename = "clusterId",
@@ -219,7 +223,7 @@ pub mod feedback {
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
     pub struct FeedbackInfo<'a> {
-        #[serde(rename = "clientEventInfo", borrow)]
+        #[serde(rename = "clientEventInfo")]
         pub client_event_info: Option<ClientEventInfo<'a>>,
         #[serde(rename = "feedbackKeys")]
         pub feedback_keys: Cow<'a, [&'a str]>,

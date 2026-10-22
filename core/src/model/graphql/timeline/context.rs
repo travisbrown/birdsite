@@ -28,7 +28,11 @@ pub struct SocialContext<'a> {
     pub text: Cow<'a, str>,
     #[serde(rename = "landingUrl")]
     pub landing_url: Option<crate::model::url::Url<'a>>,
-    #[serde(rename = "contextImageUrls")]
+    #[serde(
+        rename = "contextImageUrls",
+        default,
+        deserialize_with = "crate::deserialize::optional_strings"
+    )]
     pub context_image_urls: Option<Vec<Cow<'a, str>>>,
 }
 

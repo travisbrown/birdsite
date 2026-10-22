@@ -396,6 +396,7 @@ dependencies = [
 name = "birdsite"
 version = "0.1.0"
 dependencies = [
+ "archivindex-serde",
  "archivindex-wbm-test-data",
  "bounded-static",
  "bounded-static-derive-more",

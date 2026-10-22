@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
@@ -13,7 +14,7 @@ pub struct TweetError<'a> {
     pub section: Option<TweetErrorSection>,
     #[serde(borrow)]
     pub title: Cow<'a, str>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub value: Option<Cow<'a, str>>,
     #[serde(borrow)]
     pub detail: Cow<'a, str>,

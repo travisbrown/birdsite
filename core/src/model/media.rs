@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 use std::ops::Range;
 
+use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
 use serde_field_attributes::range;
 
@@ -80,7 +81,6 @@ pub struct Media<'a> {
     #[serde(with = "range")]
     pub indices: Range<usize>,
     /// Additional metadata for embeddable media (title, description, monetization).
-    #[serde(borrow)]
     pub additional_media_info: Option<AdditionalMediaInfo<'a>>,
     /// HTTP URL of the media file (kept private; prefer `media_url`).
     #[serde(rename = "media_url", borrow)]
@@ -108,7 +108,7 @@ pub struct Media<'a> {
     #[serde(flatten)]
     source_metadata: internal::MaybeMediaSourceMetadata,
     /// Alt-text description of the media.
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub description: Option<Cow<'a, str>>,
 }
 
@@ -124,9 +124,9 @@ impl Media<'_> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AdditionalMediaInfo<'a> {
-    #[serde(borrow)]
+    #[serde(borrow, default, with = "borrowable_str::option")]
     pub title: Option<Cow<'a, str>>,
-    #[serde(borrow)]
+    #[serde(default, with = "borrowable_str::option")]
     pub description: Option<Cow<'a, str>>,
     pub embeddable: Option<bool>,
     pub monetizable: bool,

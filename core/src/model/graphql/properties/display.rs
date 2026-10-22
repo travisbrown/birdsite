@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
+
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum LabelDisplayType {
     InlineHeader,
@@ -46,6 +48,6 @@ pub enum UserDisplayType {
 pub struct DisplayTreatment<'a> {
     #[serde(rename = "actionText", borrow)]
     pub action_text: Cow<'a, str>,
-    #[serde(rename = "labelText", borrow)]
+    #[serde(rename = "labelText", default, with = "borrowable_str::option")]
     pub label_text: Option<Cow<'a, str>>,
 }

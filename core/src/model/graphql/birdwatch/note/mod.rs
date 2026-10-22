@@ -127,7 +127,6 @@ impl<'de: 'a, 'a> Deserialize<'de> for Note<'a> {
 pub struct Summary<'a> {
     #[serde(borrow)]
     pub text: Cow<'a, str>,
-    #[serde(borrow)]
     pub entities: Vec<TypedEntity<'a>>,
 }
 

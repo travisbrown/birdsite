@@ -1,12 +1,13 @@
 use std::borrow::Cow;
 
+use archivindex_serde::borrowable_str;
 use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Utc};
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Profile<'a> {
-    #[serde(borrow)]
+    #[serde(borrow, default, with = "borrowable_str::option")]
     pub alias: Option<Cow<'a, str>>,
     pub ratings_count: Option<RatingsCount>,
     pub notes_count: Option<NotesCount>,
