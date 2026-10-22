@@ -9,9 +9,11 @@
 //! operations themselves come from `archivindex-wbm-json-processing`.
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
+use std::process::ExitCode;
 
+use archivindex_cli_support::{CommandOutcome, Verbosity};
 use archivindex_wbm_json::context::Context;
-use cli_helpers::prelude::*;
+use clap::{Parser, Subcommand};
 
 mod extract;
 mod report;
@@ -19,11 +21,15 @@ mod report;
 mod test_data;
 mod validate;
 
-fn main() -> Result<(), Error> {
-    let opts: Opts = Opts::parse();
-    opts.verbose.init_logging()?;
+fn main() -> ExitCode {
+    archivindex_cli_support::exit_code(run())
+}
 
-    match opts.command {
+fn run() -> Result<CommandOutcome, Error> {
+    let opts: Opts = Opts::parse();
+    opts.verbosity.init_logging();
+
+    let outcome = match opts.command {
         Command::Pack {
             data,
             invalid_db,
@@ -48,6 +54,7 @@ fn main() -> Result<(), Error> {
             );
 
             println!("{}", serde_json::json!(summary));
+            CommandOutcome::Success
         }
         Command::Enhance {
             input,
@@ -77,27 +84,11 @@ fn main() -> Result<(), Error> {
             );
 
             println!("{}", serde_json::json!(summary));
+            CommandOutcome::Success
         }
         Command::Validate { input, flat } => {
             let summary = validate::validate(&input, &twitter_context(), flat)?;
-
-            log::info!(
-                "Validated {} lines: {} valid, {} missing metadata, {} invalid metadata, \
-                 {} schema errors, {} digest errors, {} order errors",
-                summary.line_count,
-                summary.valid_count,
-                summary.missing_metadata_count,
-                summary.invalid_metadata_count,
-                summary.schema_errors.len(),
-                summary.digest_errors.len(),
-                summary.order_errors.len()
-            );
-
-            if !summary.is_successful() {
-                log::warn!("Validation found problems (see the summary for details)");
-            }
-
-            println!("{}", serde_json::json!(summary));
+            report_validation(&summary)
         }
         Command::Extract {
             input,
@@ -114,11 +105,13 @@ fn main() -> Result<(), Error> {
             );
 
             println!("{}", serde_json::json!(summary));
+            CommandOutcome::Success
         }
         Command::TweetIds { input, flat } => {
             run_report("tweet IDs", |writer| {
                 report::tweet_ids(&input, flat, writer)
             })?;
+            CommandOutcome::Success
         }
         Command::UserObservations {
             input,
@@ -128,10 +121,32 @@ fn main() -> Result<(), Error> {
             run_report("user observation rows", |writer| {
                 report::user_observations(&input, flat, range_only, writer)
             })?;
+            CommandOutcome::Success
         }
+    };
+
+    Ok(outcome)
+}
+
+fn report_validation(summary: &validate::ValidationSummary) -> CommandOutcome {
+    log::info!(
+        "Validated {} lines: {} valid, {} missing metadata, {} invalid metadata, \
+         {} schema errors, {} digest errors, {} order errors",
+        summary.line_count,
+        summary.valid_count,
+        summary.missing_metadata_count,
+        summary.invalid_metadata_count,
+        summary.schema_errors.len(),
+        summary.digest_errors.len(),
+        summary.order_errors.len()
+    );
+
+    if !summary.is_successful() {
+        log::warn!("Validation found problems (see the summary for details)");
     }
 
-    Ok(())
+    println!("{}", serde_json::json!(summary));
+    CommandOutcome::from_reported_problems(!summary.is_successful())
 }
 
 /// Run a report command, writing its CSV rows to standard output and logging its counts (with the
@@ -169,8 +184,6 @@ fn twitter_context() -> Context {
 /// Top-level application error.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("CLI argument reading error")]
-    Args(#[from] cli_helpers::Error),
     #[error("pack error")]
     Pack(#[from] archivindex_wbm_json_processing::process::pack::Error),
     #[error("enhance error")]
@@ -193,33 +206,33 @@ pub enum Error {
 }
 
 #[derive(Debug, Parser)]
-#[clap(name = "birdsite-cli", version, author)]
+#[command(name = "birdsite-cli", version, author)]
 struct Opts {
-    #[clap(flatten)]
-    verbose: Verbosity,
-    #[clap(subcommand)]
+    #[command(flatten)]
+    verbosity: Verbosity,
+    #[command(subcommand)]
     command: Command,
 }
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Subcommand)]
 enum Command {
     /// Pack a data directory of digest-named tweet files into a compact zstd NDJSON file, without
     /// CDX metadata (only the digest, the expected digest from the invalid-digest log, and the
     /// content).
     Pack {
         /// Directories of raw data files, each named by the SHA-1 digest of its bytes.
-        #[clap(long)]
+        #[arg(long)]
         data: Vec<PathBuf>,
         #[allow(clippy::doc_markdown)]
         /// Path to the SQLite database of known-invalid digests (omit to attach no expected
         /// digests).
-        #[clap(long)]
+        #[arg(long)]
         invalid_db: Option<PathBuf>,
         /// Output path for the packed zstd NDJSON file (must not already exist).
-        #[clap(long)]
+        #[arg(long)]
         output: PathBuf,
         /// Zstandard compression level.
-        #[clap(long, default_value = "14")]
+        #[arg(long, default_value = "14")]
         level: u16,
     },
     /// Enhance a compact snapshot file with CDX metadata (timestamp, and a URL when the content
@@ -227,49 +240,49 @@ enum Command {
     /// from the invalid-digest log where the content digest has no captures.
     Enhance {
         /// Path to a zstd-compressed compact snapshot file.
-        #[clap(long)]
+        #[arg(long)]
         input: PathBuf,
         #[allow(clippy::doc_markdown)]
         /// Path to the capture metadata RocksDB database.
-        #[clap(long)]
+        #[arg(long)]
         metadata_db: PathBuf,
         #[allow(clippy::doc_markdown)]
         /// Path to the SQLite database of known-invalid digests.
-        #[clap(long)]
+        #[arg(long)]
         invalid_db: PathBuf,
         /// Output path for the enhanced zstd NDJSON file (must not already exist).
-        #[clap(long)]
+        #[arg(long)]
         output: PathBuf,
         /// Zstandard compression level.
-        #[clap(long, default_value = "14")]
+        #[arg(long, default_value = "14")]
         level: u16,
         /// Number of snapshots buffered per capture lookup batch.
-        #[clap(long, default_value = "1024")]
+        #[arg(long, default_value = "1024")]
         batch_size: std::num::NonZeroUsize,
     },
     /// Validate a compact snapshot file against wxj schemas.
     Validate {
         /// Path to a zstd-compressed compact snapshot file.
-        #[clap(long)]
+        #[arg(long)]
         input: PathBuf,
         /// Validate against wxj/flat schema instead of wxj/data.
-        #[clap(long)]
+        #[arg(long)]
         flat: bool,
     },
     /// Extract the lines of a compact snapshot file whose content's includes.users array contains
     /// a user with the given ID, copying them verbatim to a new file.
     Extract {
         /// Path to a zstd-compressed compact snapshot file of wxj/data tweet content.
-        #[clap(long)]
+        #[arg(long)]
         input: PathBuf,
         /// Twitter user ID to select.
-        #[clap(long)]
+        #[arg(long)]
         user_id: u64,
         /// Output path for the matching lines (zstd-compressed NDJSON, must not already exist).
-        #[clap(long)]
+        #[arg(long)]
         output: PathBuf,
         /// Zstandard compression level.
-        #[clap(long, default_value = "14")]
+        #[arg(long, default_value = "14")]
         level: u16,
     },
     /// Print a `user_id,tweet_id` CSV row to standard output for every tweet carried in a compact
@@ -277,10 +290,10 @@ enum Command {
     /// carries).
     TweetIds {
         /// Path to a zstd-compressed compact snapshot file.
-        #[clap(long)]
+        #[arg(long)]
         input: PathBuf,
         /// Parse content with the wxj/flat schema instead of wxj/data.
-        #[clap(long)]
+        #[arg(long)]
         flat: bool,
     },
     /// Print a CSV row to standard output for every user observed in a compact snapshot file: the
@@ -288,13 +301,13 @@ enum Command {
     /// seconds) of the snapshots whose content carries the user.
     UserObservations {
         /// Path to a zstd-compressed compact snapshot file.
-        #[clap(long)]
+        #[arg(long)]
         input: PathBuf,
         /// Parse content with the wxj/flat schema instead of wxj/data.
-        #[clap(long)]
+        #[arg(long)]
         flat: bool,
         /// Print only the first and last observation timestamps.
-        #[clap(long)]
+        #[arg(long)]
         range_only: bool,
     },
 }

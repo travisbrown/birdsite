@@ -34,7 +34,8 @@ license = "AGPL-3.0-only"
 version = "0.1.0"
 
 [workspace.dependencies]
-archivindex-serde = { git = "https://github.com/travisbrown/archivindex.git" }
+archivindex-cli-support = { version = "0.1", git = "https://github.com/travisbrown/archivindex.git" }
+archivindex-serde = { version = "0.1", git = "https://github.com/travisbrown/archivindex.git" }
 archivindex-wbm = { git = "https://github.com/travisbrown/archivindex-wbm" }
 archivindex-wbm-cdx-index = { git = "https://github.com/travisbrown/archivindex-wbm" }
 archivindex-wbm-json = { git = "https://github.com/travisbrown/archivindex-wbm" }
@@ -43,6 +44,8 @@ archivindex-wbm-test-data = { git = "https://github.com/travisbrown/archivindex-
 bounded-static = "0.8"
 bounded-static-derive-more = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4", features = ["derive"] }
+log = "0.4"
 num-rational = "0.4"
 proptest = "1"
 rand = "0.10"

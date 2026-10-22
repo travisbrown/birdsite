@@ -1,12 +1,14 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
+use std::process::ExitCode;
 
+use archivindex_cli_support::{CommandOutcome, Verbosity};
 use archivindex_wbm::digest::Sha1Digest;
 use archivindex_wbm_json::context::Context;
 use archivindex_wbm_json::format::Format;
 use archivindex_wbm_json_processing::io::write::SnapshotWriter;
-use cli_helpers::prelude::*;
+use clap::{Parser, Subcommand};
 
 mod db;
 mod extract_tweets;
@@ -21,9 +23,13 @@ const GROK_USER_ID: u64 = 1_720_665_183_188_922_368;
 /// the exact bytes when confirming a snapshot's digest.
 const TWITTER_CLOSING_WHITESPACE: [char; 3] = ['\r', '\r', '\n'];
 
-fn main() -> Result<(), Error> {
+fn main() -> ExitCode {
+    archivindex_cli_support::exit_code(run())
+}
+
+fn run() -> Result<CommandOutcome, Error> {
     let opts: Opts = Opts::parse();
-    opts.verbose.init_logging()?;
+    opts.verbosity.init_logging();
 
     match opts.command {
         Command::TweetsDb { db, command } => match command {
@@ -109,15 +115,13 @@ fn main() -> Result<(), Error> {
         Command::ExtractTweets { input, remaining } => extract_tweets::run(&input, &remaining)?,
     }
 
-    Ok(())
+    Ok(CommandOutcome::Success)
 }
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("I/O error")]
     Io(#[from] std::io::Error),
-    #[error("CLI argument reading error")]
-    Args(#[from] cli_helpers::Error),
     #[error("CSV error")]
     Csv(#[from] csv::Error),
     #[error("WXJ error")]
@@ -132,80 +136,80 @@ pub enum Error {
 }
 
 #[derive(Debug, Parser)]
-#[clap(name = "birdsite-hacks", version, author)]
+#[command(name = "birdsite-hacks", version, author)]
 struct Opts {
-    #[clap(flatten)]
-    verbose: Verbosity,
-    #[clap(subcommand)]
+    #[command(flatten)]
+    verbosity: Verbosity,
+    #[command(subcommand)]
     command: Command,
 }
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Subcommand)]
 enum Command {
     TweetsDb {
-        #[clap(long)]
+        #[arg(long)]
         db: PathBuf,
-        #[clap(subcommand)]
+        #[command(subcommand)]
         command: TweetsDbCommand,
     },
     Wxj {
-        #[clap(subcommand)]
+        #[command(subcommand)]
         command: WxjCommand,
     },
     /// Compact a directory of digest-named Twitter JSON snapshots into a Zstandard NDJSON file.
     Compact {
         /// Directory whose files are Twitter JSON snapshots named by their Base32 SHA-1 digest.
-        #[clap(long)]
+        #[arg(long)]
         input: PathBuf,
         /// Output path for the compact (Zstandard-compressed NDJSON) file.
-        #[clap(long)]
+        #[arg(long)]
         output: PathBuf,
         /// Zstandard compression level.
-        #[clap(long, default_value_t = 14)]
+        #[arg(long, default_value_t = 14)]
         level: u16,
     },
     /// Print WXJ lines containing a tweet that asks Grok whether something is true.
     GittRaw {
         /// Path to a Zstandard-compressed WXJ JSONL file.
-        #[clap(long)]
+        #[arg(long)]
         input: PathBuf,
     },
     /// Print CSV metadata for tweets that ask Grok whether something is true.
     Gitt {
         /// Path to a Zstandard-compressed WXJ JSONL file.
-        #[clap(long)]
+        #[arg(long)]
         input: PathBuf,
     },
     /// Extract selected `TweetResultsByRestIds` results from an archived GraphQL file.
     ExtractTweets {
         /// Path to a Zstandard-compressed GraphQL exchange NDJSON file or a directory of them.
-        #[clap(long)]
+        #[arg(long)]
         input: PathBuf,
         /// Output path for requested tweet IDs that were not found.
-        #[clap(long)]
+        #[arg(long)]
         remaining: PathBuf,
     },
 }
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Subcommand)]
 enum TweetsDbCommand {
     AddPairs,
     Lookup {
-        #[clap(long)]
+        #[arg(long)]
         last: bool,
     },
 }
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Subcommand)]
 enum WxjCommand {
     Validate {
-        #[clap(long)]
+        #[arg(long)]
         input: PathBuf,
-        #[clap(long)]
+        #[arg(long)]
         flat: bool,
     },
     Extract {
-        #[clap(long)]
+        #[arg(long)]
         input: PathBuf,
     },
 }

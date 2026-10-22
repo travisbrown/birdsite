@@ -29,17 +29,6 @@ allow = [
   "Zlib",
 ]
 
-# cli-helpers ships the Anti-Capitalist Software License 1.4 as a license file.
-# It has no SPDX identifier, so identify the existing license by its exact file hash.
-[[licenses.clarify]]
-crate = "cli-helpers@0.1.0"
-expression = "LicenseRef-ACSL-1.4"
-license-files = [{ path = "LICENSE", hash = 0x4c560e9f }]
-
-[[licenses.exceptions]]
-crate = "cli-helpers@0.1.0"
-allow = ["LicenseRef-ACSL-1.4"]
-
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"

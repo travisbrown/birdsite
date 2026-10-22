@@ -9,7 +9,6 @@ use birdsite_graphql::archive::Exchange;
 use birdsite_graphql::archive::parse::parse_exchange;
 use birdsite_graphql::request::filter::include_filter;
 use birdsite_graphql::request::name::RequestName;
-use cli_helpers::prelude::log;
 use serde_json::Value;
 
 #[derive(thiserror::Error, Debug)]

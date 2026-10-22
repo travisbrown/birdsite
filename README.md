@@ -7,6 +7,18 @@
 
 This project is a small Rust library for working with Twitter data.
 
+## Command-line tools
+
+`birdsite-cli` processes compact snapshot files; `birdsite-hacks` contains experimental commands.
+Run `cargo run -p birdsite-cli -- --help` or `cargo run -p birdsite-hacks -- --help` for usage.
+
+Both tools log warnings and errors by default. Use `-v` for informational diagnostics, `-vv` for
+debug output, `-vvv` for trace output, or `-q` / `--quiet` for errors only. These flags apply before
+or after subcommands. Quiet mode preserves command output, including JSON summaries and CSV rows.
+
+Successful commands exit with status 0. `birdsite-cli validate` exits with status 1 when its summary
+reports problems. Operational failures and invalid command-line arguments exit with status 2.
+
 ## Development
 
 Rust 1.98 or later is required. The committed lockfile fixes the dependency versions used in CI;

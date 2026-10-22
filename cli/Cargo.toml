@@ -13,11 +13,13 @@ publish = false
 workspace = true
 
 [dependencies]
+archivindex-cli-support = { workspace = true }
 archivindex-wbm-cdx-index = { workspace = true }
 archivindex-wbm-json = { workspace = true }
 archivindex-wbm-json-processing = { workspace = true }
 birdsite = { path = "../core" }
-cli-helpers = "0.1"
+clap = { workspace = true }
+log = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 # Must stay version-compatible with the `sha1` used by `archivindex-wbm-json`, since its hasher is
@@ -26,3 +28,6 @@ sha1 = "0.11"
 thiserror = { workspace = true }
 toml = "1"
 zstd = "0.14"
+
+[dev-dependencies]
+tempfile = { workspace = true }

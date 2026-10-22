@@ -13,7 +13,6 @@ use archivindex_wbm_json::context::Context;
 use archivindex_wbm_json::exact::ExactSnapshot;
 use archivindex_wbm_json_processing::io::read::{Error as ReadError, SnapshotReader};
 use birdsite::model::wxj;
-use cli_helpers::prelude::log;
 use sha1::Sha1;
 
 /// Validation error.

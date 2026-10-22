@@ -13,6 +13,7 @@ publish = false
 workspace = true
 
 [dependencies]
+archivindex-cli-support = { workspace = true }
 archivindex-wbm = { workspace = true }
 archivindex-wbm-json = { workspace = true }
 archivindex-wbm-json-processing = { workspace = true }
@@ -20,9 +21,10 @@ birdsite = { path = "../core/" }
 birdsite-graphql = { path = "../graphql/" }
 bounded-static = { workspace = true }
 chrono = { workspace = true }
-cli-helpers = "0.1"
+clap = { workspace = true }
 csv = "1"
 futures = "0.3"
+log = { workspace = true }
 rocksdb = { version = "0.25", features = ["zstd"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
