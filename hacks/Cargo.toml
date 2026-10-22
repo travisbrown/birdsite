@@ -27,8 +27,6 @@ rocksdb = { version = "0.25", features = ["zstd"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
-tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-tokio-stream = "0.1"
 zstd = "0.14"
 
 [dev-dependencies]
