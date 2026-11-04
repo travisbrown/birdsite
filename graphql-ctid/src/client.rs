@@ -1,3 +1,4 @@
+use std::collections::{HashSet, VecDeque};
 use std::sync::LazyLock;
 
 use base64::prelude::*;
@@ -10,10 +11,8 @@ use crate::{Endpoint, SiteInfo, TransactionId};
 
 const HOME_URL: &str = "https://x.com/";
 
-// Upper bound on the number of chunks we download while walking the `x-web` import chain from the
-// entry chunk to the sign module, possibly through a startup chunk, transaction ID plugin, or sentry
-// filter. This bounds downloads if the import chain contains a cycle.
-const MAX_MODULE_HOPS: usize = 4;
+// Bound downloads while searching builds whose chunk filenames no longer include source names.
+const MAX_MODULE_DOWNLOADS: usize = 32;
 const USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36";
 
 static SITE_VERIFICATION_CONTENT_SEL: LazyLock<Selector> = LazyLock::new(|| {
@@ -41,7 +40,7 @@ static ONDEMAND_NAME_V2_INDEX_RE: LazyLock<Regex> =
 //    either as the entry point and follow the import chain to the sign module. Since October 2026,
 //    `client-transaction-id-plugin` imports the sign module instead of `sentry-filter`. Prefer that
 //    plugin when both appear in the entry chunk. Later October builds import `sign.o` from
-//    `startup-dynamic` instead. These source names may change across builds.
+//    `startup-dynamic` instead. November builds retain the entry name but use anonymous imports.
 static TRANSACTION_ENTRY_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"https://abs\.twimg\.com/[\w./-]*?(?:entry-client-logged-out|startup-dynamic|client-transaction-id-plugin|sentry-filter)-[\w-]+\.js",
@@ -65,6 +64,18 @@ static TRANSACTION_PLUGIN_IMPORT_RE: LazyLock<Regex> = LazyLock::new(|| {
 
 static SENTRY_FILTER_IMPORT_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\.\.?/[\w./-]*?sentry-filter-[\w-]+\.js").expect("valid regex"));
+
+static MODULE_IMPORT_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"["'`](\.\.?/[\w./-]+\.js)["'`]"#).expect("valid regex"));
+
+// The transaction plugin initializes the signing module by calling its default export. Prefer
+// these imports over unrelated application modules when source names are absent.
+static MODULE_FACTORY_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r#"import\(\s*["'`](\.\.?/[\w./-]+\.js)["'`]\s*\)\.then\(\w+\s*=>\s*\w+\.default\(\)\)"#,
+    )
+    .expect("valid regex")
+});
 
 static ONDEMAND_INDICES_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\(\w\[(\d{1,2})\],\s*16\)").expect("valid regex"));
@@ -268,43 +279,51 @@ impl Client {
     ///
     /// For the `client-web` build the indices file URL is already known. For the `x-web` build we
     /// follow the entry chunk named on the home page through the import chain to the sign module
-    /// that holds them (see [`resolve_sign_module`](Self::resolve_sign_module)).
+    /// that holds them (see [`resolve_indices`](Self::resolve_indices)).
     async fn download_indices(&self, source: &IndexSource) -> Result<Vec<usize>, Error> {
-        let indices_url = match source {
-            IndexSource::Direct(url) => url.clone(),
-            IndexSource::ViaModule(entry_url) => self.resolve_sign_module(entry_url).await?,
-        };
-
-        let content = self.download_script(&indices_url).await?;
-
-        Ondemand { content }.indices()
+        match source {
+            IndexSource::Direct(url) => {
+                let content = self.download_script(url).await?;
+                Ondemand { content: &content }.indices()
+            }
+            IndexSource::ViaModule(entry_url) => self.resolve_indices(entry_url).await,
+        }
     }
 
     /// Follow the `x-web` module graph from the entry chunk named on the home page to the
-    /// `sign.o-<hash>.js` module that holds the key-byte indices.
+    /// module that holds the key-byte indices.
     ///
-    /// Depending on the build the entry chunk imports the sign module directly or through an
-    /// intermediate startup, transaction ID plugin, or `sentry-filter` chunk. Prefer the startup
-    /// chunk, then the plugin, since newer builds no longer import the sign module from
-    /// `sentry-filter`.
-    /// The hop count is bounded so an unexpected build shape fails with [`Error::MissingSignModule`]
-    /// rather than looping.
-    async fn resolve_sign_module(&self, entry_url: &str) -> Result<String, Error> {
-        let mut current_url = entry_url.to_string();
+    /// Prefer named signing chunks and default-export factories, then search other imports in
+    /// breadth-first order. November 2026 builds use anonymous chunk names, so identify the sign
+    /// module by its indices. Visit each URL once and bound downloads if no sign module is found.
+    async fn resolve_indices(&self, entry_url: &str) -> Result<Vec<usize>, Error> {
+        let mut pending = VecDeque::from([entry_url.to_string()]);
+        let mut visited = HashSet::new();
 
-        for _ in 0..MAX_MODULE_HOPS {
-            let content = self.download_script(&current_url).await?;
-
-            if let Some(url) = SIGN_MODULE_RE
-                .find(&content)
-                .and_then(|module_match| join_url(&current_url, module_match.as_str()))
-            {
-                return Ok(url);
+        while let Some(current_url) = pending.pop_front() {
+            if visited.len() == MAX_MODULE_DOWNLOADS {
+                break;
+            }
+            if !visited.insert(current_url.clone()) {
+                continue;
             }
 
-            match next_transaction_module_url(&current_url, &content) {
-                Some(next_url) => current_url = next_url,
-                None => return Err(Error::MissingSignModule),
+            let content = self.download_script(&current_url).await?;
+            if let Ok(indices) = (Ondemand { content: &content }).indices() {
+                return Ok(indices);
+            }
+
+            pending.extend(module_urls(&MODULE_IMPORT_RE, &current_url, &content));
+
+            let preferred = SIGN_MODULE_RE
+                .find(&content)
+                .and_then(|module_match| join_url(&current_url, module_match.as_str()))
+                .into_iter()
+                .chain(module_urls(&MODULE_FACTORY_RE, &current_url, &content))
+                .chain(next_transaction_module_url(&current_url, &content));
+
+            for url in preferred.rev() {
+                pending.push_front(url);
             }
         }
 
@@ -386,7 +405,7 @@ impl Home {
     }
 
     // `x-web`: the entry chunk that (directly or through intermediate chunks) imports the sign
-    // module holding the indices. We return its URL; the chain is walked in `resolve_sign_module`.
+    // module holding the indices. We return its URL; the chain is walked in `resolve_indices`.
     fn transaction_module_url(&self) -> Option<String> {
         TRANSACTION_ENTRY_RE
             .find(&self.body)
@@ -451,6 +470,13 @@ fn next_transaction_module_url(base_url: &str, content: &str) -> Option<String> 
         .and_then(|module_match| join_url(base_url, module_match.as_str()))
 }
 
+fn module_urls(pattern: &Regex, base_url: &str, content: &str) -> Vec<String> {
+    pattern
+        .captures_iter(content)
+        .filter_map(|capture| join_url(base_url, &capture[1]))
+        .collect()
+}
+
 /// Resolve a relative module specifier (as written in an `import(...)`) against the URL of the
 /// chunk that imports it, e.g. `./assets/sentry-filter-<hash>.js` relative to the entry chunk, or
 /// `./sign.o-<hash>.js` relative to the `sentry-filter` chunk. Handles `./`, `../`, and
@@ -480,14 +506,14 @@ fn join_url(base_url: &str, relative: &str) -> Option<String> {
     Some(resolved.trim_end_matches('/').to_string())
 }
 
-struct Ondemand {
-    content: String,
+struct Ondemand<'a> {
+    content: &'a str,
 }
 
-impl Ondemand {
+impl Ondemand<'_> {
     fn indices(&self) -> Result<Vec<usize>, Error> {
         let indices = ONDEMAND_INDICES_RE
-            .captures_iter(&self.content)
+            .captures_iter(self.content)
             .map(|capture| {
                 capture
                     .get(1)
@@ -507,6 +533,125 @@ impl Ondemand {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Serve only the chunks the resolver should download. An unexpected import fails the request;
+    // a missed import fails the server's deadline instead of leaving the test blocked on accept.
+    fn script_server(
+        scripts: Vec<(String, String)>,
+    ) -> (String, std::thread::JoinHandle<Vec<String>>) {
+        use std::io::{BufRead, BufReader, Write};
+        use std::time::{Duration, Instant};
+
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let base_url = format!("http://{}", listener.local_addr().unwrap());
+        listener.set_nonblocking(true).unwrap();
+        let server = std::thread::spawn(move || {
+            let deadline = Instant::now() + Duration::from_secs(10);
+            let mut requests = Vec::new();
+            while requests.len() < scripts.len() {
+                assert!(Instant::now() < deadline, "missing requests: {requests:?}");
+                match listener.accept() {
+                    Ok((mut stream, _)) => {
+                        stream.set_nonblocking(false).unwrap();
+                        stream
+                            .set_read_timeout(Some(Duration::from_secs(5)))
+                            .unwrap();
+                        let mut reader = BufReader::new(&stream);
+                        let mut request = String::new();
+                        reader.read_line(&mut request).unwrap();
+                        let path = request.split_whitespace().nth(1).unwrap().to_string();
+                        loop {
+                            let mut header = String::new();
+                            reader.read_line(&mut header).unwrap();
+                            if header == "\r\n" || header.is_empty() {
+                                break;
+                            }
+                        }
+                        let content = &scripts.iter().find(|(name, _)| *name == path).unwrap().1;
+                        write!(
+                            stream,
+                            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                            content.len(),
+                            content,
+                        )
+                        .unwrap();
+                        requests.push(path);
+                    }
+                    Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                        std::thread::sleep(Duration::from_millis(1));
+                    }
+                    Err(error) => panic!("accept failed: {error}"),
+                }
+            }
+            requests
+        });
+        (base_url, server)
+    }
+
+    #[tokio::test]
+    async fn anonymous_modules_lead_to_indices() {
+        let (base, server) = script_server(
+            [
+                ("/entry.js", r#"import{a}from"./assets/vendor.js";import{b}from"./assets/plugin.js";"#),
+                ("/assets/vendor.js", r#"import{a}from"../entry.js";"#),
+                ("/assets/plugin.js", r#"import{a}from"./unrelated.js";s??=n(()=>import(`./DMFaz2DT.js`).then(e=>e.default()),[])"#),
+                ("/assets/DMFaz2DT.js", "[M(t[2],16),M(t[15],16),M(t[17],16),M(t[14],16)]"),
+            ]
+            .map(|(path, content)| (path.to_string(), content.to_string()))
+            .to_vec(),
+        );
+
+        let indices = Client::default()
+            .resolve_indices(&format!("{base}/entry.js"))
+            .await;
+        let requests = server.join().unwrap();
+        assert_eq!(indices.unwrap(), vec![2, 15, 17, 14]);
+        assert_eq!(
+            requests,
+            [
+                "/entry.js",
+                "/assets/vendor.js",
+                "/assets/plugin.js",
+                "/assets/DMFaz2DT.js"
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn module_cycle_without_indices_terminates() {
+        let (base, server) = script_server(
+            [
+                ("/entry.js", r#"import"./other.js";"#),
+                ("/other.js", r#"import"./entry.js";"#),
+            ]
+            .map(|(path, content)| (path.to_string(), content.to_string()))
+            .to_vec(),
+        );
+        let result = Client::default()
+            .resolve_indices(&format!("{base}/entry.js"))
+            .await;
+        assert_eq!(server.join().unwrap().len(), 2);
+        assert!(matches!(result, Err(Error::MissingSignModule)));
+    }
+
+    #[tokio::test]
+    async fn module_downloads_are_bounded() {
+        let (base, server) = script_server(
+            (0..MAX_MODULE_DOWNLOADS)
+                .map(|index| {
+                    (
+                        format!("/{index}.js"),
+                        format!("import './{}.js';", index + 1),
+                    )
+                })
+                .collect(),
+        );
+        let result = Client::default()
+            .resolve_indices(&format!("{base}/0.js"))
+            .await;
+        assert_eq!(server.join().unwrap().len(), MAX_MODULE_DOWNLOADS);
+        assert!(matches!(result, Err(Error::MissingSignModule)));
+    }
 
     // Compile-time regression check: `scraper::Html` is not `Sync`, so holding it across an await
     // would make every `generate` future `!Send` and unusable with `tokio::spawn` on a
@@ -714,11 +859,7 @@ mod tests {
     fn indices_parsed_in_document_order() {
         let content = "var x=[M(t[21],16),N(M(t[14],16),M(t[45],16)),P(t[19],16)];";
 
-        let indices = Ondemand {
-            content: content.to_string(),
-        }
-        .indices()
-        .unwrap();
+        let indices = Ondemand { content }.indices().unwrap();
 
         assert_eq!(indices, vec![21, 14, 45, 19]);
     }
