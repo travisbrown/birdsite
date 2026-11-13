@@ -512,9 +512,9 @@ fn polls_accept_options_without_metadata() {
     }
 }
 
-/// Missing authors are valid snapshot data, but cannot supply required user metadata.
+/// Missing authors leave user metadata absent without discarding either tweet.
 #[test]
-fn missing_authors_are_explicit_in_accessors_and_metadata_errors() {
+fn missing_authors_are_explicit_in_accessors_and_metadata() {
     for pointer in ["/data", "/includes/tweets/0"] {
         let mut input = snapshot_with_new_fields();
         input
@@ -526,10 +526,18 @@ fn missing_authors_are_explicit_in_accessors_and_metadata_errors() {
         input["data"]["referenced_tweets"] = json!([{"type": "retweeted", "id": "2"}]);
         let text = input.to_string();
         let snapshot = serde_json::from_str::<TweetSnapshot<'_>>(&text).unwrap();
-        assert!(matches!(
-            crate::model::wxj::metadata::tweet::TweetMetadata::from_data_tweet_snapshot(&snapshot),
-            Err(super::FormatError::MissingAuthor(2))
-        ));
+        let tweets =
+            crate::model::wxj::metadata::tweet::TweetMetadata::from_data_tweet_snapshot(&snapshot)
+                .unwrap();
+        assert_eq!(tweets.len(), 2);
+        assert_eq!(
+            tweets[0].user.map(|user| user.id),
+            (pointer != "/data").then_some(1)
+        );
+        assert_eq!(
+            tweets[1].user.map(|user| user.id),
+            (pointer == "/data").then_some(1)
+        );
         let snapshot = crate::model::wxj::TweetSnapshot::Data(snapshot);
         if pointer == "/data" {
             assert_eq!(snapshot.user_id(), None);

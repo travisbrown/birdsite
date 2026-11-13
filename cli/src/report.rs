@@ -1,7 +1,8 @@
 //! CSV reports over compact snapshot files.
 //!
 //! `tweet_ids` prints a `user_id,tweet_id` row for every tweet carried in each snapshot's content
-//! (including any retweeted, replied-to, or quoted tweets the snapshot carries);
+//! (including any retweeted, replied-to, or quoted tweets the snapshot carries), leaving `user_id`
+//! empty when the author is unknown.
 //! `user_observations` prints a row per observed user with the capture timestamps (Unix epoch
 //! seconds) at which the user was seen.
 
@@ -101,7 +102,10 @@ where
             .map_err(|error| Error::Format { line_number, error })?;
 
         for tweet in tweets {
-            writeln!(writer, "{},{}", tweet.user.id, tweet.id)?;
+            if let Some(user) = tweet.user {
+                write!(writer, "{}", user.id)?;
+            }
+            writeln!(writer, ",{}", tweet.id)?;
             summary.written_count += 1;
         }
     }
@@ -187,6 +191,7 @@ where
 
 /// Write a `user_id,tweet_id` CSV row to `writer` for every tweet carried in the content of a
 /// zstd-compressed compact snapshot file, in input order.
+/// The `user_id` field is empty when the snapshot does not identify the author.
 ///
 /// # Arguments
 ///
@@ -283,6 +288,75 @@ mod tests {
             String::from_utf8(output).expect("UTF-8 output"),
             "627778780,2056732294355026173\n2903110717,2056695384135581993\n"
         );
+    }
+
+    /// Missing authors on either tweet must preserve both rows and allow subsequent snapshots.
+    #[test]
+    fn write_tweet_ids_preserves_tweets_without_authors() {
+        let context = Context::default();
+        let tweet = serde_json::json!({
+            "id": "1",
+            "author_id": "10",
+            "conversation_id": "1",
+            "created_at": "2026-08-22T17:04:16Z",
+            "lang": "en",
+            "possibly_sensitive": false,
+            "public_metrics": {
+                "retweet_count": 0, "reply_count": 0, "like_count": 0, "quote_count": 0
+            },
+            "reply_settings": "everyone",
+            "text": "Example"
+        });
+
+        for reference_type in ["retweeted", "replied_to", "quoted"] {
+            for (missing_main, missing_reference, expected) in [
+                (true, false, ",1\n20,2\n"),
+                (false, true, "10,1\n,2\n"),
+                (true, true, ",1\n,2\n"),
+            ] {
+                let mut input = serde_json::json!({
+                    "data": tweet,
+                    "includes": {"tweets": [tweet], "users": []}
+                });
+                input["data"]["referenced_tweets"] =
+                    serde_json::json!([{"type": reference_type, "id": "2"}]);
+                input["includes"]["tweets"][0]["id"] = serde_json::json!("2");
+                input["includes"]["tweets"][0]["author_id"] = serde_json::json!("20");
+                for (pointer, missing) in [
+                    ("/data", missing_main),
+                    ("/includes/tweets/0", missing_reference),
+                ] {
+                    if missing {
+                        input
+                            .pointer_mut(pointer)
+                            .unwrap()
+                            .as_object_mut()
+                            .unwrap()
+                            .remove("author_id");
+                    }
+                }
+                let bytes = serde_json::to_vec(&input).unwrap();
+                let mut output = Vec::new();
+                let summary = write_tweet_ids(
+                    [
+                        Ok(example_snapshot(&bytes, &context)),
+                        Ok(example_snapshot(&bytes, &context)),
+                    ],
+                    false,
+                    &mut output,
+                )
+                .expect("missing authors do not prevent ID extraction");
+
+                assert_eq!(
+                    summary,
+                    Summary {
+                        read_count: 2,
+                        written_count: 4
+                    }
+                );
+                assert_eq!(String::from_utf8(output).unwrap(), expected.repeat(2));
+            }
+        }
     }
 
     #[test]

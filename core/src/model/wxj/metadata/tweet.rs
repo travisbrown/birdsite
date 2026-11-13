@@ -18,7 +18,8 @@ impl UserMetadata {
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct TweetMetadata {
     pub id: u64,
-    pub user: UserMetadata,
+    /// Author metadata, when the snapshot identifies the author.
+    pub user: Option<UserMetadata>,
     pub created_at: DateTime<Utc>,
     pub retweeted_id: Option<u64>,
     pub replied_to_id: Option<u64>,
@@ -29,7 +30,7 @@ impl TweetMetadata {
     #[must_use]
     pub const fn new(
         id: u64,
-        user: UserMetadata,
+        user: Option<UserMetadata>,
         created_at: DateTime<Utc>,
         retweeted_id: Option<u64>,
         replied_to_id: Option<u64>,
@@ -108,7 +109,7 @@ impl TweetMetadata {
 
         results.push(Self::new(
             snapshot.id,
-            user,
+            Some(user),
             snapshot.created_at,
             snapshot.retweeted_status.as_ref().map(|status| status.id),
             snapshot.in_reply_to_status_id,
@@ -120,13 +121,12 @@ impl TweetMetadata {
         snapshot: &data::TweetSnapshot<'_>,
         data: &data::Tweet<'_>,
     ) -> Result<Self, data::FormatError> {
-        let author_id = data
-            .author_id
-            .ok_or(data::FormatError::MissingAuthor(data.id))?;
-        let user = UserMetadata::new(
-            author_id,
-            snapshot.lookup_user(author_id).map(|user| user.created_at),
-        );
+        let user = data.author_id.map(|author_id| {
+            UserMetadata::new(
+                author_id,
+                snapshot.lookup_user(author_id).map(|user| user.created_at),
+            )
+        });
 
         Ok(Self::new(
             data.id,

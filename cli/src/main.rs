@@ -287,7 +287,7 @@ enum Command {
     },
     /// Print a `user_id,tweet_id` CSV row to standard output for every tweet carried in a compact
     /// snapshot file's content (including any retweeted, replied-to, or quoted tweets a snapshot
-    /// carries).
+    /// carries). The `user_id` field is empty when the author is unknown.
     TweetIds {
         /// Path to a zstd-compressed compact snapshot file.
         #[arg(long)]

@@ -27,8 +27,6 @@ pub enum FormatError {
     MissingReferencedTweet(u64),
     #[error("Missing user: {0}")]
     MissingUser(u64),
-    #[error("Missing author for tweet: {0}")]
-    MissingAuthor(u64),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
