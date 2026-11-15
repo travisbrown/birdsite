@@ -142,7 +142,7 @@ dependencies = [
 [[package]]
 name = "archivindex-cdx"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#b493951db0390c24d6748e114ed7c86147bd6cd7"
+source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
 dependencies = [
  "archivindex-serde",
  "bounded-static",
@@ -155,7 +155,7 @@ dependencies = [
 [[package]]
 name = "archivindex-cli-support"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#b493951db0390c24d6748e114ed7c86147bd6cd7"
+source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
 dependencies = [
  "clap",
  "ctrlc",
@@ -171,7 +171,7 @@ dependencies = [
 [[package]]
 name = "archivindex-digest"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#b493951db0390c24d6748e114ed7c86147bd6cd7"
+source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
 dependencies = [
  "data-encoding",
  "thiserror",
@@ -180,7 +180,7 @@ dependencies = [
 [[package]]
 name = "archivindex-lines"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#b493951db0390c24d6748e114ed7c86147bd6cd7"
+source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
 dependencies = [
  "thiserror",
 ]
@@ -188,7 +188,7 @@ dependencies = [
 [[package]]
 name = "archivindex-publication"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#b493951db0390c24d6748e114ed7c86147bd6cd7"
+source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
 dependencies = [
  "tempfile",
  "thiserror",
@@ -197,7 +197,7 @@ dependencies = [
 [[package]]
 name = "archivindex-serde"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#b493951db0390c24d6748e114ed7c86147bd6cd7"
+source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
 dependencies = [
  "serde",
 ]
@@ -205,7 +205,7 @@ dependencies = [
 [[package]]
 name = "archivindex-surt"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#b493951db0390c24d6748e114ed7c86147bd6cd7"
+source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
 dependencies = [
  "bounded-static",
  "thiserror",
@@ -214,7 +214,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#2456467ac0b9782071bedd41acba53757bef43ea"
+source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
 dependencies = [
  "archivindex-cdx",
  "archivindex-digest",
@@ -235,7 +235,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-cas"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#2456467ac0b9782071bedd41acba53757bef43ea"
+source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
 dependencies = [
  "archivindex-publication",
  "archivindex-wbm",
@@ -249,7 +249,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-cdx-index"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#2456467ac0b9782071bedd41acba53757bef43ea"
+source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
 dependencies = [
  "archivindex-wbm",
  "chrono",
@@ -260,7 +260,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-downloader"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#2456467ac0b9782071bedd41acba53757bef43ea"
+source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
 dependencies = [
  "archivindex-publication",
  "archivindex-wbm",
@@ -280,7 +280,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-invalid-log"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#2456467ac0b9782071bedd41acba53757bef43ea"
+source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
 dependencies = [
  "archivindex-wbm",
  "bounded-static",
@@ -292,7 +292,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-json"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#2456467ac0b9782071bedd41acba53757bef43ea"
+source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
 dependencies = [
  "archivindex-lines",
  "archivindex-serde",
@@ -308,7 +308,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-json-processing"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#2456467ac0b9782071bedd41acba53757bef43ea"
+source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
 dependencies = [
  "archivindex-lines",
  "archivindex-publication",
@@ -333,7 +333,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-test-data"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#2456467ac0b9782071bedd41acba53757bef43ea"
+source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
 dependencies = [
  "archivindex-wbm",
  "archivindex-wbm-cas",
@@ -564,9 +564,9 @@ dependencies = [
 
 [[package]]
 name = "bit-vec"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5727b15fa97d4f4fee0a3b7c3d550ed0269f54329207b86388de918604e31269"
+checksum = "72503af1e72be411d74ca45cd6b309878fcb35354e252fc2a3a8bda3a97082a0"
 dependencies = [
  "borsh",
  "serde",
@@ -655,9 +655,9 @@ dependencies = [
 
 [[package]]
 name = "bumpalo"
-version = "3.20.3"
+version = "3.20.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649"
+checksum = "87a0cf66fd1eb2fb7b822cb78370d82303750809bc6ba855f3f58e517d3238db"
 
 [[package]]
 name = "bytemuck"
@@ -689,9 +689,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.11.1"
+version = "1.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ff2a8126fff0f8c839080d619675a585e61720bb12d2baceae45769fd66f155"
+checksum = "33ef9e3e8154a45c7a95cff4c1299702106ad94062d7bb85fdc5d3a5afd91d45"
 dependencies = [
  "find-msvc-tools",
  "jobserver",
@@ -701,9 +701,9 @@ dependencies = [
 
 [[package]]
 name = "cel"
-version = "0.15.0"
+version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "044e21070125024b84c8058036de182400bd99212cab3faa4f19566f7733b6dc"
+checksum = "058e87eba1938be49be5785de8d2eff3004a70f8e8f9158b52b1177c93d6c869"
 dependencies = [
  "antlr4rust",
  "base64 0.22.1",
@@ -880,9 +880,9 @@ dependencies = [
 
 [[package]]
 name = "const-oid"
-version = "0.10.2"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6ef517f0926dd24a1582492c791b6a4818a4d94e789a334894aa15b0d12f55c"
+checksum = "be95d4a884358a21a199689323c29e9256b4a1b315e22f183d155422041d3a9a"
 
 [[package]]
 name = "convert_case"
@@ -942,9 +942,9 @@ dependencies = [
 
 [[package]]
 name = "crc32fast"
-version = "1.5.4"
+version = "1.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f97d3416d5337d15c4b0d78c8c91df922ca143f57ec20e2d1c188333047ef04"
+checksum = "2b929dd2a135771f40afabd1073f85eed59c800b7c61901e5c254270497dad64"
 dependencies = [
  "cfg-if",
 ]
@@ -1209,9 +1209,9 @@ checksum = "00d174d5400e5e8fd687ad1049e2f578285fa914201b1af7e8b112a4546bd826"
 
 [[package]]
 name = "errno"
-version = "0.3.14"
+version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
+checksum = "e35d6e78f4cebb90e51d543db8fe41528851d6deeef6ef21ebd4bfdc1e784776"
 dependencies = [
  "libc",
  "windows-sys 0.61.2",
@@ -1891,9 +1891,9 @@ dependencies = [
 
 [[package]]
 name = "libsqlite3-sys"
-version = "0.39.1"
+version = "0.40.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14a5f01b87b92705d07b433c06f96cbc764637d81a0bffb5734ce17cf0f9a2b3"
+checksum = "b06e69070b7e12262b0cd90832f0a7396f142a2b330181255562decf9f0c6215"
 dependencies = [
  "cc",
  "pkg-config",
@@ -1902,9 +1902,9 @@ dependencies = [
 
 [[package]]
 name = "libz-sys"
-version = "1.1.32"
+version = "1.1.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69965d2409bff8c8cea3829009fff66a86f05a0570656552ef70f616e8e4bd85"
+checksum = "fee3f59f4321dab0c78d828942e7aa09d0bd8ad6e78a501977e6bf3d02938045"
 dependencies = [
  "cc",
  "pkg-config",
@@ -1995,9 +1995,9 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "1.2.4"
+version = "1.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1788edb87fdc09c7e26304471e2f5be8cdefb1b6930d6e3985fc02ff53bf86ee"
+checksum = "20521a903f02b0a573cd6840e9d0a5a0cc043d361fe924092cd70f8556cc9c4a"
 dependencies = [
  "libc",
  "wasi",
@@ -2486,9 +2486,9 @@ dependencies = [
 
 [[package]]
 name = "redb"
-version = "4.5.0"
+version = "4.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b317ef681e18f6091efbfab532eaf924a135c492d9d0299d0fbfae07e92a39b"
+checksum = "096b1dd5ec053c9c2a5a26a93aafeadf73ebcb710ea54dc3151f17a8e20535ef"
 dependencies = [
  "libc",
 ]
@@ -2606,9 +2606,9 @@ dependencies = [
 
 [[package]]
 name = "rusqlite"
-version = "0.41.1"
+version = "0.42.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da9bba6f3506135e120a6586df05be18b48d18896600646a4bec8f993d91a594"
+checksum = "a4edff0039f148731aee2fd80f76dbfeb12d204ab3d1c544838d34e02151049b"
 dependencies = [
  "bitflags",
  "fallible-iterator",
@@ -2681,9 +2681,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-pki-types"
-version = "1.15.1"
+version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f4925028c7eb5d1fcdaf196971378ed9d2c1c4efc7dc5d011256f76c99c0a96"
+checksum = "102f35f7de7b06d8c61f1cff6592f5253e0dea431c74867aad5dfd70f44663fb"
 dependencies = [
  "web-time",
  "zeroize",
@@ -2718,9 +2718,9 @@ checksum = "eec689c0bc40ff2458a5977b6619cb718087084a18e02a131c599b62d05e1a5f"
 
 [[package]]
 name = "rustls-webpki"
-version = "0.103.16"
+version = "0.103.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4443b1b6d39d7c663139942cc4558262562d2c84123bb6282ef177009ca8b281"
+checksum = "e3a0760a887c14823fca5a1c970b01d47c328c696c0c64829d1df50e8f853fd5"
 dependencies = [
  "aws-lc-rs",
  "ring",
@@ -3009,9 +3009,9 @@ dependencies = [
 
 [[package]]
 name = "sqlite-wasm-rs"
-version = "0.6.2"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36bd8e29bf08189a005b2df1df99823aa0861cabe9044e5f31ed54ca292ee618"
+checksum = "a6cd504cecbfe7eef649988840f9a6cb768d11085efec138f8e99f160632d867"
 dependencies = [
  "cc",
  "rsqlite-vfs",
@@ -3651,9 +3651,9 @@ dependencies = [
 
 [[package]]
 name = "webpki-root-certs"
-version = "1.0.11"
+version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e49d0e65abc00c142e8f9428da991da9f1a250c39be97459901eb12b9b49f62a"
+checksum = "293198dcebfb821155b5092ab94b5a82ff180eddd7241df3bd6e66a4ffd1a585"
 dependencies = [
  "rustls-pki-types",
 ]
@@ -3951,27 +3951,27 @@ checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
 
 [[package]]
 name = "zstd"
-version = "0.14.3"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db3ae9bf90af6e40197bef767eeefc46ad6397420fe873830bd85e5fbbfb3c70"
+checksum = "ad5020ab8f27bfc0024ad0a07aed6bf022a16208f479686fbed4fdd0c85eb0b3"
 dependencies = [
  "zstd-safe",
 ]
 
 [[package]]
 name = "zstd-safe"
-version = "8.2.0"
+version = "8.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ded520f16b29e1a9b771c722221b2b0a0398c2316d9bb3c42b458a5414d7434b"
+checksum = "5a9ea9cc2576c2fcc104e9cec04f46e3ede564f4fbc206831e4ef7e859a4140d"
 dependencies = [
  "zstd-sys",
 ]
 
 [[package]]
 name = "zstd-sys"
-version = "2.1.2+zstd.1.5.7"
+version = "2.1.3+zstd.1.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "481ada9c543b2323cbb7bbdbb5249177fbf0188ed959ed2c15e4b22421c84ed3"
+checksum = "f729a06d0257428fd9d997ac8db7e1407bd0262ab016b085b36bc52957c0052d"
 dependencies = [
  "cc",
  "pkg-config",

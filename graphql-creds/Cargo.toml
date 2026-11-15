@@ -24,7 +24,7 @@ workspace = true
 [dependencies]
 birdsite-graphql-ctid = { path = "../graphql-ctid/", version = "0.1.0" }
 chrono = { workspace = true }
-rusqlite = "0.41"
+rusqlite = "0.42"
 thiserror = { workspace = true }
 
 [dev-dependencies]
