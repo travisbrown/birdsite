@@ -725,3 +725,33 @@ fn withholding_rejects_malformed_values() {
         assert!(serde_json::from_str::<super::Withheld>(&withheld.to_string()).is_err());
     }
 }
+
+/// URL offsets can be negative in archived tweets (for example, 1861147781177438426).
+#[test]
+fn url_entities_preserve_negative_start_offsets() {
+    for start in [-5, 0, 43] {
+        let mut input: Value = serde_json::from_str(SNAPSHOT).unwrap();
+        input["data"]["entities"] = json!({
+            "urls": [{"start": start, "end": 66, "url": "https://t.co/example"}]
+        });
+        input["includes"]["tweets"] = json!([input["data"]]);
+        let text = input.to_string();
+        let snapshot = serde_json::from_str::<TweetSnapshot<'_>>(&text).unwrap();
+        assert_eq!(snapshot.includes.tweets.as_ref().unwrap()[0], snapshot.data);
+
+        let serialized = serde_json::to_string(&snapshot).unwrap();
+        assert_eq!(
+            snapshot,
+            serde_json::from_str::<TweetSnapshot<'_>>(&serialized).unwrap()
+        );
+        let emitted: Value = serde_json::from_str(&serialized).unwrap();
+        for pointer in [
+            "/data/entities/urls/0",
+            "/includes/tweets/0/entities/urls/0",
+        ] {
+            let url = emitted.pointer(pointer).unwrap();
+            assert_eq!(url["start"], start);
+            assert_eq!(url["end"], 66);
+        }
+    }
+}

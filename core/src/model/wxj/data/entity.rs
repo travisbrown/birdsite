@@ -146,7 +146,8 @@ pub struct TweetMention<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Url<'a> {
-    pub start: usize,
+    // Negative offsets occur in archived tweets (for example, 1861147781177438426).
+    pub start: isize,
     pub end: usize,
     #[serde(default, with = "borrowable_str::option")]
     pub title: Option<Cow<'a, str>>,
