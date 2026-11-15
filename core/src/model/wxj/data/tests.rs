@@ -680,3 +680,48 @@ fn derived_users_accept_optional_affiliation() {
         assert!(serde_json::from_str::<super::UserEntry<'_>>(&input.to_string()).is_err());
     }
 }
+
+/// Restricted profiles can have a withholding scope without a list of countries.
+#[test]
+fn withholding_accepts_scope_without_country_codes() {
+    for withheld in [
+        json!({"scope": "user"}),
+        json!({"scope": "user", "country_codes": []}),
+        json!({"scope": "user", "country_codes": ["DE"]}),
+        json!({"country_codes": ["DE"], "copyright": true}),
+        json!({"scope": "status", "country_codes": ["DE"]}),
+    ] {
+        let mut input = snapshot_with_new_fields();
+        input["includes"]["users"][0]["withheld"] = withheld.clone();
+        let text = input.to_string();
+        let snapshot = serde_json::from_str::<TweetSnapshot<'_>>(&text).unwrap();
+        assert!(snapshot.lookup_user(1).unwrap().withheld.is_some());
+
+        let serialized = serde_json::to_string(&snapshot).unwrap();
+        assert_eq!(
+            snapshot,
+            serde_json::from_str::<TweetSnapshot<'_>>(&serialized).unwrap()
+        );
+        let emitted: Value = serde_json::from_str(&serialized).unwrap();
+        for field in ["scope", "country_codes", "copyright"] {
+            assert_eq!(
+                emitted["includes"]["users"][0]["withheld"][field],
+                withheld[field]
+            );
+        }
+    }
+}
+
+#[test]
+fn withholding_rejects_malformed_values() {
+    for withheld in [
+        json!({"scope": "unknown"}),
+        json!({"scope": 1}),
+        json!({"country_codes": "DE"}),
+        json!({"country_codes": [1]}),
+        json!({"copyright": "true"}),
+        json!({"unknown": true}),
+    ] {
+        assert!(serde_json::from_str::<super::Withheld>(&withheld.to_string()).is_err());
+    }
+}

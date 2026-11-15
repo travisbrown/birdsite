@@ -11,6 +11,7 @@ use crate::model::country::Country;
 use crate::model::lang::Lang;
 use crate::model::metrics::{TweetPublicMetrics, UserPublicMetrics};
 use crate::model::place::TypedCoordinates;
+use crate::model::properties::WithheldScope;
 use crate::model::source::SourceName;
 
 pub mod context;
@@ -442,7 +443,8 @@ pub struct Location<'a> {
 #[serde(deny_unknown_fields)]
 pub struct Withheld {
     pub copyright: Option<bool>,
-    pub country_codes: Vec<Country>,
+    pub country_codes: Option<Vec<Country>>,
+    pub scope: Option<WithheldScope>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
