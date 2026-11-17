@@ -142,7 +142,7 @@ dependencies = [
 [[package]]
 name = "archivindex-cdx"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
+source = "git+https://github.com/travisbrown/archivindex.git#ca55e79248a94d68059c82f35530a0ca77c0411a"
 dependencies = [
  "archivindex-serde",
  "bounded-static",
@@ -155,7 +155,7 @@ dependencies = [
 [[package]]
 name = "archivindex-cli-support"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
+source = "git+https://github.com/travisbrown/archivindex.git#ca55e79248a94d68059c82f35530a0ca77c0411a"
 dependencies = [
  "clap",
  "ctrlc",
@@ -171,7 +171,7 @@ dependencies = [
 [[package]]
 name = "archivindex-digest"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
+source = "git+https://github.com/travisbrown/archivindex.git#ca55e79248a94d68059c82f35530a0ca77c0411a"
 dependencies = [
  "data-encoding",
  "thiserror",
@@ -180,7 +180,7 @@ dependencies = [
 [[package]]
 name = "archivindex-lines"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
+source = "git+https://github.com/travisbrown/archivindex.git#ca55e79248a94d68059c82f35530a0ca77c0411a"
 dependencies = [
  "thiserror",
 ]
@@ -188,7 +188,7 @@ dependencies = [
 [[package]]
 name = "archivindex-publication"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
+source = "git+https://github.com/travisbrown/archivindex.git#ca55e79248a94d68059c82f35530a0ca77c0411a"
 dependencies = [
  "tempfile",
  "thiserror",
@@ -197,7 +197,7 @@ dependencies = [
 [[package]]
 name = "archivindex-serde"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
+source = "git+https://github.com/travisbrown/archivindex.git#ca55e79248a94d68059c82f35530a0ca77c0411a"
 dependencies = [
  "serde",
 ]
@@ -205,7 +205,7 @@ dependencies = [
 [[package]]
 name = "archivindex-surt"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex.git#46173eb8e06f8dc10d29e5e74e84ff235989be87"
+source = "git+https://github.com/travisbrown/archivindex.git#ca55e79248a94d68059c82f35530a0ca77c0411a"
 dependencies = [
  "bounded-static",
  "thiserror",
@@ -214,7 +214,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
+source = "git+https://github.com/travisbrown/archivindex-wbm#cb0be68e9421abc09308e6b1e8ccf4d790c4037a"
 dependencies = [
  "archivindex-cdx",
  "archivindex-digest",
@@ -235,7 +235,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-cas"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
+source = "git+https://github.com/travisbrown/archivindex-wbm#cb0be68e9421abc09308e6b1e8ccf4d790c4037a"
 dependencies = [
  "archivindex-publication",
  "archivindex-wbm",
@@ -249,7 +249,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-cdx-index"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
+source = "git+https://github.com/travisbrown/archivindex-wbm#cb0be68e9421abc09308e6b1e8ccf4d790c4037a"
 dependencies = [
  "archivindex-wbm",
  "chrono",
@@ -260,7 +260,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-downloader"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
+source = "git+https://github.com/travisbrown/archivindex-wbm#cb0be68e9421abc09308e6b1e8ccf4d790c4037a"
 dependencies = [
  "archivindex-publication",
  "archivindex-wbm",
@@ -280,7 +280,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-invalid-log"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
+source = "git+https://github.com/travisbrown/archivindex-wbm#cb0be68e9421abc09308e6b1e8ccf4d790c4037a"
 dependencies = [
  "archivindex-wbm",
  "bounded-static",
@@ -292,7 +292,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-json"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
+source = "git+https://github.com/travisbrown/archivindex-wbm#cb0be68e9421abc09308e6b1e8ccf4d790c4037a"
 dependencies = [
  "archivindex-lines",
  "archivindex-serde",
@@ -308,7 +308,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-json-processing"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
+source = "git+https://github.com/travisbrown/archivindex-wbm#cb0be68e9421abc09308e6b1e8ccf4d790c4037a"
 dependencies = [
  "archivindex-lines",
  "archivindex-publication",
@@ -333,7 +333,7 @@ dependencies = [
 [[package]]
 name = "archivindex-wbm-test-data"
 version = "0.1.0"
-source = "git+https://github.com/travisbrown/archivindex-wbm#0adfa64fa3d610cba4495489a8b33dbebb7b54d7"
+source = "git+https://github.com/travisbrown/archivindex-wbm#cb0be68e9421abc09308e6b1e8ccf4d790c4037a"
 dependencies = [
  "archivindex-wbm",
  "archivindex-wbm-cas",
@@ -797,9 +797,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.6.7"
+version = "4.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa8876b300ab35ba921adea3dfd70157a46249b33f95c9084ae5709785478946"
+checksum = "ac230478587d0269d8d6998b82ae69ea51509d55df66d9e92edd1f986904cd4a"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -819,9 +819,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.6.7"
+version = "4.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9c751b79415d4e559e3d1fcf128e09e720eb673a06d26cf6f392d37d75b66e0"
+checksum = "895c9d8d2ac2dd8b8a29f3724a14e72aaaa6debcf8c38c82f97305c6a172767a"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -831,9 +831,9 @@ dependencies = [
 
 [[package]]
 name = "clap_lex"
-version = "1.1.1"
+version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
+checksum = "e0921b3876b3a1df8a1c9f912e7f94342458022c2e84288015893d83c4d62a79"
 
 [[package]]
 name = "cmake"
@@ -2027,9 +2027,9 @@ checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
 
 [[package]]
 name = "nix"
-version = "0.31.3"
+version = "0.31.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf20d2fde8ff38632c426f1165ed7436270b44f199fc55284c38276f9db47c3d"
+checksum = "2bc81ce8148d3b4f3274da811f11cdd824ae661ee4ef732cdb229825cf5be7f7"
 dependencies = [
  "bitflags",
  "cfg-if",
@@ -2431,9 +2431,9 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "rand"
-version = "0.10.3"
+version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65c9fb96cbc91e3478eaae79a69fcd3f1ae4ad052e471fe6732fff548984b4af"
+checksum = "8f6fa277c67e6ea590466f04c3fe82cb509f0864fe470643e5570de9514a9b11"
 dependencies = [
  "chacha20",
  "getrandom 0.4.3",
@@ -2606,9 +2606,9 @@ dependencies = [
 
 [[package]]
 name = "rusqlite"
-version = "0.42.0"
+version = "0.43.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4edff0039f148731aee2fd80f76dbfeb12d204ab3d1c544838d34e02151049b"
+checksum = "f172c4812a19b26d1c23cdb0070e69db335503dfa378b910eb857386e5b8beba"
 dependencies = [
  "bitflags",
  "fallible-iterator",
@@ -3508,9 +3508,9 @@ checksum = "3a3b425286980a367278453f3b6d28cdcb134b574e5a35824a6ff5eebad50bb6"
 
 [[package]]
 name = "uuid"
-version = "1.29.2"
+version = "1.29.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bed99139f7dac9b5cfe5f17be4d66dc7079a34dee1d74bcc77217119240e267c"
+checksum = "3c14b15dffa2f4bd712103e857140aa04a4f2ff6e955c77d7eb8e53ee02a3b64"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
