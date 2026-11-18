@@ -46,7 +46,7 @@ fn run() -> Result<CommandOutcome, Error> {
                 |_bytes| None,
             )?;
 
-            log::info!(
+            tracing::info!(
                 "Packed: {} written ({} with an expected digest), {} skipped",
                 summary.written_count,
                 summary.expected_digest_count,
@@ -75,7 +75,7 @@ fn run() -> Result<CommandOutcome, Error> {
                 |digests| metadata.multi_get(digests),
             )?;
 
-            log::info!(
+            tracing::info!(
                 "Enhanced: {} read, {} enhanced, {} already enhanced, {} unmatched",
                 summary.read_count,
                 summary.enhanced_count,
@@ -98,7 +98,7 @@ fn run() -> Result<CommandOutcome, Error> {
         } => {
             let summary = extract::extract(&input, user_id, &output, level)?;
 
-            log::info!(
+            tracing::info!(
                 "Extracted: {} of {} lines mentioning user {user_id}",
                 summary.matched_count,
                 summary.read_count
@@ -129,7 +129,7 @@ fn run() -> Result<CommandOutcome, Error> {
 }
 
 fn report_validation(summary: &validate::ValidationSummary) -> CommandOutcome {
-    log::info!(
+    tracing::info!(
         "Validated {} lines: {} valid, {} missing metadata, {} invalid metadata, \
          {} schema errors, {} digest errors, {} order errors",
         summary.line_count,
@@ -142,7 +142,7 @@ fn report_validation(summary: &validate::ValidationSummary) -> CommandOutcome {
     );
 
     if !summary.is_successful() {
-        log::warn!("Validation found problems (see the summary for details)");
+        tracing::warn!("Validation found problems (see the summary for details)");
     }
 
     println!("{}", serde_json::json!(summary));
@@ -161,7 +161,7 @@ where
     let summary = run(&mut writer)?;
     writer.flush()?;
 
-    log::info!(
+    tracing::info!(
         "Printed {} {row_description} from {} lines",
         summary.written_count,
         summary.read_count

@@ -79,7 +79,7 @@ fn run() -> Result<CommandOutcome, Error> {
 
                 for (i, result) in decoder.lines().enumerate() {
                     if i % 1_000_000 == 0 {
-                        log::info!("Done: {i}");
+                        tracing::info!("Done: {i}");
                     }
 
                     let line = result?;
@@ -368,7 +368,7 @@ fn extract_tweets(input: PathBuf, author_id: u64) -> Result<(), Error> {
 
     paths.sort();
 
-    log::info!("Loaded {} paths", paths.len());
+    tracing::info!("Loaded {} paths", paths.len());
 
     for path in &paths {
         match std::fs::read_to_string(path) {
@@ -408,7 +408,7 @@ fn extract_tweets(input: PathBuf, author_id: u64) -> Result<(), Error> {
                 }
             }
             Err(error) => {
-                log::error!("{}: {}", path.as_os_str().to_string_lossy(), error);
+                tracing::error!("{}: {}", path.as_os_str().to_string_lossy(), error);
             }
         }
     }
@@ -457,7 +457,7 @@ fn compact_snapshots(input: &PathBuf, output: &PathBuf, level: u16) -> Result<()
     // output and lets the writer skip consecutive duplicate digests.
     files.sort_by_key(|(digest, _)| *digest);
 
-    log::info!("Loaded {} paths", files.len());
+    tracing::info!("Loaded {} paths", files.len());
 
     // The writer owns the context; `create_new` refuses to overwrite an existing output file.
     let mut writer = SnapshotWriter::create(output, level, context)?;
@@ -472,7 +472,7 @@ fn compact_snapshots(input: &PathBuf, output: &PathBuf, level: u16) -> Result<()
         let snapshot = match writer.context().unprocessed_snapshot(&Format::Utf8, &bytes) {
             Ok(snapshot) => snapshot,
             Err(error) => {
-                log::warn!("{}: {}", path.as_os_str().to_string_lossy(), error);
+                tracing::warn!("{}: {}", path.as_os_str().to_string_lossy(), error);
                 continue;
             }
         };
@@ -486,7 +486,7 @@ fn compact_snapshots(input: &PathBuf, output: &PathBuf, level: u16) -> Result<()
         if let Err(error) = serde_json::from_str::<birdsite::model::wxj::data::TweetSnapshot<'_>>(
             snapshot.content.as_str(),
         ) {
-            log::info!("{expected_digest}: not a valid tweet snapshot: {error}");
+            tracing::info!("{expected_digest}: not a valid tweet snapshot: {error}");
             continue;
         }
 
@@ -497,7 +497,7 @@ fn compact_snapshots(input: &PathBuf, output: &PathBuf, level: u16) -> Result<()
 
     writer.finish()?;
 
-    log::info!(
+    tracing::info!(
         "Wrote {written} snapshots to {}",
         output.as_os_str().to_string_lossy()
     );

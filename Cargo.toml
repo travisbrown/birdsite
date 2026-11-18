@@ -45,7 +45,6 @@ bounded-static = "0.8"
 bounded-static-derive-more = "0.1"
 clap = { version = "4", features = ["derive"] }
 jiff = { version = "1", default-features = false, features = ["std", "serde"] }
-log = "0.4"
 num-rational = "0.4"
 proptest = { version = "1", features = ["attr-macro"] }
 rand = "0.10"
@@ -58,8 +57,7 @@ sha2 = "0.11"
 tempfile = "3"
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt"] }
-# Bridge existing log calls through Archivindex's tracing subscriber until they are migrated.
-tracing-subscriber = { version = "0.3", default-features = false, features = ["tracing-log"] }
+tracing = { version = "0.1", default-features = false, features = ["std"] }
 url = { version = "2", features = ["serde"] }
 
 [workspace.lints.rust]

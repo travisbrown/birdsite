@@ -1,11 +1,9 @@
 use std::process::Command;
 
-/// Global verbosity flags remain available after nested subcommands.
+/// Global verbosity flags after nested subcommands control diagnostics without changing stdout.
 #[test]
 fn nested_commands_accept_the_shared_verbosity_flags() {
     let directory = tempfile::tempdir().unwrap();
-    let input = directory.path().join("empty.zst");
-    std::fs::write(&input, zstd::encode_all(&b""[..], 0).unwrap()).unwrap();
 
     for flags in [
         vec![],
@@ -15,15 +13,21 @@ fn nested_commands_accept_the_shared_verbosity_flags() {
         vec!["--quiet"],
     ] {
         let output = Command::new(env!("CARGO_BIN_EXE_birdsite-hacks"))
-            .args(["wxj", "validate"])
-            .args(flags)
+            .args(["wxj", "extract"])
+            .args(&flags)
             .arg("--input")
-            .arg(&input)
+            .arg(directory.path())
             .output()
             .unwrap();
 
         assert!(output.status.success(), "{output:?}");
         assert_eq!(output.stdout.as_slice(), b"");
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        if flags.is_empty() || flags == ["--quiet"] {
+            assert!(stderr.is_empty(), "{stderr}");
+        } else {
+            assert_eq!(stderr.matches("Loaded 0 paths").count(), 1, "{stderr}");
+        }
     }
 }
 

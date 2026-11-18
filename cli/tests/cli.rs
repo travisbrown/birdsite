@@ -34,8 +34,16 @@ fn validation_reports_problems_with_the_shared_verbosity_flags() {
         if flags == ["--quiet"] {
             assert!(stderr.is_empty(), "{stderr}");
         } else {
-            assert!(stderr.contains("Validation found problems"), "{stderr}");
-            assert_eq!(stderr.contains("Validated 1 lines"), !flags.is_empty());
+            assert_eq!(
+                stderr.matches("Validation found problems").count(),
+                1,
+                "{stderr}"
+            );
+            assert_eq!(
+                stderr.matches("Validated 1 lines").count(),
+                usize::from(!flags.is_empty()),
+                "{stderr}"
+            );
         }
     }
 }

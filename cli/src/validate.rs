@@ -113,7 +113,7 @@ fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadErr
                     summary.missing_metadata_count += 1;
 
                     if snapshot.url.is_some() {
-                        log::info!(
+                        tracing::info!(
                             "Line {line_number} ({}): invalid metadata: URL without timestamp",
                             snapshot.digest
                         );
@@ -124,7 +124,7 @@ fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadErr
 
                 match max_digest {
                     Some(max) if snapshot.digest <= max => {
-                        log::info!(
+                        tracing::info!(
                             "Line {line_number} ({}): order error: \
                              digest is not greater than earlier digest {max}",
                             snapshot.digest
@@ -140,7 +140,7 @@ fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadErr
                 }
 
                 if let Err(error) = context.verify(&snapshot, &mut hasher) {
-                    log::info!(
+                    tracing::info!(
                         "Line {line_number} ({}): digest error: {error}",
                         snapshot.digest
                     );
@@ -153,7 +153,7 @@ fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadErr
                 }
 
                 if let Some(error) = schema_error(snapshot.content.as_str(), flat) {
-                    log::info!(
+                    tracing::info!(
                         "Line {line_number} ({}): schema error: {error}",
                         snapshot.digest
                     );
@@ -173,7 +173,7 @@ fn validate_results<'a, I: IntoIterator<Item = Result<ExactSnapshot<'a>, ReadErr
             // to parse as a compact snapshot record is recorded like a schema mismatch.
             Err(ReadError::Read(error)) => Err(std::io::Error::from(error))?,
             Err(error) => {
-                log::info!("Line {line_number}: parse error: {error}");
+                tracing::info!("Line {line_number}: parse error: {error}");
                 summary.schema_errors.push(LineError {
                     line_number,
                     digest: None,

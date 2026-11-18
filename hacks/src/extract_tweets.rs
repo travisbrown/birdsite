@@ -127,7 +127,7 @@ fn extract<R: BufRead, W: Write>(
 
     for (index, result) in reader.lines().enumerate() {
         if index % 1_000_000 == 0 {
-            log::info!("Done: {index}");
+            tracing::info!("Done: {index}");
         }
 
         let line = result?;
@@ -197,7 +197,7 @@ pub fn run(input: &Path, remaining: &Path) -> Result<(), Error> {
     let mut output = BufWriter::new(stdout.lock());
 
     for path in input_paths(input)? {
-        log::info!("Processing {}", path.display());
+        tracing::info!("Processing {}", path.display());
 
         let input = BufReader::new(File::open(path)?);
         let decoder = BufReader::new(zstd::Decoder::with_buffer(input)?);
