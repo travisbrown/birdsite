@@ -20,7 +20,6 @@ archivindex-wbm-json-processing = { workspace = true }
 birdsite = { path = "../core/" }
 birdsite-graphql = { path = "../graphql/" }
 bounded-static = { workspace = true }
-chrono = { workspace = true }
 clap = { workspace = true }
 csv = "1"
 futures = "0.3"
@@ -29,6 +28,7 @@ rocksdb = { version = "0.25", features = ["zstd"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+tracing-subscriber = { workspace = true }
 zstd = "0.14"
 
 [dev-dependencies]

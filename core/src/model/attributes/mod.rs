@@ -432,29 +432,24 @@ pub mod optional_count_with_sentinel {
 }
 
 pub mod text_timestamp {
-    use chrono::{DateTime, Utc};
+    use jiff::Timestamp;
     use serde::de::{Deserialize, Deserializer};
     use serde::ser::{Serialize, Serializer};
 
     use crate::model::timestamp::TextTimestamp;
 
-    pub fn deserialize<'de, D: Deserializer<'de>>(
-        deserializer: D,
-    ) -> Result<DateTime<Utc>, D::Error> {
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Timestamp, D::Error> {
         TextTimestamp::deserialize(deserializer).map(|text_timestamp| text_timestamp.0)
     }
 
-    pub fn serialize<S: Serializer>(
-        value: &DateTime<Utc>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error> {
+    pub fn serialize<S: Serializer>(value: &Timestamp, serializer: S) -> Result<S::Ok, S::Error> {
         TextTimestamp::serialize(&TextTimestamp(*value), serializer)
     }
 }
 
 /// Optional variant of [`text_timestamp`].
 pub mod optional_text_timestamp {
-    use chrono::{DateTime, Utc};
+    use jiff::Timestamp;
     use serde::de::{Deserialize, Deserializer};
     use serde::ser::{Serialize, Serializer};
 
@@ -462,13 +457,13 @@ pub mod optional_text_timestamp {
 
     pub fn deserialize<'de, D: Deserializer<'de>>(
         deserializer: D,
-    ) -> Result<Option<DateTime<Utc>>, D::Error> {
+    ) -> Result<Option<Timestamp>, D::Error> {
         Option::<TextTimestamp>::deserialize(deserializer)
             .map(|text_timestamp| text_timestamp.map(|text_timestamp| text_timestamp.0))
     }
 
     pub fn serialize<S: Serializer>(
-        value: &Option<DateTime<Utc>>,
+        value: &Option<Timestamp>,
         serializer: S,
     ) -> Result<S::Ok, S::Error> {
         Option::<TextTimestamp>::serialize(&value.map(TextTimestamp), serializer)
@@ -479,7 +474,7 @@ pub mod optional_text_timestamp {
 mod tests {
     use std::borrow::Cow;
 
-    use chrono::{DateTime, TimeZone, Utc};
+    use jiff::Timestamp;
 
     const SAMPLE_TEXT_TIMESTAMP: &str = "Thu Jun 25 16:18:41 +0000 2009";
     const SAMPLE_EPOCH_S: i64 = 1_245_946_721;
@@ -497,7 +492,7 @@ mod tests {
         #[serde(with = "super::optional_ids_str")]
         ids_str: Option<Cow<'a, [u64]>>,
         #[serde(with = "super::optional_text_timestamp")]
-        timestamp: Option<DateTime<Utc>>,
+        timestamp: Option<Timestamp>,
         #[serde(with = "super::optional_count_with_sentinel")]
         count: Option<usize>,
         #[serde(with = "super::count_str")]
@@ -513,7 +508,7 @@ mod tests {
             rest_id: Some(23_456_789),
             ids: Cow::Borrowed(&[12_345_678, 23_456_789]),
             ids_str: Some(Cow::Borrowed(&[12_345_678, 23_456_789])),
-            timestamp: Utc.timestamp_opt(SAMPLE_EPOCH_S, 0).single(),
+            timestamp: Timestamp::from_second(SAMPLE_EPOCH_S).ok(),
             count: Some(42),
             count_str: 7,
             media_count: Some(9),

@@ -9,7 +9,7 @@
 
 use std::borrow::Cow;
 
-use chrono::{DateTime, SubsecRound, Utc};
+use jiff::{RoundMode, Timestamp, TimestampRound, Unit};
 
 pub mod client;
 pub mod generator;
@@ -50,17 +50,25 @@ pub struct TransactionId {
     pub value: String,
     /// Should not be needed (and not currently serialized), but may be useful for debugging.
     pub animation_key: Option<String>,
-    pub timestamp: DateTime<Utc>,
+    pub timestamp: Timestamp,
 }
 
 impl TransactionId {
     /// Creates a transaction ID from its value and timestamp (truncated to whole seconds).
+    // Rounding down to whole seconds cannot leave Timestamp's representable range.
+    #[allow(clippy::missing_panics_doc)]
     #[must_use]
-    pub fn new(value: String, timestamp: DateTime<Utc>) -> Self {
+    pub fn new(value: String, timestamp: Timestamp) -> Self {
         Self {
             value,
             animation_key: None,
-            timestamp: timestamp.trunc_subsecs(0),
+            timestamp: timestamp
+                .round(
+                    TimestampRound::new()
+                        .smallest(Unit::Second)
+                        .mode(RoundMode::Floor),
+                )
+                .expect("rounding down to seconds stays within the timestamp range"),
         }
     }
 }
@@ -71,4 +79,29 @@ pub struct SiteInfo {
     pub verification_key: Vec<u8>,
     pub indices: Vec<usize>,
     pub frame: Vec<i32>,
+}
+
+#[cfg(test)]
+mod tests {
+    use jiff::Timestamp;
+
+    use super::TransactionId;
+
+    #[test]
+    fn transaction_ids_drop_fractional_seconds_before_and_after_the_epoch() {
+        for (milliseconds, seconds) in [(-1001, -2), (-1, -1), (0, 0), (1999, 1)] {
+            let timestamp = Timestamp::from_millisecond(milliseconds).unwrap();
+            let id = TransactionId::new("test".to_owned(), timestamp);
+            assert_eq!(id.timestamp, Timestamp::from_second(seconds).unwrap());
+        }
+    }
+
+    #[test]
+    fn transaction_ids_accept_timestamp_limits() {
+        for timestamp in [Timestamp::MIN, Timestamp::MAX] {
+            let id = TransactionId::new("test".to_owned(), timestamp);
+            assert_eq!(id.timestamp.as_second(), timestamp.as_second());
+            assert_eq!(id.timestamp.subsec_nanosecond(), 0);
+        }
+    }
 }

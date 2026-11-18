@@ -87,7 +87,7 @@ fn parse_local_exchange_examples() {
             format!(
                 "{}-{}",
                 exchange.request.name,
-                exchange.request.timestamp.timestamp_millis()
+                exchange.request.timestamp.as_millisecond()
             ),
             "{}: file name does not match content",
             path.display()

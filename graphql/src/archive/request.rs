@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::marker::PhantomData;
 
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
 
 use crate::request::name::RequestName;
 
@@ -9,7 +9,7 @@ use crate::request::name::RequestName;
 pub struct Request<'a, V> {
     pub name: RequestName,
     pub version: Option<Cow<'a, str>>,
-    pub timestamp: DateTime<Utc>,
+    pub timestamp: Timestamp,
     pub variables: V,
 }
 
@@ -61,7 +61,7 @@ impl<'a, 'de: 'a, V: Variables<'a> + 'a> serde::de::Deserialize<'de> for Request
                 let timestamp = timestamp_str
                     .parse::<i64>()
                     .ok()
-                    .and_then(DateTime::from_timestamp_millis)
+                    .and_then(|milliseconds| Timestamp::from_millisecond(milliseconds).ok())
                     .ok_or_else(|| {
                         serde::de::Error::invalid_value(
                             serde::de::Unexpected::Str(timestamp_str),

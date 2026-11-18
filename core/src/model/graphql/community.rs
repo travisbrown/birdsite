@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 
 use archivindex_serde::borrowable_str;
-use chrono::serde::ts_milliseconds;
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
+use jiff::fmt::serde::timestamp::millisecond;
 
 use crate::model::graphql::ResultWrapper;
 
@@ -25,8 +25,8 @@ pub struct Community<'a, U> {
     pub name: Cow<'a, str>,
     #[serde(default, with = "borrowable_str::option")]
     pub description: Option<Cow<'a, str>>,
-    #[serde(with = "ts_milliseconds")]
-    pub created_at: DateTime<Utc>,
+    #[serde(with = "millisecond::required")]
+    pub created_at: Timestamp,
     pub default_theme: Option<Theme>,
     pub custom_theme: Option<Theme>,
     #[serde(default, with = "borrowable_str::option")]

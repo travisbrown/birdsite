@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
 use serde::Deserialize;
 
 use crate::model::entity::TypedEntity;
@@ -32,7 +32,7 @@ pub struct NoteMetadata<'a> {
     pub rating_survey: Option<crate::model::url::Url<'a>>,
     pub helpful_tags: Option<Vec<HelpfulTag>>,
     pub not_helpful_tags: Option<Vec<NotHelpfulTag>>,
-    pub created_at: Option<DateTime<Utc>>,
+    pub created_at: Option<Timestamp>,
     pub can_appeal: Option<bool>,
     pub appeal_status: Option<AppealStatus>,
     pub is_media_note: Option<bool>,
@@ -210,8 +210,8 @@ pub struct MediaNoteMatchesV2 {
 }
 
 mod internal {
-    use chrono::serde::ts_milliseconds_option;
-    use chrono::{DateTime, Utc};
+    use jiff::Timestamp;
+    use jiff::fmt::serde::timestamp::millisecond;
 
     use crate::model::graphql::text::Text;
 
@@ -233,8 +233,8 @@ mod internal {
         pub(super) not_helpful_tags: Option<Vec<super::NotHelpfulTag>>,
         pub(super) tweet_results: Option<TweetResults>,
         pub(super) birdwatch_profile: Option<super::super::profile::Profile<'a>>,
-        #[serde(default, with = "ts_milliseconds_option")]
-        pub(super) created_at: Option<DateTime<Utc>>,
+        #[serde(default, with = "millisecond::optional")]
+        pub(super) created_at: Option<Timestamp>,
         pub(super) can_appeal: Option<bool>,
         pub(super) appeal_status: Option<super::AppealStatus>,
         pub(super) is_media_note: Option<bool>,

@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use chrono::{DateTime, NaiveDate, Utc};
+use jiff::Timestamp;
+use jiff::civil::Date;
 use url::Url;
 
 #[derive(thiserror::Error, Debug)]
@@ -14,8 +15,8 @@ pub enum Error {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct FileSet {
-    #[serde(with = "chrono::serde::ts_milliseconds")]
-    pub created_at: DateTime<Utc>,
+    #[serde(with = "jiff::fmt::serde::timestamp::millisecond::required")]
+    pub created_at: Timestamp,
     pub urls: Vec<Url>,
 }
 
@@ -69,7 +70,7 @@ impl Bundle {
         Ok(result)
     }
 
-    pub fn date(&self) -> Result<NaiveDate, Error> {
+    pub fn date(&self) -> Result<Date, Error> {
         let url = self
             .notes
             .urls
@@ -88,11 +89,11 @@ impl Bundle {
             Err(Error::InvalidUrl(url.clone()))
         } else {
             segments[1]
-                .parse::<i32>()
+                .parse::<i16>()
                 .ok()
-                .zip(segments[2].parse::<u32>().ok())
-                .zip(segments[3].parse::<u32>().ok())
-                .and_then(|((year, month), day)| NaiveDate::from_ymd_opt(year, month, day))
+                .zip(segments[2].parse::<i8>().ok())
+                .zip(segments[3].parse::<i8>().ok())
+                .and_then(|((year, month), day)| Date::new(year, month, day).ok())
                 .ok_or_else(|| Error::InvalidUrl(url.clone()))
         }
     }
@@ -115,5 +116,33 @@ mod tests {
         let result = serde_json::from_str::<Manifest>(line);
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn bundle_date_validates_calendar_dates() {
+        let mut bundle: super::Bundle = serde_json::from_value(serde_json::json!({
+            "notes": {"created_at": 0, "urls": []},
+            "ratings": {"created_at": 0, "urls": []},
+            "note_status_history": {"created_at": 0, "urls": []},
+            "user_enrollment": {"created_at": 0, "urls": []}
+        }))
+        .unwrap();
+
+        assert!(matches!(bundle.date(), Err(super::Error::MissingUrls)));
+        bundle.notes.urls = vec![
+            "https://example.com/data/2024/02/29/notes.tsv"
+                .parse()
+                .unwrap(),
+        ];
+        assert_eq!(bundle.date().unwrap(), jiff::civil::date(2024, 2, 29));
+
+        for path in ["2023/02/29", "2024/13/01", "10000/01/01", "2024/02"] {
+            bundle.notes.urls = vec![
+                format!("https://example.com/data/{path}/notes.tsv")
+                    .parse()
+                    .unwrap(),
+            ];
+            assert!(matches!(bundle.date(), Err(super::Error::InvalidUrl(_))));
+        }
     }
 }

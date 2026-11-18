@@ -8,7 +8,7 @@ use std::time::Duration;
 
 use birdsite_graphql_ctid::client::Client;
 use birdsite_graphql_ctid::{Endpoint, TransactionId};
-use chrono::Utc;
+use jiff::Timestamp;
 use rusqlite::{Connection, OptionalExtension};
 
 mod types;
@@ -154,9 +154,9 @@ impl Store {
         max_age: Duration,
     ) -> Result<TransactionId, Error> {
         if let Some(transaction_id) = self.lookup_ctid(endpoint)? {
-            let age = Utc::now() - transaction_id.timestamp;
+            let age = Timestamp::now() - transaction_id.timestamp;
 
-            if age.to_std().is_ok_and(|age| age <= max_age) {
+            if Duration::try_from(age).is_ok_and(|age| age <= max_age) {
                 Ok(transaction_id)
             } else {
                 let transaction_id = self.client.generate(endpoint).await?;
@@ -250,13 +250,13 @@ impl Store {
 #[cfg(test)]
 mod tests {
     use birdsite_graphql_ctid::{Endpoint, TransactionId};
-    use chrono::Utc;
+    use jiff::Timestamp;
 
     #[test]
     fn load_schema_in_memory() -> Result<(), super::Error> {
         let store = super::Store::create_in_memory()?;
         let endpoint = Endpoint::new("Test", "AAAaaA");
-        let transaction_id = TransactionId::new("XyZaBc".to_string(), Utc::now());
+        let transaction_id = TransactionId::new("XyZaBc".to_string(), Timestamp::now());
 
         let found_transaction_id = store.lookup_ctid(&endpoint)?;
         assert_eq!(found_transaction_id, None);
@@ -277,7 +277,7 @@ mod tests {
 
         let store = super::Store::open_or_create(&path)?;
         let endpoint = Endpoint::new("Test", "AAAaaA");
-        let transaction_id = TransactionId::new("XyZaBc".to_string(), Utc::now());
+        let transaction_id = TransactionId::new("XyZaBc".to_string(), Timestamp::now());
 
         let found_transaction_id = store.lookup_ctid(&endpoint)?;
         assert_eq!(found_transaction_id, None);

@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 
 use bounded_static_derive_more::ToStatic;
-use chrono::serde::ts_milliseconds;
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
+use jiff::fmt::serde::timestamp::millisecond;
 
 /// Current helpfulness status of a Community Note.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -45,8 +45,8 @@ pub struct NoteStatusHistoryEntry<'a> {
     pub note_id: u64,
     #[serde(rename = "noteAuthorParticipantId", borrow)]
     pub participant_id: Cow<'a, str>,
-    #[serde(rename = "createdAtMillis", with = "ts_milliseconds")]
-    pub created_at: DateTime<Utc>,
+    #[serde(rename = "createdAtMillis", with = "millisecond::required")]
+    pub created_at: Timestamp,
     #[serde(rename = "currentStatus")]
     pub current_status: Status,
 }
@@ -58,8 +58,8 @@ pub struct NoteEntry<'a> {
     pub note_id: u64,
     #[serde(rename = "noteAuthorParticipantId", borrow)]
     pub participant_id: Cow<'a, str>,
-    #[serde(rename = "createdAtMillis", with = "ts_milliseconds")]
-    pub created_at: DateTime<Utc>,
+    #[serde(rename = "createdAtMillis", with = "millisecond::required")]
+    pub created_at: Timestamp,
     /// ID of the tweet the note is attached to. The source data uses `-1` for notes that are not
     /// associated with a tweet; that sentinel is represented here as `None`.
     #[serde(rename = "tweetId", with = "optional_tweet_id")]
@@ -134,5 +134,24 @@ mod tests {
         assert_eq!(parse("0").unwrap(), Some(0));
         assert_eq!(parse("123").unwrap(), Some(123));
         assert!(parse("-2").is_err());
+    }
+
+    #[test]
+    fn note_timestamps_remain_integer_milliseconds() {
+        for milliseconds in [-1, 0, 1_245_946_721_123] {
+            let json = serde_json::json!({
+                "noteId": 1,
+                "noteAuthorParticipantId": "author",
+                "createdAtMillis": milliseconds,
+                "currentStatus": "CURRENTLY_RATED_HELPFUL"
+            });
+            let text = json.to_string();
+            let entry: NoteStatusHistoryEntry<'_> = serde_json::from_str(&text).unwrap();
+            assert_eq!(
+                entry.created_at,
+                Timestamp::from_millisecond(milliseconds).unwrap()
+            );
+            assert_eq!(serde_json::to_value(&entry).unwrap(), json);
+        }
     }
 }

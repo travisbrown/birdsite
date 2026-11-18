@@ -120,7 +120,7 @@ pub fn parse_exchange<
                             error,
                             data_start,
                             request_name: request.name,
-                            request_timestamp: request.timestamp.timestamp_millis(),
+                            request_timestamp: request.timestamp.as_millisecond(),
                         },
                     })?,
             )

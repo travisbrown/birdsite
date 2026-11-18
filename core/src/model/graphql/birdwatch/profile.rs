@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 
 use archivindex_serde::borrowable_str;
-use chrono::serde::ts_milliseconds;
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
+use jiff::fmt::serde::timestamp::millisecond;
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -21,8 +21,8 @@ pub struct Profile<'a> {
 pub struct RatingsCount {
     pub successful: HelpfulnessCount,
     pub unsuccessful: HelpfulnessCount,
-    #[serde(with = "ts_milliseconds")]
-    pub last_updated_at: DateTime<Utc>,
+    #[serde(with = "millisecond::required")]
+    pub last_updated_at: Timestamp,
     pub rated_after_decision: Option<usize>,
     pub awaiting_more_ratings: Option<usize>,
 }
@@ -44,6 +44,6 @@ pub struct NotesCount {
     pub currently_rated_helpful: Option<usize>,
     pub currently_rated_not_helpful: Option<usize>,
     pub awaiting_more_ratings: Option<usize>,
-    #[serde(with = "ts_milliseconds")]
-    pub last_updated_at: DateTime<Utc>,
+    #[serde(with = "millisecond::required")]
+    pub last_updated_at: Timestamp,
 }

@@ -7,6 +7,9 @@
 
 This project is a small Rust library for working with Twitter data.
 
+Timestamp fields use `jiff::Timestamp`; Community Notes bundle dates use `jiff::civil::Date`.
+The models retain the API's timestamp representations, including text dates and epoch milliseconds.
+
 ## Command-line tools
 
 `birdsite-cli` processes compact snapshot files; `birdsite-hacks` contains experimental commands.

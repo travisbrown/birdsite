@@ -601,7 +601,7 @@ fn partial_users_preserve_account_metadata_without_exposing_a_profile() {
     let super::UserEntry::PartialUser(partial) = entry else {
         panic!("expected a partial user");
     };
-    assert_eq!(partial.created_at.timestamp(), 0);
+    assert_eq!(partial.created_at.as_second(), 0);
     assert_eq!(partial.public_metrics.tweet_count, Some(0));
     assert!(!partial.verified);
     assert_eq!(partial.verified_type, Some(VerifiedType::None));

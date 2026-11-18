@@ -4,7 +4,7 @@ use std::ops::Range;
 
 use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
 use serde_field_attributes::optional_range;
 
 use crate::model::country::Country;
@@ -95,7 +95,7 @@ pub struct Tweet<'a> {
     pub context_annotations: Option<Vec<context::ContextAnnotation<'a>>>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub conversation_id: u64,
-    pub created_at: DateTime<Utc>,
+    pub created_at: Timestamp,
     #[serde(with = "optional_range", default)]
     pub display_text_range: Option<Range<usize>>,
     pub edit_controls: Option<EditControls>,
@@ -207,7 +207,7 @@ pub struct Poll<'a> {
     pub id: Option<u64>,
     pub voting_status: Option<PollVotingStatus>,
     pub duration_minutes: Option<usize>,
-    pub end_datetime: Option<DateTime<Utc>>,
+    pub end_datetime: Option<Timestamp>,
     #[serde(borrow)]
     pub options: Vec<PollOption<'a>>,
 }
@@ -242,7 +242,7 @@ pub struct Geo<'a> {
 pub struct EditControls {
     pub edits_remaining: isize,
     pub is_edit_eligible: bool,
-    pub editable_until: DateTime<Utc>,
+    pub editable_until: Timestamp,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
@@ -346,7 +346,7 @@ pub struct User<'a> {
     pub username: Cow<'a, str>,
     #[serde(borrow)]
     pub name: Cow<'a, str>,
-    pub created_at: DateTime<Utc>,
+    pub created_at: Timestamp,
     #[serde(borrow)]
     pub description: Cow<'a, str>,
     #[serde(default, with = "borrowable_str::option")]
@@ -379,7 +379,7 @@ pub struct PartialUser<'a> {
     pub affiliation: Option<Affiliation<'a>>,
     #[serde(with = "crate::model::attributes::id_str")]
     pub id: u64,
-    pub created_at: DateTime<Utc>,
+    pub created_at: Timestamp,
     pub public_metrics: UserPublicMetrics,
     pub verified: bool,
     pub verified_type: Option<VerifiedType>,

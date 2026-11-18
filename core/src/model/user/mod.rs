@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use bounded_static_derive_more::ToStatic;
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
 
 use crate::model::country::Country;
 
@@ -12,7 +12,7 @@ pub mod properties;
 #[derive(Clone, Debug, Eq, ToStatic, PartialEq)]
 pub struct User<'a> {
     pub id: u64,
-    pub created_at: Option<DateTime<Utc>>,
+    pub created_at: Option<Timestamp>,
     pub screen_name: Option<Cow<'a, str>>,
     pub name: Option<Cow<'a, str>>,
     pub description: Option<Cow<'a, str>>,

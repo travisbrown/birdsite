@@ -1,5 +1,5 @@
 use base64::prelude::*;
-use chrono::{TimeZone, Utc};
+use jiff::Timestamp;
 use rand::RngExt;
 use sha2::Digest;
 
@@ -136,11 +136,9 @@ impl Generator {
             animation_key: Some(animation_key),
             // Derived from the same epoch-relative seconds encoded in `value`, so an explicit
             // `timestamp_s` yields a timestamp that agrees with the ID's bytes. The fallback only
-            // fires for caller-provided values outside chrono's representable range.
-            timestamp: Utc
-                .timestamp_opt(TRANSACTION_ID_EPOCH_S.saturating_add(timestamp_s), 0)
-                .single()
-                .unwrap_or_else(Utc::now),
+            // fires for caller-provided values outside Jiff's representable range.
+            timestamp: Timestamp::from_second(TRANSACTION_ID_EPOCH_S.saturating_add(timestamp_s))
+                .unwrap_or_else(|_| Timestamp::now()),
         }
     }
 
@@ -296,7 +294,7 @@ mod tests {
 
     #[test]
     fn compute_for_path_uses_explicit_timestamp() {
-        // Regression: the returned `TransactionId.timestamp` was always `Utc::now()`, disagreeing
+        // Regression: the returned `TransactionId.timestamp` was always `Timestamp::now()`, disagreeing
         // with the explicit `timestamp_s` encoded in the value's bytes.
         let site_info = SiteInfo {
             verification_key: (0..=15).collect(),
@@ -312,10 +310,7 @@ mod tests {
             Some(timestamp_s),
         );
 
-        let expected = Utc
-            .timestamp_opt(TRANSACTION_ID_EPOCH_S + timestamp_s, 0)
-            .single()
-            .unwrap();
+        let expected = Timestamp::from_second(TRANSACTION_ID_EPOCH_S + timestamp_s).unwrap();
         assert_eq!(transaction_id.timestamp, expected);
         assert_ne!(transaction_id.value, "");
     }

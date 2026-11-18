@@ -4,7 +4,7 @@ use std::borrow::Cow;
 
 use aes_gcm::aead::{AeadInOut, Generate, Nonce};
 use aes_gcm::{Aes256Gcm, KeyInit};
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
 use sha2::Digest;
 
 const BASE_KEY: &str = "0e6be1f1e21ffc33590b888fd4dc81b19713e570e805d4e5df80a493c9571a05";
@@ -27,8 +27,8 @@ pub enum Error {
 #[serde(deny_unknown_fields)]
 struct Payload<'a> {
     navigator_properties: NavigatorProperties<'a>,
-    #[serde(with = "chrono::serde::ts_milliseconds")]
-    created_at: DateTime<Utc>,
+    #[serde(with = "jiff::fmt::serde::timestamp::millisecond::required")]
+    created_at: Timestamp,
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -73,7 +73,7 @@ impl Generator {
         &self,
         guest_id: &str,
         user_agent: &str,
-        created_at: DateTime<Utc>,
+        created_at: Timestamp,
     ) -> Result<String, Error> {
         let payload = Payload {
             navigator_properties: NavigatorProperties {
@@ -91,7 +91,7 @@ impl Generator {
     }
 
     /// Decodes a hex-encoded header value for the given guest ID into its user agent and timestamp.
-    pub fn decode(&self, guest_id: &str, value: &str) -> Result<(String, DateTime<Utc>), Error> {
+    pub fn decode(&self, guest_id: &str, value: &str) -> Result<(String, Timestamp), Error> {
         let bytes = hex::decode(value)?;
         let decoded_bytes = self.decode_raw(guest_id, &bytes)?;
         let decoded_str = std::str::from_utf8(&decoded_bytes)?;
@@ -153,12 +153,12 @@ impl Generator {
 
 #[cfg(test)]
 mod tests {
-    use chrono::{SubsecRound, Utc};
+    use jiff::Timestamp;
 
     #[test]
     fn round_trip() {
         let guest_id = "v1%3A176468125390477869";
-        let created_at = Utc::now().round_subsecs(3);
+        let created_at = Timestamp::now().round(jiff::Unit::Millisecond).unwrap();
         let user_agent = "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36";
 
         let generator = super::Generator::default();

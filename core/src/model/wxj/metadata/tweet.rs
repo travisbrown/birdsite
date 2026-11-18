@@ -1,16 +1,16 @@
-use chrono::{DateTime, Utc};
+use jiff::Timestamp;
 
 use crate::model::wxj::{TweetSnapshot, data, flat};
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct UserMetadata {
     pub id: u64,
-    pub created_at: Option<DateTime<Utc>>,
+    pub created_at: Option<Timestamp>,
 }
 
 impl UserMetadata {
     #[must_use]
-    pub const fn new(id: u64, created_at: Option<DateTime<Utc>>) -> Self {
+    pub const fn new(id: u64, created_at: Option<Timestamp>) -> Self {
         Self { id, created_at }
     }
 }
@@ -20,7 +20,7 @@ pub struct TweetMetadata {
     pub id: u64,
     /// Author metadata, when the snapshot identifies the author.
     pub user: Option<UserMetadata>,
-    pub created_at: DateTime<Utc>,
+    pub created_at: Timestamp,
     pub retweeted_id: Option<u64>,
     pub replied_to_id: Option<u64>,
     pub quoted_id: Option<u64>,
@@ -31,7 +31,7 @@ impl TweetMetadata {
     pub const fn new(
         id: u64,
         user: Option<UserMetadata>,
-        created_at: DateTime<Utc>,
+        created_at: Timestamp,
         retweeted_id: Option<u64>,
         replied_to_id: Option<u64>,
         quoted_id: Option<u64>,

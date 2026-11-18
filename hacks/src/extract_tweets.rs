@@ -140,7 +140,7 @@ fn extract<R: BufRead, W: Write>(
         let Some(data) = exchange.data else {
             continue;
         };
-        let timestamp_ms = exchange.request.timestamp.timestamp_millis().to_string();
+        let timestamp_ms = exchange.request.timestamp.as_millisecond().to_string();
 
         for (requested_id, element) in exchange
             .request

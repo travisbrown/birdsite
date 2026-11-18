@@ -1,8 +1,8 @@
-use chrono::{DateTime, SubsecRound, TimeZone, Utc};
+use jiff::Timestamp;
 
 /// Convert a Snowflake ID to a time.
 #[must_use]
-pub fn snowflake_to_date_time(id: u64) -> Option<DateTime<Utc>> {
+pub fn snowflake_to_date_time(id: u64) -> Option<Timestamp> {
     if is_snowflake(id) {
         known_snowflake_to_date_time(id)
     } else {
@@ -20,13 +20,11 @@ const fn is_snowflake(id: u64) -> bool {
 ///
 /// Does not confirm whether the ID is in the Snowflake range. An empty result indicates that the
 /// integer is out of range.
-fn known_snowflake_to_date_time(id: u64) -> Option<DateTime<Utc>> {
+fn known_snowflake_to_date_time(id: u64) -> Option<Timestamp> {
     let id = i64::try_from(id).ok()?;
     let timestamp_millis = (id >> 22) + 1_288_834_974_657;
 
-    let date_time = Utc.timestamp_millis_opt(timestamp_millis).single()?;
-
-    Some(date_time.trunc_subsecs(0))
+    Timestamp::from_second(timestamp_millis / 1000).ok()
 }
 
 #[cfg(test)]
@@ -40,13 +38,7 @@ mod test {
     fn snowflake_matches_created_at() {
         assert_eq!(
             super::snowflake_to_date_time(1_016_908_862_136_332_288),
-            Some(chrono::DateTime::from_naive_utc_and_offset(
-                chrono::NaiveDate::from_ymd_opt(2018, 7, 11)
-                    .unwrap()
-                    .and_hms_opt(4, 55, 40)
-                    .unwrap(),
-                chrono::Utc
-            ))
+            Some("2018-07-11T04:55:40Z".parse().unwrap())
         );
     }
 

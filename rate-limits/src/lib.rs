@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::sync::atomic::AtomicU64;
 use std::time::Duration;
 
-use chrono::{DateTime, TimeDelta, TimeZone, Utc};
+use jiff::{SignedDuration, Timestamp};
 
 /// Default name of the header carrying the rate-limit reset time (epoch seconds).
 pub const DEFAULT_RATE_LIMIT_RESET_HEADER_NAME: &str = "x-rate-limit-reset";
@@ -17,7 +17,7 @@ pub const DEFAULT_RATE_LIMIT_REMAINING_HEADER_NAME: &str = "x-rate-limit-remaini
 /// Fallback wait applied when a reset time cannot be converted to a [`Duration`].
 pub const DEFAULT_RATE_LIMIT_ERROR_WAIT: Duration = Duration::from_mins(15);
 
-const DEFAULT_RATE_LIMIT_WAIT_BUFFER: TimeDelta = TimeDelta::seconds(10);
+const DEFAULT_RATE_LIMIT_WAIT_BUFFER: SignedDuration = SignedDuration::from_secs(10);
 const DEFAULT_RATE_LIMITS_MAP_CAPACITY: usize = 16;
 
 /// Errors that can occur while parsing rate-limit headers.
@@ -35,7 +35,7 @@ pub enum Error {
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct RateLimit {
     /// Time at which the current rate-limit window resets.
-    pub reset: DateTime<Utc>,
+    pub reset: Timestamp,
     /// Number of requests remaining in the current window.
     pub remaining: usize,
 }
@@ -43,19 +43,19 @@ pub struct RateLimit {
 impl RateLimit {
     /// Creates a new rate limit from a reset time and a remaining count.
     #[must_use]
-    pub const fn new(reset: DateTime<Utc>, remaining: usize) -> Self {
+    pub const fn new(reset: Timestamp, remaining: usize) -> Self {
         Self { reset, remaining }
     }
 
     #[must_use]
     pub fn wait(&self) -> Option<Duration> {
         if self.remaining == 0 {
-            let timestamp = Utc::now();
+            let timestamp = Timestamp::now();
             let wait = self.reset - timestamp + DEFAULT_RATE_LIMIT_WAIT_BUFFER;
 
-            if wait > TimeDelta::zero() {
+            if wait > SignedDuration::ZERO {
                 // If somehow the time delta is out of range, we use our default error wait.
-                Some(wait.to_std().unwrap_or(DEFAULT_RATE_LIMIT_ERROR_WAIT))
+                Some(Duration::try_from(wait).unwrap_or(DEFAULT_RATE_LIMIT_ERROR_WAIT))
             } else {
                 None
             }
@@ -90,7 +90,7 @@ impl RateLimit {
                 value
                     .parse::<i64>()
                     .ok()
-                    .and_then(|seconds| Utc.timestamp_opt(seconds, 0).single())
+                    .and_then(|seconds| Timestamp::from_second(seconds).ok())
             })
             .ok_or_else(|| Error::InvalidHeader(reset_header_name.to_string()))?;
 
@@ -127,7 +127,7 @@ impl RateLimit {
                 value
                     .parse::<i64>()
                     .ok()
-                    .and_then(|seconds| Utc.timestamp_opt(seconds, 0).single())
+                    .and_then(|seconds| Timestamp::from_second(seconds).ok())
             })
             .ok_or_else(|| Error::InvalidHeader(reset_header_name.to_string()))?;
 
@@ -159,7 +159,7 @@ impl RateLimit {
                     value
                         .parse::<i64>()
                         .ok()
-                        .and_then(|seconds| Utc.timestamp_opt(seconds, 0).single())
+                        .and_then(|seconds| Timestamp::from_second(seconds).ok())
                         .ok_or_else(|| Error::InvalidHeader(reset_header_name.to_string()))?,
                 );
             } else if remaining.is_none() && key.eq_ignore_ascii_case(remaining_header_name) {
@@ -243,7 +243,8 @@ impl<S: Eq + Hash> RateLimits<S> {
     /// If the reset time's epoch second does not fit into a `u32` (before 1970 or after 2106), or
     /// the remaining count exceeds `u32::MAX`, the value cannot be encoded and this is a no-op.
     pub fn put(&self, scope: S, value: RateLimit) {
-        if let Ok(reset_s) = u32::try_from(value.reset.timestamp())
+        if value.reset >= Timestamp::UNIX_EPOCH
+            && let Ok(reset_s) = u32::try_from(value.reset.as_second())
             && let Ok(remaining) = u32::try_from(value.remaining)
         {
             let encoded: u64 = bytemuck::cast([reset_s, remaining]);
@@ -310,7 +311,7 @@ fn rate_limit_from_atomic64(value: &AtomicU64) -> Option<RateLimit> {
 
     // These conversions should never fail, since we control the values that go into the map.
     // In the case that one does fail, we simply show that there was no entry for this scope.
-    let reset = Utc.timestamp_opt(i64::from(values[0]), 0).single()?;
+    let reset = Timestamp::from_second(i64::from(values[0])).ok()?;
     let remaining = usize::try_from(values[1]).ok()?;
 
     Some(RateLimit::new(reset, remaining))
@@ -320,9 +321,49 @@ fn rate_limit_from_atomic64(value: &AtomicU64) -> Option<RateLimit> {
 mod tests {
     use std::collections::HashSet;
 
-    use chrono::{SubsecRound, Utc};
+    use jiff::Timestamp;
 
     use super::*;
+
+    #[test]
+    fn unrepresentable_reset_times_are_not_recorded() {
+        let limits = RateLimits::default();
+        for reset in [
+            Timestamp::from_millisecond(-1).unwrap(),
+            Timestamp::from_second(i64::from(u32::MAX) + 1).unwrap(),
+        ] {
+            limits.put("test", RateLimit::new(reset, 1));
+            assert_eq!(limits.get(&"test"), None);
+        }
+    }
+
+    #[test]
+    fn reset_headers_reject_out_of_range_seconds() {
+        for seconds in [i64::MIN, i64::MAX] {
+            let reset = seconds.to_string();
+            let headers = [
+                (DEFAULT_RATE_LIMIT_RESET_HEADER_NAME, reset.as_str()),
+                (DEFAULT_RATE_LIMIT_REMAINING_HEADER_NAME, "0"),
+            ];
+            assert_eq!(
+                RateLimit::parse_headers_iter(
+                    DEFAULT_RATE_LIMIT_RESET_HEADER_NAME,
+                    DEFAULT_RATE_LIMIT_REMAINING_HEADER_NAME,
+                    headers.into_iter(),
+                ),
+                Err(Error::InvalidHeader(
+                    DEFAULT_RATE_LIMIT_RESET_HEADER_NAME.to_string()
+                ))
+            );
+        }
+    }
+
+    #[test]
+    fn wait_handles_reset_times_at_timestamp_limits() {
+        assert_eq!(RateLimit::new(Timestamp::MIN, 0).wait(), None);
+        assert!(RateLimit::new(Timestamp::MAX, 0).wait().is_some());
+        assert_eq!(RateLimit::new(Timestamp::MAX, 1).wait(), None);
+    }
 
     #[test]
     fn parse_headers_iter_ignores_header_name_case() {
@@ -341,7 +382,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(rate_limit.remaining, 42);
-        assert_eq!(rate_limit.reset.timestamp(), 1_245_946_721);
+        assert_eq!(rate_limit.reset.as_second(), 1_245_946_721);
     }
 
     #[test]
@@ -353,12 +394,13 @@ mod tests {
 
         assert_eq!(rate_limits.get(&scope_a.as_str()), None);
 
-        let rate_limit_a = RateLimit::new(Utc::now().round_subsecs(0), 123);
+        let rate_limit_a = RateLimit::new(Timestamp::now().round(jiff::Unit::Second).unwrap(), 123);
 
         rate_limits.put(scope_a.as_str(), rate_limit_a);
         assert_eq!(rate_limits.get(&scope_a.as_str()), Some(rate_limit_a));
 
-        let rate_limit_b = RateLimit::new(Utc::now().round_subsecs(0), 45678);
+        let rate_limit_b =
+            RateLimit::new(Timestamp::now().round(jiff::Unit::Second).unwrap(), 45678);
 
         rate_limits.put(scope_b.as_str(), rate_limit_b);
         assert_eq!(rate_limits.get(&scope_a.as_str()), Some(rate_limit_a));
@@ -366,7 +408,7 @@ mod tests {
 
         let cloned = rate_limits.clone();
 
-        let rate_limit_c = RateLimit::new(Utc::now().round_subsecs(0), 0);
+        let rate_limit_c = RateLimit::new(Timestamp::now().round(jiff::Unit::Second).unwrap(), 0);
 
         cloned.put(scope_c.as_str(), rate_limit_c);
 
@@ -378,7 +420,7 @@ mod tests {
         assert_eq!(rate_limits.get(&scope_b.as_str()), Some(rate_limit_b));
         assert_eq!(rate_limits.get(&scope_c.as_str()), Some(rate_limit_c));
 
-        let rate_limit_b = RateLimit::new(Utc::now().round_subsecs(0), 987);
+        let rate_limit_b = RateLimit::new(Timestamp::now().round(jiff::Unit::Second).unwrap(), 987);
 
         rate_limits.put(scope_b.as_str(), rate_limit_b);
 

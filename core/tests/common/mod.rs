@@ -90,7 +90,7 @@ const TIMESTAMP_KEYS: [&str; 3] = ["created_at", "editable_until", "end_datetime
 /// optional fields are serialized as explicit nulls rather than omitted; the media variant
 /// `bitrate` key of older snapshots is accepted as a `serde` alias but always re-emitted in the
 /// newer `bit_rate` spelling; and the data format's timestamps are stored as plain
-/// `chrono::DateTime` values, whose serializer drops the always-zero `.000` subsecond part the API
+/// `jiff::Timestamp` values, whose serializer drops the always-zero `.000` subsecond part the API
 /// emits. Undoing each on both sides is what lets a re-serialized snapshot be compared against the
 /// archived JSON.
 fn normalize(value: &mut serde_json::Value) {

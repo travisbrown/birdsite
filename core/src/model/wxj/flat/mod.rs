@@ -4,8 +4,8 @@ use std::ops::Range;
 
 use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
-use chrono::{DateTime, Utc};
-use serde_field_attributes::{optional_range, optional_timestamp_millis_str, range};
+use jiff::Timestamp;
+use serde_field_attributes::{optional_range, range};
 
 use crate::model::attributes::text_timestamp;
 use crate::model::color::Color;
@@ -16,6 +16,7 @@ use crate::model::source::SourceAnchor;
 use crate::model::time_zone::TimeZone;
 
 pub mod entity;
+mod optional_timestamp_millis_str;
 
 // The bools mirror the wire format.
 #[allow(clippy::struct_excessive_bools)]
@@ -23,7 +24,7 @@ pub mod entity;
 #[serde(deny_unknown_fields)]
 pub struct TweetSnapshot<'a> {
     #[serde(with = "text_timestamp")]
-    pub created_at: DateTime<Utc>,
+    pub created_at: Timestamp,
     pub id: u64,
     #[serde(with = "crate::model::attributes::id_str")]
     id_str: u64,
@@ -69,7 +70,7 @@ pub struct TweetSnapshot<'a> {
     pub lang: Lang,
     // Present only on top-level streamed tweets; nested quoted/retweeted statuses omit it.
     #[serde(with = "optional_timestamp_millis_str", default)]
-    pub timestamp_ms: Option<DateTime<Utc>>,
+    pub timestamp_ms: Option<Timestamp>,
     #[serde(with = "optional_range", default)]
     pub display_text_range: Option<Range<usize>>,
     pub extended_tweet: Option<ExtendedTweet<'a>>,
@@ -161,7 +162,7 @@ pub struct User<'a> {
     #[serde(with = "crate::model::attributes::optional_count_with_sentinel")]
     pub statuses_count: Option<usize>,
     #[serde(with = "text_timestamp")]
-    pub created_at: DateTime<Utc>,
+    pub created_at: Timestamp,
     pub utc_offset: Option<isize>,
     pub time_zone: Option<TimeZone>,
     pub geo_enabled: bool,
