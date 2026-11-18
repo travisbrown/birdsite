@@ -13,6 +13,29 @@ const SNAPSHOT: &str = concat!(
     r#""includes":{"users":[]}}"#
 );
 
+#[test]
+fn included_tweets_preserve_western_panjabi() {
+    let mut input: Value = serde_json::from_str(SNAPSHOT).unwrap();
+    input["data"]["lang"] = json!("ur");
+    let mut included = input["data"].clone();
+    included["lang"] = json!("pnb");
+    input["includes"]["tweets"] = json!([included]);
+
+    let text = input.to_string();
+    let snapshot = serde_json::from_str::<TweetSnapshot<'_>>(&text).unwrap();
+    let included = &snapshot.includes.tweets.as_ref().unwrap()[0];
+    assert_eq!(snapshot.data.lang.as_str(), "ur");
+    assert_eq!(included.lang.as_str(), "pnb");
+
+    let serialized = serde_json::to_string(&snapshot).unwrap();
+    let emitted: Value = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(emitted["includes"]["tweets"][0]["lang"], "pnb");
+    assert_eq!(
+        snapshot,
+        serde_json::from_str::<TweetSnapshot<'_>>(&serialized).unwrap()
+    );
+}
+
 /// Regression: `Tweet::text` must deserialize as `Cow::Borrowed` for escape-free input,
 /// confirming the `#[serde(borrow)]` attribute preserves the crate's zero-copy design.
 #[test]

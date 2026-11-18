@@ -280,7 +280,7 @@ impl serde::Serialize for Lang {
     }
 }
 
-const LANGUAGE_CODES: [&str; 225] = [
+const LANGUAGE_CODES: [&str; 226] = [
     "&退", ")a", "1", "<?", "EN", "Es", "TR", "ae", "af", "am", "ar", "as", "au", "az", "az-Cyrl",
     "be", "bg", "bn", "bo", "bs", "bs-Cyrl", "c", "ca", "ceb", "ch", "chr", "ckb", "co", "cr",
     "cs", "ct", "cy", "d.", "da", "de", "de-AT", "de-CH", "dk", "dv", "dz", "e^", "ee", "el", "en",
@@ -292,12 +292,12 @@ const LANGUAGE_CODES: [&str; 225] = [
     "ka", "kk", "km", "kn", "ko", "ks-Arab", "ku", "kw", "ky", "la", "lb", "ld", "le", "lo",
     "lolc", "lt", "luy", "lv", "md", "mg", "mi", "mk", "ml", "mm", "mn", "mr", "ms", "ms-Arab",
     "msa", "mt", "my", "nap", "nb", "nd", "ne", "nl", "nl-BE", "nn", "no", "ny", "or", "pa",
-    "pa-Arab", "ph", "pl", "ps", "pt", "pt-BR", "pt-PT", "qu", "ro", "ru", "rus", "rw", "sa",
-    "scn", "sd", "se", "sh", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "sr-Latn", "sr-cyrl",
-    "sr-latn", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "th_th", "tk", "tl", "tlh", "to",
-    "tr", "tr_tr", "ts", "tt", "ug", "uk", "ur", "us", "uz", "uz-Arab", "uz-Latn", "vi", "vn",
-    "xh", "xx", "yi", "yo", "zh", "zh-CN", "zh-HK", "zh-Hans", "zh-Hant", "zh-MO", "zh-SG",
-    "zh-TW", "zh-cn", "zh-tw", "zu", "zz", "ƴ", "ɐ", "‴ure", "滀", "ꁀ",
+    "pa-Arab", "ph", "pl", "pnb", "ps", "pt", "pt-BR", "pt-PT", "qu", "ro", "ru", "rus", "rw",
+    "sa", "scn", "sd", "se", "sh", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "sr-Latn",
+    "sr-cyrl", "sr-latn", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "th_th", "tk", "tl",
+    "tlh", "to", "tr", "tr_tr", "ts", "tt", "ug", "uk", "ur", "us", "uz", "uz-Arab", "uz-Latn",
+    "vi", "vn", "xh", "xx", "yi", "yo", "zh", "zh-CN", "zh-HK", "zh-Hans", "zh-Hant", "zh-MO",
+    "zh-SG", "zh-TW", "zh-cn", "zh-tw", "zu", "zz", "ƴ", "ɐ", "‴ure", "滀", "ꁀ",
 ];
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -435,6 +435,7 @@ pub enum Language {
     Uzbek(Option<UzbekScript>),
     Vietnamese,
     WesternFrisian,
+    WesternPanjabi,
     Xhosa,
     Yiddish,
     Yoruba,
@@ -847,6 +848,7 @@ impl Language {
             "pa-Arab" => Some(Self::Panjabi(Some(PanjabiScript::Arabic))),
             "ph" => Some(Self::PossibleCountryCode(PossibleCountryCode::Ph)),
             "pl" => Some(Self::Polish),
+            "pnb" => Some(Self::WesternPanjabi),
             "ps" => Some(Self::Pashto),
             "pt" => Some(Self::Portuguese(None)),
             "pt-BR" => Some(Self::Portuguese(Some(PortugueseLocale::Brazil))),
@@ -1131,6 +1133,7 @@ impl Language {
             Self::Uzbek(Some(UzbekScript::Latin)) => "uz-Latn",
             Self::Vietnamese => "vi",
             Self::WesternFrisian => "fy",
+            Self::WesternPanjabi => "pnb",
             Self::Xhosa => "xh",
             Self::Yiddish => "yi",
             Self::Yoruba => "yo",
@@ -1320,7 +1323,7 @@ impl serde::Serialize for Special {
     }
 }
 
-const LANGUAGE_VALUES: [Language; 225] = [
+const LANGUAGE_VALUES: [Language; 226] = [
     Language::Nonstandard(NonstandardCode::AmpHan),
     Language::Nonstandard(NonstandardCode::ParenA),
     Language::Nonstandard(NonstandardCode::One),
@@ -1480,6 +1483,7 @@ const LANGUAGE_VALUES: [Language; 225] = [
     Language::Panjabi(Some(PanjabiScript::Arabic)),
     Language::PossibleCountryCode(PossibleCountryCode::Ph),
     Language::Polish,
+    Language::WesternPanjabi,
     Language::Pashto,
     Language::Portuguese(None),
     Language::Portuguese(Some(PortugueseLocale::Brazil)),

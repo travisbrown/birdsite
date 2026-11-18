@@ -235,6 +235,7 @@ const RAW_DATA: &[(&str, usize)] = &[
     ("nn", 0),
     ("pa-Arab", 0),
     ("ph", 0),
+    ("pnb", 0),
     ("pt-BR", 0),
     ("pt-PT", 0),
     ("qu", 0),
