@@ -45,3 +45,42 @@ fn operational_errors_return_two_and_remain_visible_in_quiet_mode() {
     let stderr = String::from_utf8(output.stderr).unwrap();
     assert!(stderr.contains("I/O error:"), "{stderr}");
 }
+
+#[test]
+fn wxj_errors_report_the_input_line_and_parse_error() {
+    let directory = tempfile::tempdir().unwrap();
+    let input = directory.path().join("invalid.zst");
+    let valid = concat!(
+        r#"{"content":{"data":{"id":"1","conversation_id":"1","#,
+        r#""created_at":"2026-11-18T00:00:00Z","lang":"en","#,
+        r#""possibly_sensitive":false,"public_metrics":{"retweet_count":0,"#,
+        r#""reply_count":0,"like_count":0,"quote_count":0},"#,
+        r#""reply_settings":"everyone","text":"hello"},"includes":{"users":[]}}}"#
+    );
+    let invalid = valid.replace(r#""lang":"en""#, r#""lang":"invalid""#);
+    let contents = format!("{valid}\n{invalid}\n");
+    std::fs::write(&input, zstd::encode_all(contents.as_bytes(), 0).unwrap()).unwrap();
+
+    for flags in [vec![], vec!["--quiet"]] {
+        let output = Command::new(env!("CARGO_BIN_EXE_birdsite-hacks"))
+            .args(["wxj", "validate"])
+            .args(flags)
+            .arg("--input")
+            .arg(&input)
+            .output()
+            .unwrap();
+
+        assert_eq!(output.status.code(), Some(2));
+        assert_eq!(output.stdout.as_slice(), b"");
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        assert!(
+            stderr.contains("WXJ error on line 2: unknown variant `invalid`"),
+            "{stderr}"
+        );
+        assert_eq!(
+            stderr.matches("unknown variant `invalid`").count(),
+            1,
+            "{stderr}"
+        );
+    }
+}

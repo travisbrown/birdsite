@@ -124,8 +124,9 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error("CSV error")]
     Csv(#[from] csv::Error),
-    #[error("WXJ error")]
+    #[error("WXJ error on line {line_number}")]
     Wxj {
+        #[source]
         error: serde_json::Error,
         line_number: usize,
     },
