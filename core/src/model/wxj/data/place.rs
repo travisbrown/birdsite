@@ -6,8 +6,7 @@
 use std::borrow::Cow;
 
 use bounded_static_derive_more::ToStatic;
-use num_rational::Ratio;
-use serde_field_attributes::ratio_i64;
+use serde_json::Number;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -41,12 +40,7 @@ pub enum PlaceGeoType {
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct BoundingBox(
-    #[serde(with = "ratio_i64")] pub Ratio<i64>,
-    #[serde(with = "ratio_i64")] pub Ratio<i64>,
-    #[serde(with = "ratio_i64")] pub Ratio<i64>,
-    #[serde(with = "ratio_i64")] pub Ratio<i64>,
-);
+pub struct BoundingBox(pub Number, pub Number, pub Number, pub Number);
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]

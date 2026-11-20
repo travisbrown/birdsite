@@ -411,7 +411,6 @@ dependencies = [
  "bounded-static",
  "bounded-static-derive-more",
  "jiff",
- "num-rational",
  "proptest",
  "regex",
  "serde",

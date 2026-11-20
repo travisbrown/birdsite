@@ -2,7 +2,6 @@ use std::borrow::Cow;
 
 use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
-use serde_field_attributes::ratio_u64;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -108,8 +107,7 @@ pub struct Annotation<'a> {
     pub start: isize,
     // There is currently one known case where this is -2 (1833402059414245783).
     pub end: isize,
-    #[serde(with = "ratio_u64")]
-    pub probability: num_rational::Ratio<u64>,
+    pub probability: serde_json::Number,
     #[serde(borrow)]
     pub normalized_text: Cow<'a, str>,
 }

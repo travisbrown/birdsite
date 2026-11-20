@@ -2,8 +2,7 @@ use std::borrow::Cow;
 
 use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
-use num_rational::Ratio;
-use serde_field_attributes::ratio_i64;
+use serde_json::Number;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -54,10 +53,7 @@ pub enum BoundingBoxType {
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct Coordinates(
-    #[serde(with = "ratio_i64")] pub Ratio<i64>,
-    #[serde(with = "ratio_i64")] pub Ratio<i64>,
-);
+pub struct Coordinates(pub Number, pub Number);
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
