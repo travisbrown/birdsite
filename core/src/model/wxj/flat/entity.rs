@@ -3,8 +3,8 @@ use std::ops::Range;
 
 use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
-use serde_field_attributes::range;
 
+use crate::field_attributes::range;
 use crate::model::media::Media;
 
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]

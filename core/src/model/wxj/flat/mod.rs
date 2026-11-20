@@ -5,8 +5,8 @@ use std::ops::Range;
 use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
 use jiff::Timestamp;
-use serde_field_attributes::{optional_range, range};
 
+use crate::field_attributes::range;
 use crate::model::attributes::text_timestamp;
 use crate::model::color::Color;
 use crate::model::country::Country;
@@ -71,7 +71,7 @@ pub struct TweetSnapshot<'a> {
     // Present only on top-level streamed tweets; nested quoted/retweeted statuses omit it.
     #[serde(with = "optional_timestamp_millis_str", default)]
     pub timestamp_ms: Option<Timestamp>,
-    #[serde(with = "optional_range", default)]
+    #[serde(with = "range::optional", default)]
     pub display_text_range: Option<Range<usize>>,
     pub extended_tweet: Option<ExtendedTweet<'a>>,
     pub extended_entities: Option<entity::ExtendedTweetExtendedEntities<'a>>,

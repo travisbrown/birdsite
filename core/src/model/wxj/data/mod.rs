@@ -5,8 +5,8 @@ use std::ops::Range;
 use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
 use jiff::Timestamp;
-use serde_field_attributes::optional_range;
 
+use crate::field_attributes::range;
 use crate::model::country::Country;
 use crate::model::lang::Lang;
 use crate::model::metrics::{TweetPublicMetrics, UserPublicMetrics};
@@ -96,7 +96,7 @@ pub struct Tweet<'a> {
     #[serde(with = "crate::model::attributes::id_str")]
     pub conversation_id: u64,
     pub created_at: Timestamp,
-    #[serde(with = "optional_range", default)]
+    #[serde(with = "range::optional", default)]
     pub display_text_range: Option<Range<usize>>,
     pub edit_controls: Option<EditControls>,
     #[serde(with = "crate::model::attributes::optional_ids_str", default)]
@@ -268,7 +268,7 @@ pub struct NoteRequestSuggestion<'a> {
 #[derive(Clone, Debug, Eq, PartialEq, ToStatic, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SuggestedSourceLink<'a> {
-    #[serde(with = "serde_field_attributes::integer_str")]
+    #[serde(with = "crate::model::attributes::count_str")]
     pub count: usize,
     #[serde(borrow)]
     pub url: Cow<'a, str>,

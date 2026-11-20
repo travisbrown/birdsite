@@ -90,7 +90,7 @@ pub enum ConversationSection {
 pub mod event {
     use std::borrow::Cow;
 
-    use serde_field_attributes::integer_str;
+    use crate::field_attributes::i64_str;
 
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     #[serde(deny_unknown_fields)]
@@ -181,7 +181,7 @@ pub mod event {
         },
         TimelineTrendUrtMetadata {
             /// This can be negative (for example, `-8530644708937920429`).
-            #[serde(rename = "impressionId", with = "integer_str")]
+            #[serde(rename = "impressionId", with = "i64_str")]
             impression_id: i64,
             #[serde(rename = "impressionToken")]
             impression_token: &'a str,

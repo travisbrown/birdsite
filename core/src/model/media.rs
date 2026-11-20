@@ -3,7 +3,8 @@ use std::ops::Range;
 
 use archivindex_serde::borrowable_str;
 use bounded_static_derive_more::ToStatic;
-use serde_field_attributes::range;
+
+use crate::field_attributes::range;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum Resize {

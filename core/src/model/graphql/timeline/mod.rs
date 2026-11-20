@@ -65,7 +65,7 @@ pub struct EntryId<'a>(#[serde(borrow)] pub Cow<'a, str>);
 pub struct Entry<'a, T, U> {
     #[serde(rename = "entryId")]
     pub entry_id: EntryId<'a>,
-    #[serde(rename = "sortIndex", with = "serde_field_attributes::integer_str")]
+    #[serde(rename = "sortIndex", with = "crate::model::attributes::id_str")]
     pub sort_index: u64,
     #[serde(borrow)]
     pub content: EntryContent<'a, T, U>,
