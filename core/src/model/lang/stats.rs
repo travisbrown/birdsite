@@ -217,6 +217,7 @@ const RAW_DATA: &[(&str, usize)] = &[
     ("it_it", 0),
     ("iu", 0),
     ("iw_il", 0),
+    ("ji", 0),
     ("jp", 0),
     ("jv", 0),
     ("jw", 0),

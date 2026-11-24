@@ -280,7 +280,7 @@ impl serde::Serialize for Lang {
     }
 }
 
-const LANGUAGE_CODES: [&str; 226] = [
+const LANGUAGE_CODES: [&str; 227] = [
     "&退", ")a", "1", "<?", "EN", "Es", "TR", "ae", "af", "am", "ar", "as", "au", "az", "az-Cyrl",
     "be", "bg", "bn", "bo", "bs", "bs-Cyrl", "c", "ca", "ceb", "ch", "chr", "ckb", "co", "cr",
     "cs", "ct", "cy", "d.", "da", "de", "de-AT", "de-CH", "dk", "dv", "dz", "e^", "ee", "el", "en",
@@ -288,8 +288,8 @@ const LANGUAGE_CODES: [&str; 226] = [
     "en_gb", "english", "eo", "es", "es-419", "es-ES", "es-MX", "es_es", "et", "eu", "fa", "fa-IR",
     "fi", "fil", "fil-ph", "fo", "fr", "fr-CA", "fr-CH", "fr-FR", "fr_fr", "fy", "ga", "gb", "gd",
     "gl", "go", "gsw", "gu", "gv", "ha", "haw", "hd", "he", "hi", "hmn", "hr", "ht", "hu", "hy",
-    "id", "ig", "in", "is", "it", "it-IT", "it_it", "iu", "iw", "iw_il", "ja", "jp", "jv", "jw",
-    "ka", "kk", "km", "kn", "ko", "ks-Arab", "ku", "kw", "ky", "la", "lb", "ld", "le", "lo",
+    "id", "ig", "in", "is", "it", "it-IT", "it_it", "iu", "iw", "iw_il", "ja", "ji", "jp", "jv",
+    "jw", "ka", "kk", "km", "kn", "ko", "ks-Arab", "ku", "kw", "ky", "la", "lb", "ld", "le", "lo",
     "lolc", "lt", "luy", "lv", "md", "mg", "mi", "mk", "ml", "mm", "mn", "mr", "ms", "ms-Arab",
     "msa", "mt", "my", "nap", "nb", "nd", "ne", "nl", "nl-BE", "nn", "no", "ny", "or", "pa",
     "pa-Arab", "ph", "pl", "pnb", "ps", "pt", "pt-BR", "pt-PT", "qu", "ro", "ru", "rus", "rw",
@@ -437,7 +437,7 @@ pub enum Language {
     WesternFrisian,
     WesternPanjabi,
     Xhosa,
-    Yiddish,
+    Yiddish { iso_639_1988: bool },
     Yoruba,
     Welsh,
     Zulu,
@@ -799,6 +799,7 @@ impl Language {
             })),
             "iw_il" => Some(Self::Hebrew(HebrewForm::Israel)),
             "ja" => Some(Self::Japanese),
+            "ji" => Some(Self::Yiddish { iso_639_1988: true }),
             "jp" => Some(Self::PossibleCountryCode(PossibleCountryCode::Jp)),
             "jv" => Some(Self::Javanese {
                 iso_639_1988: false,
@@ -906,7 +907,9 @@ impl Language {
             "vn" => Some(Self::PossibleCountryCode(PossibleCountryCode::Vn)),
             "xh" => Some(Self::Xhosa),
             "xx" => Some(Self::Nonstandard(NonstandardCode::Xx)),
-            "yi" => Some(Self::Yiddish),
+            "yi" => Some(Self::Yiddish {
+                iso_639_1988: false,
+            }),
             "yo" => Some(Self::Yoruba),
             "zh" => Some(Self::Chinese(None)),
             "zh-CN" => Some(Self::Chinese(Some(ChineseLocale::Simplified {
@@ -1135,7 +1138,10 @@ impl Language {
             Self::WesternFrisian => "fy",
             Self::WesternPanjabi => "pnb",
             Self::Xhosa => "xh",
-            Self::Yiddish => "yi",
+            Self::Yiddish {
+                iso_639_1988: false,
+            } => "yi",
+            Self::Yiddish { iso_639_1988: true } => "ji",
             Self::Yoruba => "yo",
             Self::Welsh => "cy",
             Self::Zulu => "zu",
@@ -1323,7 +1329,7 @@ impl serde::Serialize for Special {
     }
 }
 
-const LANGUAGE_VALUES: [Language; 226] = [
+const LANGUAGE_VALUES: [Language; 227] = [
     Language::Nonstandard(NonstandardCode::AmpHan),
     Language::Nonstandard(NonstandardCode::ParenA),
     Language::Nonstandard(NonstandardCode::One),
@@ -1433,6 +1439,7 @@ const LANGUAGE_VALUES: [Language; 226] = [
     }),
     Language::Hebrew(HebrewForm::Israel),
     Language::Japanese,
+    Language::Yiddish { iso_639_1988: true },
     Language::PossibleCountryCode(PossibleCountryCode::Jp),
     Language::Javanese {
         iso_639_1988: false,
@@ -1537,7 +1544,9 @@ const LANGUAGE_VALUES: [Language; 226] = [
     Language::PossibleCountryCode(PossibleCountryCode::Vn),
     Language::Xhosa,
     Language::Nonstandard(NonstandardCode::Xx),
-    Language::Yiddish,
+    Language::Yiddish {
+        iso_639_1988: false,
+    },
     Language::Yoruba,
     Language::Chinese(None),
     Language::Chinese(Some(ChineseLocale::Simplified { capitalized: true })),
@@ -1575,6 +1584,18 @@ const SPECIAL_VALUES: [Special; 9] = [
 #[cfg(test)]
 mod test {
     use super::{Lang, Language, NonstandardCode, SelectionLanguage, Special};
+
+    #[test]
+    fn yiddish_codes_preserve_their_spelling() {
+        for (code, iso_639_1988) in [("ji", true), ("yi", false)] {
+            let language = Language::Yiddish { iso_639_1988 };
+            assert_eq!(code.parse::<Language>().unwrap(), language);
+            assert_eq!(language.as_str(), code);
+            let json = format!("\"{code}\"");
+            assert_eq!(serde_json::from_str::<Language>(&json).unwrap(), language);
+            assert_eq!(serde_json::to_string(&language).unwrap(), json);
+        }
+    }
 
     #[test]
     fn parses_selection_placeholders() {

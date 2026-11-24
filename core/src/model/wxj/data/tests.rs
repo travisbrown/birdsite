@@ -14,26 +14,28 @@ const SNAPSHOT: &str = concat!(
 );
 
 #[test]
-fn included_tweets_preserve_western_panjabi() {
-    let mut input: Value = serde_json::from_str(SNAPSHOT).unwrap();
-    input["data"]["lang"] = json!("ur");
-    let mut included = input["data"].clone();
-    included["lang"] = json!("pnb");
-    input["includes"]["tweets"] = json!([included]);
+fn included_tweets_preserve_language_codes() {
+    for (main_code, included_code) in [("ur", "pnb"), ("zxx", "ji"), ("zxx", "yi")] {
+        let mut input: Value = serde_json::from_str(SNAPSHOT).unwrap();
+        input["data"]["lang"] = json!(main_code);
+        let mut included = input["data"].clone();
+        included["lang"] = json!(included_code);
+        input["includes"]["tweets"] = json!([included]);
 
-    let text = input.to_string();
-    let snapshot = serde_json::from_str::<TweetSnapshot<'_>>(&text).unwrap();
-    let included = &snapshot.includes.tweets.as_ref().unwrap()[0];
-    assert_eq!(snapshot.data.lang.as_str(), "ur");
-    assert_eq!(included.lang.as_str(), "pnb");
+        let text = input.to_string();
+        let snapshot = serde_json::from_str::<TweetSnapshot<'_>>(&text).unwrap();
+        let included = &snapshot.includes.tweets.as_ref().unwrap()[0];
+        assert_eq!(snapshot.data.lang.as_str(), main_code);
+        assert_eq!(included.lang.as_str(), included_code);
 
-    let serialized = serde_json::to_string(&snapshot).unwrap();
-    let emitted: Value = serde_json::from_str(&serialized).unwrap();
-    assert_eq!(emitted["includes"]["tweets"][0]["lang"], "pnb");
-    assert_eq!(
-        snapshot,
-        serde_json::from_str::<TweetSnapshot<'_>>(&serialized).unwrap()
-    );
+        let serialized = serde_json::to_string(&snapshot).unwrap();
+        let emitted: Value = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(emitted["includes"]["tweets"][0]["lang"], included_code);
+        assert_eq!(
+            snapshot,
+            serde_json::from_str::<TweetSnapshot<'_>>(&serialized).unwrap()
+        );
+    }
 }
 
 /// Regression: `Tweet::text` must deserialize as `Cow::Borrowed` for escape-free input,
